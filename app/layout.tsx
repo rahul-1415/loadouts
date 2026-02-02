@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Space_Grotesk } from "next/font/google";
+import { Sora } from "next/font/google";
 import "../styles/globals.css";
 import NavBar from "../components/NavBar";
 
@@ -8,8 +8,9 @@ export const metadata: Metadata = {
   description: "Loadouts App (placeholder)",
 };
 
-const spaceGrotesk = Space_Grotesk({
+const sora = Sora({
   subsets: ["latin"],
+  variable: "--font-sora",
   display: "swap",
 });
 
@@ -20,15 +21,15 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body
-        className={`${spaceGrotesk.className} min-h-screen bg-slate-50 text-slate-900`}
-      >
+      <body className={`${sora.variable} min-h-screen bg-paper text-ink`}>
         <div className="flex min-h-screen flex-col">
           <NavBar />
-          <main className="flex-1 px-4 py-8 md:px-8">
-            <div className="mx-auto w-full max-w-6xl">{children}</div>
+          <main className="flex-1 px-4 py-10 sm:px-6 sm:py-12 lg:px-10 lg:py-16 2xl:px-16">
+            <div className="mx-auto w-full max-w-[1200px] 2xl:max-w-[1400px]">
+              {children}
+            </div>
           </main>
-          <footer className="border-t border-slate-200 bg-white px-4 py-6 text-sm text-slate-500 md:px-8">
+          <footer className="border-t border-ink/10 bg-paper px-4 py-6 text-xs uppercase tracking-[0.3em] text-ink/60 md:px-8">
             <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-2">
               <span>Loadouts — placeholder footer</span>
               <span>© 2026</span>

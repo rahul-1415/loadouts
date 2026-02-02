@@ -13,7 +13,7 @@ export default function Avatar({ alt, size = "md" }: AvatarProps) {
   return (
     <div
       aria-label={alt}
-      className={`${sizeStyles[size]} rounded-full bg-slate-200`}
+      className={`${sizeStyles[size]} rounded-full border border-ink/20 bg-ink/10`}
     />
   );
 }

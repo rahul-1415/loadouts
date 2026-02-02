@@ -2,7 +2,7 @@ import Button from "../../../components/Button";
 import ProductItem from "../../../components/ProductItem";
 import CommentBox from "../../../components/CommentBox";
 
-interface CollectionPageProps {
+interface LoadoutPageProps {
   params: {
     id: string;
   };
@@ -19,22 +19,22 @@ const comments = [
   { id: "cm2", author: "{{USER_HANDLE}}", text: "{{COMMENT_TEXT}}" },
 ];
 
-export default function CollectionPage({ params }: CollectionPageProps) {
+export default function LoadoutPage({ params }: LoadoutPageProps) {
   return (
     <div className="space-y-8">
       <header className="space-y-3">
         <p className="text-[11px] uppercase tracking-[0.45em] text-ink/50">
-          Category #{params.id}
+          Loadout #{params.id}
         </p>
         <h1 className="text-[clamp(2.1rem,4vw,3.2rem)] font-semibold text-ink">
-          {"{{CATEGORY_TITLE}}"}
+          {"{{LOADOUT_TITLE}}"}
         </h1>
         <p className="text-sm text-ink/70">
           by <span className="font-medium text-ink">@{"{{USER_HANDLE}}"}</span>
         </p>
         <p className="max-w-2xl text-ink/70">
-          {"{{CATEGORY_DESCRIPTION}}"} — placeholder description for this
-          category.
+          {"{{LOADOUT_DESCRIPTION}}"} — placeholder description for this
+          loadout.
         </p>
       </header>
 

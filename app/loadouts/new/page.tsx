@@ -1,17 +1,18 @@
 import Button from "../../../components/Button";
 
-export default function NewCollectionPage() {
+export default function NewLoadoutPage() {
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <header>
         <p className="text-[11px] uppercase tracking-[0.45em] text-ink/50">
-          New Category
+          New Loadout
         </p>
         <h1 className="text-[clamp(2rem,3.6vw,3rem)] font-semibold text-ink">
-          Create a new category
+          Create a new loadout
         </h1>
         <p className="mt-2 text-sm text-ink/70">
-          This form is a placeholder until the API and database are wired up.
+          Build a loadout with tools, products, and links. Placeholder content
+          until the API and database are wired up.
         </p>
       </header>
 
@@ -22,15 +23,12 @@ export default function NewCollectionPage() {
           </label>
           <input
             id="title"
-            placeholder="{{CATEGORY_TITLE}}"
+            placeholder="{{LOADOUT_TITLE}}"
             className="mt-2 w-full rounded-xl border border-ink/20 bg-transparent px-3 py-2 text-sm text-ink placeholder:text-ink/40"
           />
         </div>
         <div>
-          <label
-            className="text-sm font-medium text-ink"
-            htmlFor="description"
-          >
+          <label className="text-sm font-medium text-ink" htmlFor="description">
             Description
           </label>
           <textarea
@@ -41,7 +39,7 @@ export default function NewCollectionPage() {
           />
         </div>
         <div>
-          <label className="text-sm font-medium text-ink">Products</label>
+          <label className="text-sm font-medium text-ink">Items</label>
           <div className="mt-2 grid gap-3">
             <input
               placeholder="{{PRODUCT_URL}}"
@@ -53,7 +51,7 @@ export default function NewCollectionPage() {
             />
           </div>
         </div>
-        <Button type="submit">Create Category</Button>
+        <Button type="submit">Create Loadout</Button>
       </form>
     </div>
   );

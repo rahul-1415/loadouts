@@ -8,35 +8,35 @@ interface ProfilePageProps {
   };
 }
 
-const userCollections = [
+const userCategories = [
   {
     id: "c1",
-    title: "{{COLLECTION_NAME}}",
+    title: "{{CATEGORY_NAME}}",
     author: "{{USER_HANDLE}}",
-    description: "Placeholder collection on a user profile.",
+    description: "Placeholder category on a user profile.",
   },
   {
     id: "c2",
-    title: "{{COLLECTION_NAME}}",
+    title: "{{CATEGORY_NAME}}",
     author: "{{USER_HANDLE}}",
-    description: "Another placeholder collection card.",
+    description: "Another placeholder category card.",
   },
 ];
 
 export default function ProfilePage({ params }: ProfilePageProps) {
   return (
     <div className="space-y-8">
-      <section className="flex flex-wrap items-center justify-between gap-6 rounded-2xl border border-slate-200 bg-white p-6">
+      <section className="flex flex-wrap items-center justify-between gap-6 rounded-3xl border border-ink/15 bg-paper/80 p-6">
         <div className="flex items-center gap-4">
           <Avatar alt="User avatar" size="lg" />
           <div>
-            <p className="text-sm uppercase tracking-[0.3em] text-slate-400">
+            <p className="text-[11px] uppercase tracking-[0.45em] text-ink/50">
               Profile
             </p>
-            <h1 className="text-2xl font-semibold text-slate-900">
+            <h1 className="text-[clamp(1.6rem,2.6vw,2.3rem)] font-semibold text-ink">
               @{params.userHandle}
             </h1>
-            <p className="mt-1 text-sm text-slate-600">
+            <p className="mt-1 text-sm text-ink/70">
               {"{{USER_BIO}}"} — placeholder bio for a user profile.
             </p>
           </div>
@@ -45,12 +45,12 @@ export default function ProfilePage({ params }: ProfilePageProps) {
       </section>
 
       <section>
-        <h2 className="text-xl font-semibold text-slate-900">
-          Collections by @{params.userHandle}
+        <h2 className="text-xl font-semibold text-ink">
+          Categories by @{params.userHandle}
         </h2>
         <div className="mt-4 grid gap-6 md:grid-cols-2">
-          {userCollections.map((collection) => (
-            <CollectionCard key={collection.id} {...collection} />
+          {userCategories.map((category) => (
+            <CollectionCard key={category.id} {...category} />
           ))}
         </div>
       </section>

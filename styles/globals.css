@@ -4,14 +4,45 @@
 
 :root {
   color-scheme: light;
+  --ink: #1b1d26;
+  --paper: #d7d7d7;
+  --fog: #c7c7c7;
+  --mist: #8c8c8c;
+  --accent-yellow: #fbfdb2;
+  --accent-orange: #e4b851;
+  --accent-red: #dc5946;
+  --accent-blue: #9ab6c2;
 }
 
 body {
+  background-color: var(--paper);
   background-image: radial-gradient(
       circle at top,
-      rgba(15, 23, 42, 0.06),
+      rgba(251, 253, 178, 0.5),
       transparent 55%
     ),
-    radial-gradient(circle at 20% 20%, rgba(148, 163, 184, 0.2), transparent);
+    radial-gradient(circle at 20% 20%, rgba(154, 182, 194, 0.4), transparent);
   background-repeat: no-repeat;
+  color: var(--ink);
+}
+
+::selection {
+  background: var(--accent-yellow);
+  color: var(--ink);
+}
+
+@layer base {
+  html {
+    font-family: var(--font-sora), ui-sans-serif, system-ui, sans-serif;
+  }
+
+  h1,
+  h2,
+  h3 {
+    letter-spacing: -0.02em;
+  }
+
+  p {
+    line-height: 1.7;
+  }
 }
