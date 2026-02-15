@@ -3,37 +3,38 @@
 @tailwind utilities;
 
 :root {
-  color-scheme: light;
-  --ink: #1b1d26;
-  --paper: #d7d7d7;
-  --fog: #c7c7c7;
-  --mist: #8c8c8c;
-  --accent-yellow: #fbfdb2;
-  --accent-orange: #e4b851;
-  --accent-red: #dc5946;
-  --accent-blue: #9ab6c2;
+  color-scheme: dark;
+  --ink: #f4f5f7;
+  --paper: #08090c;
+  --fog: #c7cbd2;
+  --mist: #8d929b;
+  --accent-yellow: #e6e8ec;
+  --accent-orange: #9ea5af;
+  --accent-red: #8d96a3;
+  --accent-blue: #a8b1be;
 }
 
 body {
   background-color: var(--paper);
   background-image: radial-gradient(
-      circle at top,
-      rgba(251, 253, 178, 0.5),
-      transparent 55%
+      circle at 12% 8%,
+      rgba(194, 201, 211, 0.11),
+      transparent 42%
     ),
-    radial-gradient(circle at 20% 20%, rgba(154, 182, 194, 0.4), transparent);
+    radial-gradient(circle at 86% 4%, rgba(155, 163, 175, 0.1), transparent 38%);
   background-repeat: no-repeat;
   color: var(--ink);
 }
 
 ::selection {
-  background: var(--accent-yellow);
-  color: var(--ink);
+  background: #cfd3da;
+  color: #0a0b0f;
 }
 
 @layer base {
   html {
-    font-family: var(--font-sora), ui-sans-serif, system-ui, sans-serif;
+    font-family: Maple, "Founders Grotesk", "Monotype Grotesque", ui-sans-serif,
+      system-ui, sans-serif;
   }
 
   h1,

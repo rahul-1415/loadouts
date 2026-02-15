@@ -16,9 +16,9 @@ interface ButtonLinkProps
 
 const variantStyles: Record<ButtonVariant, string> = {
   primary:
-    "border border-ink bg-ink text-paper hover:text-ink focus-visible:ring-accent-yellow",
+    "border border-white/10 bg-[#f4f5f7] text-[#0b0c0f] hover:text-[#0b0c0f] focus-visible:ring-white/60",
   secondary:
-    "border border-ink/30 bg-transparent text-ink hover:border-ink focus-visible:ring-ink/30",
+    "border border-white/25 bg-transparent text-[#f4f5f7] hover:border-white/45 focus-visible:ring-white/35",
 };
 
 const baseClasses =
@@ -32,11 +32,11 @@ function ButtonInner({
   children: React.ReactNode;
 }) {
   const overlay =
-    variant === "primary" ? "bg-accent-yellow/90" : "bg-ink/10";
+    variant === "primary" ? "bg-[#d7dadf]/85" : "bg-white/10";
   const label =
     variant === "primary"
-      ? "text-paper group-hover:text-ink"
-      : "text-ink";
+      ? "text-[#0b0c0f] group-hover:text-[#0b0c0f]"
+      : "text-[#f4f5f7]";
 
   return (
     <>

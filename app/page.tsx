@@ -24,49 +24,48 @@ const categories = [
 
 export default function HomePage() {
   return (
-    <div className="space-y-8">
-      <section className="grid gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
+    <div className="space-y-8 text-[#f4f5f7]">
+      <section className="grid gap-10 rounded-3xl border border-white/10 bg-[#0d0f14] p-6 shadow-[0_36px_70px_rgba(0,0,0,0.35)] sm:p-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-center lg:p-10">
         <div className="space-y-6">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.45em] text-ink/50">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.45em] text-white/50">
             Home Feed
           </p>
-          <h1 className="text-[clamp(2.6rem,6vw,4.75rem)] font-semibold text-ink">
+          <h1 className="text-[clamp(2.6rem,6vw,4.75rem)] font-semibold leading-[0.95] text-white">
             Build and share the loadouts that power your best work.
           </h1>
-          <p className="max-w-2xl text-base text-ink/70">
+          <p className="max-w-2xl text-base text-white/68">
             A curated hub for tools, workflows, and product stacks. Everything
             shown here is placeholder content until the API is connected.
           </p>
           <div className="flex flex-wrap gap-3">
             <Button>Get access</Button>
-            <Button variant="secondary">Watch demo</Button>
           </div>
-          <div className="flex flex-wrap gap-6 text-[11px] font-semibold uppercase tracking-[0.35em] text-ink/50">
+          <div className="flex flex-wrap gap-6 text-[11px] font-semibold uppercase tracking-[0.35em] text-white/48">
             <span>Created daily</span>
             <span>Curated by creators</span>
             <span>Save &amp; revisit</span>
           </div>
         </div>
-        <div className="rounded-3xl border border-ink/20 bg-ink p-6 text-paper shadow-[0_30px_60px_rgba(27,29,38,0.2)]">
-          <h2 className="mt-4 text-3xl font-semibold">
-            {"{{CATEGORY_TITLE}}"}
-          </h2>
-          <p className="mt-3 text-sm text-paper/70">
-            Short hero summary. Use this area to highlight a signature loadout
-            or featured creator.
+        <div className="rounded-3xl border border-white/12 bg-[#11141a] p-6 shadow-[0_24px_56px_rgba(0,0,0,0.28)]">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.35em] text-white/55">
+            Demo Preview
           </p>
-          <div className="mt-6 grid gap-4 rounded-2xl border border-paper/20 bg-paper/10 p-4 text-sm">
-            <div className="flex items-center justify-between">
-              <span className="uppercase tracking-[0.3em] text-paper/60">
-                Items
-              </span>
-              <span className="text-xl font-semibold">12</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="uppercase tracking-[0.3em] text-paper/60">
-                Saves
-              </span>
-              <span className="text-xl font-semibold">3.4k</span>
+          <h2 className="mt-4 text-2xl font-semibold text-white sm:text-3xl">
+            App Walkthrough Video
+          </h2>
+          <p className="mt-3 text-sm text-white/65">
+            Placeholder area for a demo video that shows how the app works.
+          </p>
+          <div className="mt-6 aspect-video rounded-2xl border border-dashed border-white/25 bg-[radial-gradient(circle_at_20%_18%,rgba(255,255,255,0.12),transparent_35%),linear-gradient(165deg,#1a1f28,#0f1218)] p-4">
+            <div className="flex h-full items-center justify-center rounded-xl border border-white/10 bg-black/20">
+              <div className="text-center">
+                <div className="mx-auto grid h-14 w-14 place-items-center rounded-full border border-white/35 bg-white/10">
+                  <svg viewBox="0 0 24 24" className="h-5 w-5 text-white" fill="currentColor">
+                    <path d="M8 6.5v11l9-5.5-9-5.5Z" />
+                  </svg>
+                </div>
+                <p className="mt-3 text-sm font-medium text-white/88">Demo video placeholder</p>
+              </div>
             </div>
           </div>
         </div>
@@ -74,10 +73,10 @@ export default function HomePage() {
 
       <section className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.45em] text-ink/50">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.45em] text-white/50">
             Latest categories
           </p>
-          <h2 className="text-[clamp(1.8rem,3vw,2.5rem)] font-semibold text-ink">
+          <h2 className="text-[clamp(1.8rem,3vw,2.5rem)] font-semibold text-white">
             Browse curated categories
           </h2>
         </div>
@@ -92,9 +91,9 @@ export default function HomePage() {
         ))}
       </section>
 
-      <section className="rounded-3xl border border-dashed border-ink/20 bg-paper/70 p-6">
-        <h2 className="text-lg font-semibold text-ink">Sidebar</h2>
-        <p className="mt-2 text-sm text-ink/70">
+      <section className="rounded-3xl border border-dashed border-white/15 bg-[#11131a] p-6">
+        <h2 className="text-lg font-semibold text-white">Sidebar</h2>
+        <p className="mt-2 text-sm text-white/70">
           Placeholder area for trending categories, recommended users, or
           search.
         </p>

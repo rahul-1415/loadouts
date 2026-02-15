@@ -20,18 +20,18 @@ export default function CollectionCard({
   const linkHref = href ?? `/categories/${id}`;
 
   return (
-    <article className="overflow-hidden rounded-3xl border border-ink/10 bg-paper/70 shadow-[0_20px_40px_rgba(27,29,38,0.08)]">
-      <div className="h-40 w-full bg-gradient-to-br from-ink/5 via-ink/10 to-ink/20" />
+    <article className="overflow-hidden rounded-3xl border border-white/10 bg-[#11131a] shadow-[0_22px_48px_rgba(0,0,0,0.3)]">
+      <div className="h-40 w-full bg-gradient-to-br from-white/5 via-white/[0.08] to-[#1a2230]" />
       <div className="space-y-3 p-5">
         <div>
-          <p className="text-[11px] uppercase tracking-[0.35em] text-ink/50">
+          <p className="text-[11px] uppercase tracking-[0.35em] text-white/50">
             {author}
           </p>
-          <h3 className="text-lg font-semibold text-ink">{title}</h3>
+          <h3 className="text-lg font-semibold text-white">{title}</h3>
         </div>
-        <p className="text-sm text-ink/70">{description}</p>
+        <p className="text-sm text-white/70">{description}</p>
         <Link
-          className="text-sm font-semibold uppercase tracking-[0.2em] text-ink underline decoration-ink/40 underline-offset-4"
+          className="text-sm font-semibold uppercase tracking-[0.2em] text-white underline decoration-white/35 underline-offset-4"
           href={linkHref}
         >
           {ctaLabel}

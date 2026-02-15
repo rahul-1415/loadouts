@@ -7,19 +7,26 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        ink: "#1b1d26",
-        paper: "#d7d7d7",
-        fog: "#c7c7c7",
-        mist: "#8c8c8c",
+        ink: "#f4f5f7",
+        paper: "#0b0d12",
+        fog: "#c7cbd2",
+        mist: "#8d929b",
         accent: {
-          yellow: "#fbfdb2",
-          orange: "#e4b851",
-          red: "#dc5946",
-          blue: "#9ab6c2",
+          yellow: "#e6e8ec",
+          orange: "#9ea5af",
+          red: "#8d96a3",
+          blue: "#a8b1be",
         },
       },
       fontFamily: {
-        sans: ["var(--font-sora)", "ui-sans-serif", "system-ui", "sans-serif"],
+        sans: [
+          "Maple",
+          "Founders Grotesk",
+          "Monotype Grotesque",
+          "ui-sans-serif",
+          "system-ui",
+          "sans-serif",
+        ],
       },
     },
   },
