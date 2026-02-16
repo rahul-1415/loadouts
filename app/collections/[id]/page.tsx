@@ -1,6 +1,8 @@
 import Button from "../../../components/Button";
 import ProductItem from "../../../components/ProductItem";
 import CommentBox from "../../../components/CommentBox";
+import { notFound } from "next/navigation";
+import { getPublicCollectionByIdentifier } from "../../../lib/data/collections";
 
 interface CollectionPageProps {
   params: {
@@ -8,61 +10,74 @@ interface CollectionPageProps {
   };
 }
 
-const products = [
-  { id: "p1", name: "{{PRODUCT_NAME}}", subtitle: "{{BRAND}}" },
-  { id: "p2", name: "{{PRODUCT_NAME}}", subtitle: "{{BRAND}}" },
-  { id: "p3", name: "{{PRODUCT_NAME}}", subtitle: "{{BRAND}}" },
-];
+export default async function CollectionPage({ params }: CollectionPageProps) {
+  const collection = await getPublicCollectionByIdentifier(params.id);
 
-const comments = [
-  { id: "cm1", author: "{{USER_HANDLE}}", text: "{{COMMENT_TEXT}}" },
-  { id: "cm2", author: "{{USER_HANDLE}}", text: "{{COMMENT_TEXT}}" },
-];
+  if (!collection) {
+    notFound();
+  }
 
-export default function CollectionPage({ params }: CollectionPageProps) {
+  const collectionLabel =
+    collection.kind === "loadout" ? "Loadout" : "Category";
+
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 text-[#f4f5f7]">
       <header className="space-y-3">
-        <p className="text-[11px] uppercase tracking-[0.45em] text-ink/50">
-          Category #{params.id}
+        <p className="text-[11px] uppercase tracking-[0.45em] text-white/50">
+          {collectionLabel} #{collection.slug}
         </p>
-        <h1 className="text-[clamp(2.1rem,4vw,3.2rem)] font-semibold text-ink">
-          {"{{CATEGORY_TITLE}}"}
+        <h1 className="text-[clamp(2.1rem,4vw,3.2rem)] font-semibold text-white">
+          {collection.title}
         </h1>
-        <p className="text-sm text-ink/70">
-          by <span className="font-medium text-ink">@{"{{USER_HANDLE}}"}</span>
+        <p className="text-sm text-white/70">
+          by <span className="font-medium text-white">{collection.author}</span>
         </p>
-        <p className="max-w-2xl text-ink/70">
-          {"{{CATEGORY_DESCRIPTION}}"} — placeholder description for this
-          category.
-        </p>
+        {collection.description ? (
+          <p className="max-w-2xl text-white/70">{collection.description}</p>
+        ) : null}
       </header>
 
       <section className="grid gap-4 md:grid-cols-2">
-        {products.map((product) => (
-          <ProductItem key={product.id} {...product} />
+        {collection.products.map((product) => (
+          <ProductItem
+            key={product.id}
+            name={product.name}
+            brand={product.brand}
+            description={product.note || product.description}
+            imageUrl={product.imageUrl}
+            productUrl={product.productUrl}
+            sourceUrl={product.sourceUrl}
+          />
         ))}
+        {collection.products.length === 0 ? (
+          <p className="text-sm text-white/70">
+            No products added to this collection yet.
+          </p>
+        ) : null}
       </section>
 
       <section className="flex flex-wrap gap-3">
-        <Button>Like ({"{{LIKE_COUNT}}"})</Button>
+        <Button>Like ({collection.likeCount})</Button>
         <Button variant="secondary">Save</Button>
         <Button variant="secondary">Share</Button>
       </section>
 
       <section className="space-y-4">
-        <h2 className="text-xl font-semibold text-ink">Comments</h2>
+        <h2 className="text-xl font-semibold text-white">Comments</h2>
         <form className="flex flex-wrap gap-3">
           <input
             placeholder="Add a comment..."
-            className="flex-1 rounded-xl border border-ink/20 bg-transparent px-3 py-2 text-sm text-ink placeholder:text-ink/40"
+            className="flex-1 rounded-xl border border-white/20 bg-transparent px-3 py-2 text-sm text-white placeholder:text-white/40"
           />
           <Button type="submit">Post</Button>
         </form>
         <div className="space-y-3">
-          {comments.map((comment) => (
-            <CommentBox key={comment.id} {...comment} />
+          {collection.comments.map((comment) => (
+            <CommentBox key={comment.id} author={comment.author} text={comment.body} />
           ))}
+          {collection.comments.length === 0 ? (
+            <p className="text-sm text-white/70">No comments yet.</p>
+          ) : null}
         </div>
       </section>
     </div>

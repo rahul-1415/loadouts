@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { assertOwner, requireUser } from "../../../../lib/auth/api";
+import { getPublicCollectionByIdentifier } from "../../../../lib/data/collections";
 
 interface RouteContext {
   params: {
@@ -8,10 +9,36 @@ interface RouteContext {
 }
 
 export async function GET(_request: Request, { params }: RouteContext) {
-  return NextResponse.json({
-    id: params.id,
-    message: "TODO: fetch collection by id",
-  });
+  try {
+    const data = await getPublicCollectionByIdentifier(params.id);
+
+    if (!data) {
+      return NextResponse.json(
+        {
+          error: {
+            code: "NOT_FOUND",
+            message: "Collection not found",
+          },
+        },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json({ data });
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Failed to fetch collection";
+
+    return NextResponse.json(
+      {
+        error: {
+          code: "FETCH_FAILED",
+          message,
+        },
+      },
+      { status: 500 }
+    );
+  }
 }
 
 export async function PUT(request: Request, { params }: RouteContext) {
