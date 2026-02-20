@@ -4,6 +4,11 @@ import {
   getPublicCollections,
   type CollectionKind,
 } from "../../../lib/data/collections";
+import {
+  FIXED_CATEGORY_MAX_SLUG,
+  FIXED_CATEGORY_MIN_SLUG,
+  isFixedCategorySlug,
+} from "../../../lib/data/fixedCategories";
 import { createSupabaseServerClient } from "../../../lib/supabase/server";
 
 function parseKind(kind: string | null): CollectionKind | undefined {
@@ -80,6 +85,19 @@ export async function POST(request: Request) {
     typeof body?.categorySlug === "string" ? body.categorySlug.trim() : "";
   const isPublic = body?.isPublic !== false;
 
+  if (kind !== "loadout") {
+    return NextResponse.json(
+      {
+        error: {
+          code: "CATEGORY_CREATION_DISABLED",
+          message:
+            "Categories are fixed. Create a loadout and assign one of the 100 categories.",
+        },
+      },
+      { status: 400 }
+    );
+  }
+
   if (!title) {
     return NextResponse.json(
       {
@@ -96,11 +114,25 @@ export async function POST(request: Request) {
   let categoryId: string | null = requestedCategoryId || null;
 
   if (!categoryId && requestedCategorySlug) {
+    if (!isFixedCategorySlug(requestedCategorySlug)) {
+      return NextResponse.json(
+        {
+          error: {
+            code: "CATEGORY_NOT_ALLOWED",
+            message: "Only the fixed 100 categories are allowed.",
+          },
+        },
+        { status: 400 }
+      );
+    }
+
     const { data: categoryBySlug, error: categoryBySlugError } = await supabase
       .from("categories")
       .select("id")
       .eq("slug", requestedCategorySlug)
       .eq("is_active", true)
+      .gte("slug", FIXED_CATEGORY_MIN_SLUG)
+      .lte("slug", FIXED_CATEGORY_MAX_SLUG)
       .limit(1)
       .maybeSingle();
 
@@ -134,9 +166,11 @@ export async function POST(request: Request) {
   if (categoryId) {
     const { data: category, error: categoryError } = await supabase
       .from("categories")
-      .select("id")
+      .select("id,slug")
       .eq("id", categoryId)
       .eq("is_active", true)
+      .gte("slug", FIXED_CATEGORY_MIN_SLUG)
+      .lte("slug", FIXED_CATEGORY_MAX_SLUG)
       .limit(1)
       .maybeSingle();
 
@@ -152,12 +186,12 @@ export async function POST(request: Request) {
       );
     }
 
-    if (!category) {
+    if (!category || !isFixedCategorySlug(category.slug)) {
       return NextResponse.json(
         {
           error: {
             code: "CATEGORY_NOT_FOUND",
-            message: "Selected category does not exist.",
+            message: "Choose one of the fixed 100 categories.",
           },
         },
         { status: 400 }

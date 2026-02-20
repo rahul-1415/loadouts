@@ -1,7 +1,15 @@
 import CollectionCard from "../../components/CollectionCard";
-import { ButtonLink } from "../../components/Button";
+import { getCategoryImageMapBySlugs } from "../../lib/data/collections";
 
-const categories = [
+interface StaticCategory {
+  id: string;
+  title: string;
+  author: string;
+  description: string;
+  coverImageUrl?: string | null;
+}
+
+const categories: StaticCategory[] = [
   {
     id: "cat-001",
     title: "Audio Gear",
@@ -612,14 +620,27 @@ const featuredNames = new Set([
   "Tech Tools",
 ]);
 
-const featuredCategories = categories.filter((category) =>
-  featuredNames.has(category.title)
-);
-const remainingCategories = categories.filter(
-  (category) => !featuredNames.has(category.title)
-);
+export default async function CategoriesPage() {
+  const imageBySlug = await getCategoryImageMapBySlugs(
+    categories.map((category) => category.id)
+  );
 
-export default function CategoriesPage() {
+  const categoriesWithImages = categories.map((category) => {
+    const imageFields = imageBySlug.get(category.id.toLowerCase());
+
+    return {
+      ...category,
+      coverImageUrl: imageFields?.coverImageUrl ?? null,
+    };
+  });
+
+  const featuredCategories = categoriesWithImages.filter((category) =>
+    featuredNames.has(category.title)
+  );
+  const remainingCategories = categoriesWithImages.filter(
+    (category) => !featuredNames.has(category.title)
+  );
+
   return (
     <div className="space-y-10">
       <section className="flex flex-wrap items-end justify-between gap-6">
@@ -631,9 +652,9 @@ export default function CategoriesPage() {
             Explore curated categories
           </h1>
         </div>
-        <ButtonLink href="/categories/new" variant="secondary">
-          + New Category
-        </ButtonLink>
+        <span className="text-[11px] uppercase tracking-[0.3em] text-ink/40">
+          Fixed set: 100
+        </span>
       </section>
 
       <section className="space-y-4">

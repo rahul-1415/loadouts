@@ -1,5 +1,5 @@
 import CollectionCard from "../components/CollectionCard";
-import Button, { ButtonLink } from "../components/Button";
+import Button from "../components/Button";
 import { getPublicCollections } from "../lib/data/collections";
 
 export default async function HomePage() {
@@ -61,9 +61,9 @@ export default async function HomePage() {
             Browse curated categories
           </h2>
         </div>
-        <ButtonLink href="/categories/new" variant="secondary">
-          + New Category
-        </ButtonLink>
+        <span className="text-[11px] uppercase tracking-[0.3em] text-white/40">
+          Fixed set: 100
+        </span>
       </section>
 
       <section className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">

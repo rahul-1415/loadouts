@@ -1,4 +1,9 @@
 import { createSupabaseServerClient } from "../supabase/server";
+import {
+  FIXED_CATEGORY_MAX_SLUG,
+  FIXED_CATEGORY_MIN_SLUG,
+  isFixedCategorySlug,
+} from "./fixedCategories";
 
 export type CollectionKind = "category" | "loadout";
 
@@ -19,6 +24,12 @@ interface CategoryRow {
   title: string;
   description: string | null;
   cover_image_url: string | null;
+}
+
+interface CategoryImageRow {
+  slug: string;
+  cover_image_url: string | null;
+  cover_image_source_url: string | null;
 }
 
 interface ProfileRow {
@@ -105,6 +116,11 @@ export interface CategoryDetailItem {
 export interface CategoryWithLoadouts {
   category: CategoryDetailItem;
   loadouts: CollectionListItem[];
+}
+
+export interface CategoryImageFields {
+  coverImageUrl: string | null;
+  coverImageSourceUrl: string | null;
 }
 
 function formatAuthor(profile: ProfileRow | undefined) {
@@ -329,6 +345,8 @@ export async function getActiveCategoryOptions(limit = 200) {
     .from("categories")
     .select("id,slug,title")
     .eq("is_active", true)
+    .gte("slug", FIXED_CATEGORY_MIN_SLUG)
+    .lte("slug", FIXED_CATEGORY_MAX_SLUG)
     .order("title", { ascending: true })
     .limit(limit);
 
@@ -340,10 +358,51 @@ export async function getActiveCategoryOptions(limit = 200) {
   return rows;
 }
 
+export async function getCategoryImageMapBySlugs(slugs: string[]) {
+  const imageBySlug = new Map<string, CategoryImageFields>();
+  const uniqueSlugs = Array.from(
+    new Set(
+      slugs
+        .map((slug) => slug.trim().toLowerCase())
+        .filter((slug) => slug.length > 0)
+    )
+  );
+
+  if (uniqueSlugs.length === 0) {
+    return imageBySlug;
+  }
+
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from("categories")
+    .select("slug,cover_image_url,cover_image_source_url")
+    .eq("is_active", true)
+    .in("slug", uniqueSlugs);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  const rows = (data ?? []) as CategoryImageRow[];
+
+  rows.forEach((row) => {
+    imageBySlug.set(row.slug.toLowerCase(), {
+      coverImageUrl: row.cover_image_url,
+      coverImageSourceUrl: row.cover_image_source_url,
+    });
+  });
+
+  return imageBySlug;
+}
+
 export async function getCategoryWithLoadouts(
   identifier: string,
   loadoutLimit = 60
 ): Promise<CategoryWithLoadouts | null> {
+  if (!isUuid(identifier) && !isFixedCategorySlug(identifier)) {
+    return null;
+  }
+
   const supabase = await createSupabaseServerClient();
 
   let categoryQuery = supabase
@@ -368,6 +427,10 @@ export async function getCategoryWithLoadouts(
   }
 
   const category = categoryData as CategoryRow;
+
+  if (!isFixedCategorySlug(category.slug)) {
+    return null;
+  }
 
   const { data: loadoutData, error: loadoutError } = await supabase
     .from("collections")

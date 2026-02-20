@@ -19,32 +19,12 @@ set
   display_name = excluded.display_name,
   bio = excluded.bio;
 
--- 2) Categories
-with owner as (
-  select id
-  from auth.users
-  where email = 'you@example.com'
-  limit 1
-)
-insert into public.categories (slug, title, description, cover_image_url, created_by)
-select
-  v.slug,
-  v.title,
-  v.description,
-  v.cover_image_url,
-  owner.id
-from (
-  values
-    ('desk-setups', 'Desk Setups', 'Clean and productive desk builds', 'https://images.unsplash.com/photo-1517336714739-489689fd1ca8'),
-    ('audio-gear', 'Audio Gear', 'Microphones, interfaces, and headphones', 'https://images.unsplash.com/photo-1511379938547-c1f69419868d'),
-    ('creator-tools', 'Creator Tools', 'Video, editing, and workflow tools', 'https://images.unsplash.com/photo-1498050108023-c5249f4df085')
-) as v(slug, title, description, cover_image_url)
-cross join owner
-on conflict (slug) do update
-set
-  title = excluded.title,
-  description = excluded.description,
-  cover_image_url = excluded.cover_image_url;
+-- 2) Keep only fixed A-Z categories active (cat-001..cat-100).
+-- Seed fixed categories first with supabase/seed-100-categories.sql
+update public.categories
+set is_active = false
+where is_active = true
+  and slug !~* '^cat-(00[1-9]|0[1-9][0-9]|100)$';
 
 -- 3) Collections / loadouts
 with owner as (
@@ -74,8 +54,8 @@ select
   true
 from (
   values
-    ('desk-setups', 'loadout', 'creator-desk-kit', 'Creator Desk Kit', 'My daily setup for coding and content', 'https://images.unsplash.com/photo-1498050108023-c5249f4df085'),
-    ('creator-tools', 'loadout', 'video-starter-kit', 'Video Starter Kit', 'Simple kit for recording and editing', 'https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f')
+    ('cat-013', 'loadout', 'creator-desk-kit', 'Creator Desk Kit', 'My daily setup for coding and content', 'https://images.unsplash.com/photo-1498050108023-c5249f4df085'),
+    ('cat-009', 'loadout', 'video-starter-kit', 'Video Starter Kit', 'Simple kit for recording and editing', 'https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f')
 ) as v(category_slug, kind, slug, title, description, cover_image_url)
 join public.categories c on c.slug = v.category_slug
 cross join owner

@@ -10,6 +10,7 @@ category_rows as (
   select c.id, c.slug, c.title
   from public.categories c
   where c.is_active = true
+    and c.slug ~* '^cat-(00[1-9]|0[1-9][0-9]|100)$'
 )
 insert into public.collections (
   owner_id,
