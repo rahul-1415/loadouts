@@ -7,6 +7,11 @@ import {
   sanitizeRedirectPath,
   withNextParam,
 } from "../../lib/auth/redirect";
+import {
+  getProfileById,
+  isProfileComplete,
+  resolveOnboardingPath,
+} from "../../lib/auth/profile";
 import { createSupabaseServerClient } from "../../lib/supabase/server";
 
 interface SignupPageProps {
@@ -27,6 +32,12 @@ export default async function SignupPage({ searchParams }: SignupPageProps) {
   } = await supabase.auth.getUser();
 
   if (user) {
+    const profile = await getProfileById(supabase, user.id);
+
+    if (!isProfileComplete(profile)) {
+      redirect(resolveOnboardingPath(nextPath));
+    }
+
     redirect(nextPath);
   }
 

@@ -1,6 +1,12 @@
 import type { EmailOtpType } from "@supabase/supabase-js";
 import { NextResponse, type NextRequest } from "next/server";
 import { resolveRedirectPath, sanitizeRedirectPath } from "../../../lib/auth/redirect";
+import {
+  ensureProfileFromUserMetadata,
+  getProfileById,
+  isProfileComplete,
+  resolveOnboardingPath,
+} from "../../../lib/auth/profile";
 import { createSupabaseServerClient } from "../../../lib/supabase/server";
 
 const allowedOtpTypes = new Set<EmailOtpType>([
@@ -65,6 +71,26 @@ export async function GET(request: NextRequest) {
     }
 
     return NextResponse.redirect(recoveryUrl);
+  }
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return buildLoginErrorRedirect(request, requestedNextPath);
+  }
+
+  try {
+    await ensureProfileFromUserMetadata(supabase, user);
+    const profile = await getProfileById(supabase, user.id);
+
+    if (!isProfileComplete(profile)) {
+      const onboardingPath = resolveOnboardingPath(requestedNextPath);
+      return NextResponse.redirect(new URL(onboardingPath, request.url));
+    }
+  } catch {
+    return buildLoginErrorRedirect(request, requestedNextPath);
   }
 
   return NextResponse.redirect(new URL(redirectPath, request.url));

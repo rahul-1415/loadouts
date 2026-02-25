@@ -17,7 +17,11 @@ function getSupabaseClientConfig() {
 
 export async function updateSession(
   request: NextRequest
-): Promise<{ response: NextResponse; user: User | null }> {
+): Promise<{
+  response: NextResponse;
+  user: User | null;
+  profileComplete: boolean;
+}> {
   const { url, anonKey } = getSupabaseClientConfig();
   let response = NextResponse.next({
     request: {
@@ -52,5 +56,18 @@ export async function updateSession(
     data: { user },
   } = await supabase.auth.getUser();
 
-  return { response, user };
+  if (!user) {
+    return { response, user: null, profileComplete: false };
+  }
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("handle,display_name")
+    .eq("id", user.id)
+    .limit(1)
+    .maybeSingle();
+
+  const profileComplete = Boolean(profile?.handle && profile?.display_name);
+
+  return { response, user, profileComplete };
 }

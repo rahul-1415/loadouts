@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { assertOwner, requireUser } from "../../../../lib/auth/api";
+import { assertOwner, requireCompleteUser } from "../../../../lib/auth/api";
 
 interface RouteContext {
   params: {
@@ -8,7 +8,7 @@ interface RouteContext {
 }
 
 export async function PUT(request: Request, { params }: RouteContext) {
-  const auth = await requireUser();
+  const auth = await requireCompleteUser();
 
   if ("response" in auth) {
     return auth.response;
@@ -31,7 +31,7 @@ export async function PUT(request: Request, { params }: RouteContext) {
 }
 
 export async function DELETE(request: Request, { params }: RouteContext) {
-  const auth = await requireUser();
+  const auth = await requireCompleteUser();
 
   if ("response" in auth) {
     return auth.response;

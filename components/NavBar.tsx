@@ -20,6 +20,12 @@ const searchSuggestions = [
   { label: "{{CATEGORY_NAME}}", hint: "Audio stacks" },
 ];
 
+interface NavProfile {
+  id: string;
+  handle: string | null;
+  display_name: string | null;
+}
+
 export default function NavBar() {
   const router = useRouter();
   const supabase = useMemo(() => createSupabaseBrowserClient(), []);
@@ -27,6 +33,7 @@ export default function NavBar() {
   const [query, setQuery] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const [user, setUser] = useState<User | null>(null);
+  const [profile, setProfile] = useState<NavProfile | null>(null);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
   const [isSigningOut, setIsSigningOut] = useState(false);
 
@@ -41,8 +48,20 @@ export default function NavBar() {
 
   const showResults = isOpen && query.trim().length > 0;
   const displayName = useMemo(() => {
-    if (!user) {
+    if (!user && !profile) {
       return "";
+    }
+
+    if (profile?.display_name) {
+      return profile.display_name;
+    }
+
+    if (profile?.handle) {
+      return `@${profile.handle}`;
+    }
+
+    if (!user) {
+      return "Profile";
     }
 
     const metadataName =
@@ -60,10 +79,31 @@ export default function NavBar() {
     }
 
     return "Profile";
-  }, [user]);
+  }, [profile, user]);
+
+  const profileHref = useMemo(() => {
+    if (profile?.handle) {
+      return `/profile/${profile.handle}`;
+    }
+
+    return "/profile";
+  }, [profile?.handle]);
 
   useEffect(() => {
     let isMounted = true;
+
+    const loadProfile = async (userId: string) => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("id,handle,display_name")
+        .eq("id", userId)
+        .limit(1)
+        .maybeSingle();
+
+      if (isMounted) {
+        setProfile((data ?? null) as NavProfile | null);
+      }
+    };
 
     const loadUser = async () => {
       const {
@@ -72,6 +112,11 @@ export default function NavBar() {
 
       if (isMounted) {
         setUser(currentUser ?? null);
+        if (currentUser) {
+          void loadProfile(currentUser.id);
+        } else {
+          setProfile(null);
+        }
         setIsAuthLoading(false);
       }
     };
@@ -82,6 +127,11 @@ export default function NavBar() {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
+      if (session?.user) {
+        void loadProfile(session.user.id);
+      } else {
+        setProfile(null);
+      }
       setIsAuthLoading(false);
     });
 
@@ -89,13 +139,14 @@ export default function NavBar() {
       isMounted = false;
       subscription.unsubscribe();
     };
-  }, [supabase.auth]);
+  }, [supabase, supabase.auth]);
 
   const handleSignOut = async () => {
     setIsSigningOut(true);
 
     await supabase.auth.signOut();
     setUser(null);
+    setProfile(null);
     router.push("/login");
     router.refresh();
 
@@ -182,7 +233,7 @@ export default function NavBar() {
               <div className="h-10 w-36 animate-pulse rounded-full bg-white/10" />
             ) : user ? (
               <>
-                <ButtonLink href="/profile" variant="secondary" className="px-4 py-2 text-[10px]">
+                <ButtonLink href={profileHref} variant="secondary" className="px-4 py-2 text-[10px]">
                   <span className="inline-flex items-center gap-2">
                     <span className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-white/20 bg-white/10 text-[9px] font-semibold uppercase">
                       {(displayName[0] ?? "P").toUpperCase()}

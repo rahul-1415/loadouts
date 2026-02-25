@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { requireUser } from "../../../lib/auth/api";
+import { requireCompleteUser } from "../../../lib/auth/api";
 
 export async function GET() {
   return NextResponse.json({
@@ -9,7 +9,7 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const auth = await requireUser();
+  const auth = await requireCompleteUser();
 
   if ("response" in auth) {
     return auth.response;

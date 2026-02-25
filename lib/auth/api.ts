@@ -1,5 +1,6 @@
 import type { User } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
+import { getProfileById, isProfileComplete, type ProfileIdentity } from "./profile";
 import { createSupabaseServerClient } from "../supabase/server";
 
 export function unauthorizedResponse() {
@@ -26,6 +27,18 @@ export function forbiddenResponse() {
   );
 }
 
+export function incompleteProfileResponse() {
+  return NextResponse.json(
+    {
+      error: {
+        code: "PROFILE_INCOMPLETE",
+        message: "Complete profile setup",
+      },
+    },
+    { status: 409 }
+  );
+}
+
 export async function requireUser(): Promise<{
   user: User;
 } | {
@@ -42,6 +55,31 @@ export async function requireUser(): Promise<{
   }
 
   return { user };
+}
+
+export async function requireCompleteUser(): Promise<{
+  user: User;
+  profile: ProfileIdentity;
+} | {
+  response: NextResponse;
+}> {
+  const auth = await requireUser();
+
+  if ("response" in auth) {
+    return auth;
+  }
+
+  const supabase = await createSupabaseServerClient();
+  const profile = await getProfileById(supabase, auth.user.id);
+
+  if (!profile || !isProfileComplete(profile)) {
+    return { response: incompleteProfileResponse() };
+  }
+
+  return {
+    user: auth.user,
+    profile,
+  };
 }
 
 export function assertOwner(resourceOwnerId: string | null, userId: string) {

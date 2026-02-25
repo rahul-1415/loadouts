@@ -7,6 +7,11 @@ import {
   sanitizeRedirectPath,
   withNextParam,
 } from "../../lib/auth/redirect";
+import {
+  getProfileById,
+  isProfileComplete,
+  resolveOnboardingPath,
+} from "../../lib/auth/profile";
 import { createSupabaseServerClient } from "../../lib/supabase/server";
 
 interface LoginPageProps {
@@ -45,6 +50,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
     getQueryParam(searchParams?.next)
   );
   const nextPath = requestedNextPath ?? "/saved";
+  const mode = getQueryParam(searchParams?.mode);
   const loginMessage = getLoginMessage({
     error: getQueryParam(searchParams?.error),
     reset: getQueryParam(searchParams?.reset),
@@ -56,6 +62,14 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   } = await supabase.auth.getUser();
 
   if (user) {
+    if (mode !== "recovery") {
+      const profile = await getProfileById(supabase, user.id);
+
+      if (!isProfileComplete(profile)) {
+        redirect(resolveOnboardingPath(nextPath));
+      }
+    }
+
     redirect(nextPath);
   }
 
