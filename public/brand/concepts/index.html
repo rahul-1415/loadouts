@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Loadouts Logo Concepts</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #08090c;
+        --panel: #0d0f13;
+        --line: #1f2430;
+        --text: #f4f5f7;
+        --muted: #9da4ae;
+      }
+      body {
+        margin: 0;
+        background: radial-gradient(circle at 10% 10%, rgba(199, 203, 210, 0.1), transparent 35%),
+          radial-gradient(circle at 85% 0%, rgba(141, 146, 155, 0.09), transparent 30%),
+          var(--bg);
+        color: var(--text);
+        font-family: Maple, "Founders Grotesk", "Monotype Grotesque", ui-sans-serif, system-ui, sans-serif;
+      }
+      .wrap {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 40px 20px 60px;
+      }
+      h1 {
+        margin: 0;
+        font-size: 28px;
+        letter-spacing: 0.04em;
+      }
+      p {
+        margin: 8px 0 28px;
+        color: var(--muted);
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 16px;
+      }
+      .card {
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        background: linear-gradient(180deg, rgba(17, 20, 28, 0.95), rgba(12, 14, 19, 0.95));
+        padding: 14px;
+      }
+      .name {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.16em;
+        color: #c7cbd2;
+        margin-bottom: 10px;
+      }
+      .preview {
+        border: 1px solid #252b37;
+        border-radius: 10px;
+        background: #06070a;
+        min-height: 160px;
+        display: grid;
+        place-items: center;
+      }
+      img {
+        width: 118px;
+        height: 118px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <h1>LOADOUTS L-Mark Concepts</h1>
+      <p>4 direct L variants + 4 stack-style variants based on your reference.</p>
+
+      <div class="grid">
+        <article class="card"><div class="name">l-solid-01</div><div class="preview"><img src="./l-solid-01.svg" alt="l-solid-01" /></div></article>
+        <article class="card"><div class="name">l-ruler-cut-02</div><div class="preview"><img src="./l-ruler-cut-02.svg" alt="l-ruler-cut-02" /></div></article>
+        <article class="card"><div class="name">l-split-stem-03</div><div class="preview"><img src="./l-split-stem-03.svg" alt="l-split-stem-03" /></div></article>
+        <article class="card"><div class="name">l-outline-04</div><div class="preview"><img src="./l-outline-04.svg" alt="l-outline-04" /></div></article>
+        <article class="card"><div class="name">stack-l-01</div><div class="preview"><img src="./stack-l-01.svg" alt="stack-l-01" /></div></article>
+        <article class="card"><div class="name">stack-l-02</div><div class="preview"><img src="./stack-l-02.svg" alt="stack-l-02" /></div></article>
+        <article class="card"><div class="name">stack-l-03</div><div class="preview"><img src="./stack-l-03.svg" alt="stack-l-03" /></div></article>
+        <article class="card"><div class="name">stack-l-04</div><div class="preview"><img src="./stack-l-04.svg" alt="stack-l-04" /></div></article>
+        <article class="card"><div class="name">stack-l-05</div><div class="preview"><img src="./stack-l-05.svg" alt="stack-l-05" /></div></article>
+        <article class="card"><div class="name">stack-l-06</div><div class="preview"><img src="./stack-l-06.svg" alt="stack-l-06" /></div></article>
+        <article class="card"><div class="name">stack-l-07</div><div class="preview"><img src="./stack-l-07.svg" alt="stack-l-07" /></div></article>
+      </div>
+    </div>
+  </body>
+</html>

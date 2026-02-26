@@ -1,0 +1,19 @@
+<svg width="820" height="128" viewBox="0 0 820 128" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <g transform="translate(8 16)">
+    <path d="M16 18H40V58H72V82H16V18Z" fill="#8D929B"/>
+    <path d="M22 14H46V54H78V78H22V14Z" fill="#C7CBD2"/>
+    <path d="M28 10H52V50H84V74H28V10Z" fill="#F4F5F7"/>
+  </g>
+
+  <text
+    x="130"
+    y="84"
+    fill="#F4F5F7"
+    font-family="Maple, Founders Grotesk, Monotype Grotesque, ui-sans-serif, system-ui, sans-serif"
+    font-size="56"
+    font-weight="700"
+    letter-spacing="7"
+  >
+    LOADOUTS
+  </text>
+</svg>

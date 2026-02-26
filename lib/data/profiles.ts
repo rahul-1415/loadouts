@@ -244,6 +244,7 @@ export async function getPublicLoadoutsByOwner(
     id: row.id,
     slug: row.slug,
     kind: row.kind,
+    ownerId,
     title: row.title,
     description: row.description ?? "",
     author: getAuthorLabel(authorProfile),

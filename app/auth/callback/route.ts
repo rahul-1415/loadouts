@@ -6,6 +6,7 @@ import {
   isProfileComplete,
   resolveOnboardingPath,
 } from "../../../lib/auth/profile";
+import { trackMilestoneEvent } from "../../../lib/data/analytics";
 import { createSupabaseServerClient } from "../../../lib/supabase/server";
 
 function buildLoginErrorRedirect(
@@ -56,6 +57,19 @@ export async function GET(request: NextRequest) {
     if (!isProfileComplete(profile)) {
       const onboardingPath = resolveOnboardingPath(requestedNextPath);
       return NextResponse.redirect(new URL(onboardingPath, request.url));
+    }
+
+    try {
+      await trackMilestoneEvent({
+        userId: user.id,
+        eventName: "signup_completed",
+        metadata: {
+          source: "oauth_callback",
+        },
+        client: supabase,
+      });
+    } catch {
+      // Non-blocking for auth callback.
     }
   } catch {
     return buildLoginErrorRedirect(request, "oauth_failed", requestedNextPath);

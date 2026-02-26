@@ -1,8 +1,9 @@
-import Button from "../../../components/Button";
+import { ButtonLink } from "../../../components/Button";
 import ProductItem from "../../../components/ProductItem";
-import CommentBox from "../../../components/CommentBox";
+import CollectionEngagement from "../../../components/CollectionEngagement";
 import { notFound } from "next/navigation";
 import { getPublicCollectionByIdentifier } from "../../../lib/data/collections";
+import { createSupabaseServerClient } from "../../../lib/supabase/server";
 
 interface LoadoutPageProps {
   params: {
@@ -11,11 +12,21 @@ interface LoadoutPageProps {
 }
 
 export default async function LoadoutPage({ params }: LoadoutPageProps) {
-  const loadout = await getPublicCollectionByIdentifier(params.id, "loadout");
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const loadout = await getPublicCollectionByIdentifier(
+    params.id,
+    "loadout",
+    user?.id ?? null
+  );
 
   if (!loadout) {
     notFound();
   }
+
+  const isOwner = user?.id === loadout.ownerId;
 
   return (
     <div className="space-y-8 text-[#f4f5f7]">
@@ -29,6 +40,20 @@ export default async function LoadoutPage({ params }: LoadoutPageProps) {
         <p className="text-sm text-white/70">
           by <span className="font-medium text-white">{loadout.author}</span>
         </p>
+        <div className="flex flex-wrap items-center gap-3">
+          <span className="rounded-full border border-white/20 px-3 py-1 text-[10px] uppercase tracking-[0.25em] text-white/70">
+            {loadout.isPublic ? "Public" : "Draft"}
+          </span>
+          {isOwner ? (
+            <ButtonLink
+              href={`/loadouts/${loadout.slug}/edit`}
+              variant="secondary"
+              className="px-4 py-2 text-[10px]"
+            >
+              Edit
+            </ButtonLink>
+          ) : null}
+        </div>
         {loadout.description ? (
           <p className="max-w-2xl text-white/70">{loadout.description}</p>
         ) : null}
@@ -51,30 +76,14 @@ export default async function LoadoutPage({ params }: LoadoutPageProps) {
         ) : null}
       </section>
 
-      <section className="flex flex-wrap gap-3">
-        <Button>Like ({loadout.likeCount})</Button>
-        <Button variant="secondary">Save</Button>
-        <Button variant="secondary">Share</Button>
-      </section>
-
-      <section className="space-y-4">
-        <h2 className="text-xl font-semibold text-white">Comments</h2>
-        <form className="flex flex-wrap gap-3">
-          <input
-            placeholder="Add a comment..."
-            className="flex-1 rounded-xl border border-white/20 bg-transparent px-3 py-2 text-sm text-white placeholder:text-white/40"
-          />
-          <Button type="submit">Post</Button>
-        </form>
-        <div className="space-y-3">
-          {loadout.comments.map((comment) => (
-            <CommentBox key={comment.id} author={comment.author} text={comment.body} />
-          ))}
-          {loadout.comments.length === 0 ? (
-            <p className="text-sm text-white/70">No comments yet.</p>
-          ) : null}
-        </div>
-      </section>
+      <CollectionEngagement
+        collectionId={loadout.id}
+        collectionSlug={loadout.slug}
+        initialLikeCount={loadout.likeCount}
+        initialViewerHasLiked={loadout.viewerHasLiked}
+        initialComments={loadout.comments}
+        viewerUserId={user?.id ?? null}
+      />
     </div>
   );
 }

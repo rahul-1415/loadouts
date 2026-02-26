@@ -9,6 +9,7 @@ import {
   FIXED_CATEGORY_MIN_SLUG,
   isFixedCategorySlug,
 } from "../../../lib/data/fixedCategories";
+import { trackMilestoneEvent } from "../../../lib/data/analytics";
 import { createSupabaseServerClient } from "../../../lib/supabase/server";
 
 function parseKind(kind: string | null): CollectionKind | undefined {
@@ -225,6 +226,22 @@ export async function POST(request: Request) {
       },
       { status: 500 }
     );
+  }
+
+  if (kind === "loadout") {
+    try {
+      await trackMilestoneEvent({
+        userId: user.id,
+        eventName: "first_loadout_created",
+        metadata: {
+          loadoutId: data.id,
+          categoryId: data.category_id,
+        },
+        client: supabase,
+      });
+    } catch {
+      // Non-blocking for loadout creation.
+    }
   }
 
   return NextResponse.json({ data }, { status: 201 });

@@ -4,6 +4,8 @@ import { resolveOnboardingPath } from "./lib/auth/profile";
 import { updateSession } from "./lib/supabase/middleware";
 
 const protectedPaths = new Set([
+  "/feed",
+  "/notifications",
   "/saved",
   "/collections/new",
   "/categories/new",
@@ -44,6 +46,16 @@ export async function middleware(request: NextRequest) {
   }
 
   if (protectedPaths.has(pathname) && !user) {
+    const loginUrl = new URL("/login", request.url);
+    loginUrl.searchParams.set(
+      "next",
+      `${request.nextUrl.pathname}${request.nextUrl.search}`
+    );
+
+    return NextResponse.redirect(loginUrl);
+  }
+
+  if (pathname.startsWith("/loadouts/") && pathname.endsWith("/edit") && !user) {
     const loginUrl = new URL("/login", request.url);
     loginUrl.searchParams.set(
       "next",

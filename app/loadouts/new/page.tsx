@@ -14,7 +14,7 @@ export default async function NewLoadoutPage() {
           Create a new loadout
         </h1>
         <p className="mt-2 text-sm text-white/70">
-          Pick a category first, then publish your loadout under it.
+          Step 1 selects category. Step 2 adds details and visibility (public or draft).
         </p>
       </header>
 

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { requireUser } from "../../../../lib/auth/api";
 import { getProfileById, isUsernameAvailable } from "../../../../lib/auth/profile";
 import { validateUsername } from "../../../../lib/auth/username";
+import { trackMilestoneEvent } from "../../../../lib/data/analytics";
 import { createSupabaseServerClient } from "../../../../lib/supabase/server";
 
 export async function POST(request: Request) {
@@ -107,6 +108,19 @@ export async function POST(request: Request) {
         },
         { status: 500 }
       );
+    }
+
+    try {
+      await trackMilestoneEvent({
+        userId: auth.user.id,
+        eventName: "signup_completed",
+        metadata: {
+          source: "profile_setup",
+        },
+        client: supabase,
+      });
+    } catch {
+      // Non-blocking for onboarding completion flow.
     }
 
     return NextResponse.json({
