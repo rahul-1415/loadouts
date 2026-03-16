@@ -1,0 +1,641 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Loadouts Concrete Noir Concept</title>
+    <script src="https://mcp.figma.com/mcp/html-to-design/capture.js" async></script>
+    <style>
+      :root {
+        color-scheme: dark;
+        --page: #9a9a9a;
+        --shell: #050505;
+        --panel: #171717;
+        --panel-2: #1f1f1f;
+        --panel-3: #262626;
+        --line: rgba(255, 255, 255, 0.04);
+        --text: #f5f5f5;
+        --muted: #b6b6b6;
+        --soft: #8c8c8c;
+        --accent: #e6ef92;
+        --accent-2: #dbe878;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background:
+          radial-gradient(circle at 20% 0%, rgba(255, 255, 255, 0.08), transparent 24%),
+          linear-gradient(180deg, #a1a1a1, var(--page));
+        color: var(--text);
+        font-family: Maple, "Founders Grotesk", "Monotype Grotesque", ui-sans-serif, system-ui, sans-serif;
+      }
+
+      img {
+        display: block;
+        max-width: 100%;
+      }
+
+      .page {
+        padding: 92px 70px;
+      }
+
+      .shell {
+        max-width: 1660px;
+        margin: 0 auto;
+        padding: 26px;
+        border-radius: 34px;
+        background: var(--shell);
+        box-shadow:
+          0 42px 90px rgba(0, 0, 0, 0.32),
+          inset 0 1px 0 rgba(255, 255, 255, 0.04);
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: 116px 320px minmax(0, 1fr) 320px;
+        gap: 18px;
+        min-height: 1080px;
+      }
+
+      .stack {
+        display: grid;
+        gap: 14px;
+      }
+
+      .sidebar {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        border-radius: 28px;
+        background: linear-gradient(180deg, #151515, #111111);
+        padding: 16px;
+      }
+
+      .logo-tile,
+      .nav-chip,
+      .fab {
+        display: grid;
+        place-items: center;
+        border-radius: 24px;
+        background: var(--panel);
+      }
+
+      .logo-tile {
+        height: 92px;
+        background: linear-gradient(180deg, #161616, #111111);
+      }
+
+      .logo-badge {
+        width: 58px;
+        height: 58px;
+        border-radius: 50%;
+        background: var(--accent);
+        display: grid;
+        place-items: center;
+      }
+
+      .logo-badge img {
+        width: 34px;
+        height: 34px;
+        filter: brightness(0.08);
+      }
+
+      .nav-list {
+        display: grid;
+        gap: 12px;
+      }
+
+      .nav-chip {
+        width: 84px;
+        height: 84px;
+        color: #d2d2d2;
+        font-size: 18px;
+        letter-spacing: -0.02em;
+      }
+
+      .nav-chip.active {
+        color: #111111;
+        background: var(--accent);
+      }
+
+      .fab {
+        width: 84px;
+        height: 84px;
+        font-size: 44px;
+        color: #111111;
+        background: var(--accent);
+      }
+
+      .list-card,
+      .main-panel,
+      .toolbar,
+      .side-panel,
+      .message-input {
+        border-radius: 28px;
+        background: linear-gradient(180deg, #1b1b1b, #151515);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+      }
+
+      .list-card {
+        display: grid;
+        grid-template-columns: 68px minmax(0, 1fr);
+        gap: 14px;
+        align-items: center;
+        padding: 14px 18px;
+      }
+
+      .avatar {
+        position: relative;
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #6e6e6e, #2a2a2a);
+      }
+
+      .avatar::after {
+        content: "";
+        position: absolute;
+        right: -1px;
+        bottom: -1px;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: var(--accent);
+        border: 2px solid #1a1a1a;
+      }
+
+      .title {
+        font-size: 17px;
+        font-weight: 700;
+        line-height: 1.1;
+      }
+
+      .sub {
+        margin-top: 6px;
+        font-size: 13px;
+        color: var(--muted);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .main {
+        display: grid;
+        grid-template-rows: auto 1fr auto;
+        gap: 18px;
+      }
+
+      .topbar {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        align-items: center;
+        gap: 16px;
+      }
+
+      .headline {
+        font-size: 34px;
+        font-weight: 700;
+        letter-spacing: -0.04em;
+      }
+
+      .top-actions {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+      }
+
+      .search {
+        width: 300px;
+        height: 60px;
+        border-radius: 999px;
+        background: #181818;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 0 22px;
+        color: var(--soft);
+        font-size: 16px;
+      }
+
+      .icon-btn,
+      .toolbar-btn {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: #181818;
+        display: grid;
+        place-items: center;
+        color: #f2f2f2;
+        font-size: 24px;
+      }
+
+      .icon-btn.accent,
+      .toolbar-btn.accent {
+        color: #111111;
+        background: var(--accent);
+      }
+
+      .avatar-small {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #ad4e34, #eb8a5c);
+      }
+
+      .main-panel {
+        padding: 18px;
+        display: grid;
+        grid-template-rows: 300px auto 1fr;
+        gap: 18px;
+      }
+
+      .hero-media {
+        border-radius: 28px;
+        background:
+          linear-gradient(180deg, rgba(230, 239, 146, 0.22), transparent 60%),
+          linear-gradient(135deg, #6d673f, #474529 35%, #2f3429 60%, #1f1f1f);
+        overflow: hidden;
+        position: relative;
+      }
+
+      .hero-media::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background:
+          radial-gradient(circle at 30% 18%, rgba(255, 255, 255, 0.2), transparent 28%),
+          linear-gradient(180deg, transparent 45%, rgba(0, 0, 0, 0.24));
+      }
+
+      .meta-pill {
+        margin: 0 auto;
+        padding: 12px 22px;
+        border-radius: 999px;
+        background: #343434;
+        color: #f0f0f0;
+        width: fit-content;
+        font-size: 14px;
+      }
+
+      .feed {
+        display: grid;
+        gap: 22px;
+      }
+
+      .event {
+        display: grid;
+        grid-template-columns: 54px minmax(0, 1fr) auto;
+        gap: 14px;
+        align-items: start;
+      }
+
+      .event .time {
+        color: var(--muted);
+        font-size: 14px;
+        white-space: nowrap;
+      }
+
+      .event-copy {
+        font-size: 17px;
+        line-height: 1.55;
+      }
+
+      .event-copy strong {
+        font-weight: 700;
+      }
+
+      .event-copy .accent-text {
+        color: var(--accent);
+      }
+
+      .join-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .join {
+        min-width: 116px;
+        padding: 12px 26px;
+        border-radius: 999px;
+        background: var(--accent);
+        color: #111111;
+        font-size: 16px;
+        font-weight: 700;
+        text-align: center;
+      }
+
+      .message-input {
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        gap: 18px;
+        align-items: center;
+        padding: 18px 22px;
+        color: var(--soft);
+        font-size: 17px;
+      }
+
+      .toolbar {
+        padding: 18px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .toolbar-actions {
+        display: flex;
+        gap: 14px;
+      }
+
+      .side-panel {
+        padding: 22px 22px 20px;
+      }
+
+      .panel-title {
+        font-size: 24px;
+        font-weight: 700;
+        margin-bottom: 20px;
+      }
+
+      .member {
+        display: grid;
+        grid-template-columns: 56px minmax(0, 1fr) auto;
+        gap: 14px;
+        align-items: center;
+        padding: 8px 0;
+      }
+
+      .member .role {
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      .file-thumb-row {
+        display: grid;
+        grid-template-columns: 1.2fr 0.8fr;
+        gap: 12px;
+        margin-top: 14px;
+      }
+
+      .thumb {
+        height: 188px;
+        border-radius: 24px;
+        background:
+          linear-gradient(180deg, rgba(230, 239, 146, 0.24), transparent 60%),
+          linear-gradient(135deg, #69653d, #4b4728 36%, #2d3227 65%, #202020);
+      }
+
+      .thumb.alt {
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.08), transparent 60%),
+          linear-gradient(135deg, #63668a, #373c53 44%, #1f232a);
+      }
+
+      .file-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 0;
+        color: #f0f0f0;
+        font-size: 15px;
+      }
+
+      .file-row + .file-row {
+        border-top: 1px solid rgba(255, 255, 255, 0.04);
+      }
+
+      @media (max-width: 1500px) {
+        .grid {
+          grid-template-columns: 96px 280px minmax(0, 1fr);
+        }
+
+        .right {
+          grid-column: 2 / span 2;
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 18px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <div class="shell">
+        <div class="grid">
+          <aside class="sidebar">
+            <div class="stack">
+              <div class="logo-tile">
+                <div class="logo-badge">
+                  <img src="/brand/concepts/stack-l-01.svg" alt="Loadouts mark" />
+                </div>
+              </div>
+              <div class="nav-list">
+                <div class="nav-chip active">L</div>
+                <div class="nav-chip">A</div>
+                <div class="nav-chip">Z</div>
+                <div class="nav-chip">P</div>
+                <div class="nav-chip">F</div>
+                <div class="nav-chip">N</div>
+                <div class="nav-chip">S</div>
+              </div>
+            </div>
+            <div class="fab">+</div>
+          </aside>
+
+          <section class="stack">
+            <div class="list-card">
+              <div class="avatar"></div>
+              <div>
+                <div class="title">Creator Desk Kit</div>
+                <div class="sub">Monitors, keyboard stack, audio chain, and workflow apps</div>
+              </div>
+            </div>
+            <div class="list-card">
+              <div class="avatar" style="background:linear-gradient(135deg,#c7ca7c,#555838)"></div>
+              <div>
+                <div class="title">Cameras / Run-and-Gun</div>
+                <div class="sub">Hybrid mirrorless body, travel lens, ND filter, bag</div>
+              </div>
+            </div>
+            <div class="list-card">
+              <div class="avatar" style="background:linear-gradient(135deg,#dd7575,#6c3232)"></div>
+              <div>
+                <div class="title">Streaming Console</div>
+                <div class="sub">Audio routing, scene macros, and live capture hardware</div>
+              </div>
+            </div>
+            <div class="list-card">
+              <div class="avatar" style="background:linear-gradient(135deg,#8e87d8,#3d355f)"></div>
+              <div>
+                <div class="title">Coding IDE Stack</div>
+                <div class="sub">Editor, terminal, AI tools, snippets, and issue flow</div>
+              </div>
+            </div>
+            <div class="list-card">
+              <div class="avatar" style="background:linear-gradient(135deg,#90bde8,#2b4f73)"></div>
+              <div>
+                <div class="title">Travel Creator Bag</div>
+                <div class="sub">Backpack, SSD, batteries, phone rig, audio recorder</div>
+              </div>
+            </div>
+            <div class="list-card">
+              <div class="avatar" style="background:linear-gradient(135deg,#e39b71,#6d3e22)"></div>
+              <div>
+                <div class="title">Podcast Booth</div>
+                <div class="sub">Mic setup, acoustic treatment, monitor path, notes</div>
+              </div>
+            </div>
+            <div class="list-card">
+              <div class="avatar" style="background:linear-gradient(135deg,#e4c18b,#876031)"></div>
+              <div>
+                <div class="title">Edit Suite</div>
+                <div class="sub">Color workflow, storage, reference display, key tools</div>
+              </div>
+            </div>
+            <div class="list-card">
+              <div class="avatar" style="background:linear-gradient(135deg,#7d9d7f,#2f4630)"></div>
+              <div>
+                <div class="title">Home Studio</div>
+                <div class="sub">Lighting positions, capture zone, desk and shelving</div>
+              </div>
+            </div>
+            <div class="list-card">
+              <div class="avatar" style="background:linear-gradient(135deg,#d6b1bf,#6d4253)"></div>
+              <div>
+                <div class="title">Mobile Shoot Pack</div>
+                <div class="sub">Phone lens kit, gimbal, power bank, compact light</div>
+              </div>
+            </div>
+          </section>
+
+          <main class="main">
+            <div class="topbar">
+              <div class="headline">LOADOUTS registry</div>
+              <div class="top-actions">
+                <div class="search">⌕ <span>Search loadouts</span></div>
+                <div class="icon-btn">⚙</div>
+                <div class="icon-btn">◌</div>
+                <div class="avatar-small"></div>
+              </div>
+            </div>
+
+            <div class="main-panel">
+              <div class="hero-media"></div>
+              <div class="meta-pill">Featured workflow • 13 Mar 2026</div>
+              <div class="feed">
+                <div class="event">
+                  <div class="avatar" style="width:48px;height:48px"></div>
+                  <div class="event-copy"><strong>Richard Wilson</strong> published <strong>Studio Capture Rig</strong> under <span class="accent-text">Cameras</span></div>
+                  <div class="time">6:15 pm</div>
+                </div>
+                <div class="event">
+                  <div class="avatar" style="width:48px;height:48px;background:linear-gradient(135deg,#f19876,#7b432c)"></div>
+                  <div class="event-copy"><strong>Connor Garcia</strong> added a short note about backup drives, tripod weight, and desk cable management for this week’s setup review.</div>
+                  <div class="time">6:25 pm</div>
+                </div>
+                <div class="event">
+                  <div class="avatar" style="width:48px;height:48px;background:linear-gradient(135deg,#8bb0d7,#365370)"></div>
+                  <div class="event-copy"><strong>Lawrence Patterson</strong> saved the <span class="accent-text">Coding IDE Stack</span> and followed the creator profile.</div>
+                  <div class="time">6:25 pm</div>
+                </div>
+                <div class="join-row">
+                  <div class="event" style="grid-template-columns:54px minmax(0,1fr);margin:0">
+                    <div class="avatar" style="width:48px;height:48px;background:linear-gradient(135deg,#d5bf7f,#735e2a)"></div>
+                    <div class="event-copy"><strong>Jaden Parker</strong> commented: “This is the first dashboard direction that feels premium enough for Loadouts.”</div>
+                  </div>
+                  <div class="join">Open</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="message-input">
+              <div>⌁</div>
+              <div>Search creators, loadouts, categories, and saved gear...</div>
+              <div>➤</div>
+            </div>
+          </main>
+
+          <aside class="stack right">
+            <div class="toolbar">
+              <div class="toolbar-actions">
+                <div class="toolbar-btn accent">⌕</div>
+                <div class="toolbar-btn">◧</div>
+                <div class="toolbar-btn">✦</div>
+                <div class="toolbar-btn">◎</div>
+              </div>
+            </div>
+
+            <div class="side-panel">
+              <div class="panel-title">Creators</div>
+              <div class="member">
+                <div class="avatar"></div>
+                <div>
+                  <div class="title">Richard Wilson</div>
+                  <div class="role">Admin</div>
+                </div>
+                <div class="role">12</div>
+              </div>
+              <div class="member">
+                <div class="avatar" style="background:linear-gradient(135deg,#f07d60,#7e3827)"></div>
+                <div>
+                  <div class="title">You</div>
+                  <div class="role">Owner</div>
+                </div>
+                <div class="role">8</div>
+              </div>
+              <div class="member">
+                <div class="avatar" style="background:linear-gradient(135deg,#d8b6cc,#7f5168)"></div>
+                <div>
+                  <div class="title">Jaden Parker</div>
+                  <div class="role">Editor</div>
+                </div>
+                <div class="role">5</div>
+              </div>
+              <div class="member">
+                <div class="avatar" style="background:linear-gradient(135deg,#9cc3e8,#355472)"></div>
+                <div>
+                  <div class="title">Connor Garcia</div>
+                  <div class="role">Contributor</div>
+                </div>
+                <div class="role">9</div>
+              </div>
+              <div class="member">
+                <div class="avatar" style="background:linear-gradient(135deg,#7a8ea5,#334252)"></div>
+                <div>
+                  <div class="title">Lawrence Patterson</div>
+                  <div class="role">Curator</div>
+                </div>
+                <div class="role">7</div>
+              </div>
+            </div>
+
+            <div class="side-panel">
+              <div class="panel-title">Assets</div>
+              <div class="file-row">
+                <span>115 product stills</span>
+                <span>⌃</span>
+              </div>
+              <div class="file-thumb-row">
+                <div class="thumb"></div>
+                <div class="thumb alt"></div>
+              </div>
+              <div class="file-row">
+                <span>208 gear files</span>
+                <span>⌄</span>
+              </div>
+              <div class="file-row">
+                <span>47 shared links</span>
+                <span>⌄</span>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

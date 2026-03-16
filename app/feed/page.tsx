@@ -56,7 +56,7 @@ export default async function FeedPage({ searchParams }: FeedPageProps) {
       </header>
 
       {items.length === 0 ? (
-        <div className="rounded-3xl border border-white/12 bg-[#11131a] p-7">
+        <div className="rounded-3xl border border-white/[0.05] bg-[#171717] p-7">
           <p className="text-sm text-white/70">
             Your feed is empty. Follow creators to see their latest loadouts
             here.
@@ -69,9 +69,15 @@ export default async function FeedPage({ searchParams }: FeedPageProps) {
               <Link
                 key={item.id}
                 href={`/loadouts/${item.slug}`}
-                className="overflow-hidden rounded-3xl border border-white/10 bg-[#11131a] shadow-[0_22px_48px_rgba(0,0,0,0.3)] transition hover:border-white/30"
+                className="overflow-hidden rounded-3xl border border-white/[0.04] bg-[#171717] shadow-[inset_0_1px_0_rgba(255,255,255,0.03),0_18px_36px_rgba(0,0,0,0.16)] transition hover:border-white/[0.14]"
               >
-                <div className="h-40 w-full bg-gradient-to-br from-white/5 via-white/[0.08] to-[#1a2230]">
+                <div
+                  className={
+                    item.coverImageUrl
+                      ? "h-40 w-full bg-[linear-gradient(180deg,rgba(230,239,146,0.12),transparent_58%),linear-gradient(135deg,#2d301d,#171915_62%,#101010)]"
+                      : "h-40 w-full bg-[#111111]"
+                  }
+                >
                   {item.coverImageUrl ? (
                     <img
                       src={item.coverImageUrl}
@@ -101,7 +107,7 @@ export default async function FeedPage({ searchParams }: FeedPageProps) {
             <div className="flex justify-center">
               <Link
                 href={`/feed?cursor=${encodeURIComponent(feed.nextCursor)}`}
-                className="rounded-full border border-white/20 px-5 py-2 text-xs uppercase tracking-[0.25em] text-white/75 transition hover:border-white/45 hover:text-white"
+                className="rounded-full border border-white/[0.08] px-5 py-2 text-xs uppercase tracking-[0.25em] text-white/75 transition hover:border-white/[0.22] hover:text-white"
               >
                 Load more
               </Link>

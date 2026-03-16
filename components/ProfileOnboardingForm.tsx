@@ -112,7 +112,7 @@ export default function ProfileOnboardingForm({
           value={username}
           onChange={(event) => setUsername(event.target.value)}
           placeholder="yourname"
-          className="mt-2 w-full rounded-xl border border-white/20 bg-transparent px-3 py-2 text-sm text-white placeholder:text-white/40"
+          className="mt-2 w-full rounded-xl border border-white/[0.08] bg-[#181818] px-3 py-2 text-sm text-white placeholder:text-white/40"
           required
         />
         <p className="mt-2 text-[11px] uppercase tracking-[0.2em] text-white/45">
@@ -129,7 +129,7 @@ export default function ProfileOnboardingForm({
           value={displayName}
           onChange={(event) => setDisplayName(event.target.value)}
           placeholder="Your name"
-          className="mt-2 w-full rounded-xl border border-white/20 bg-transparent px-3 py-2 text-sm text-white placeholder:text-white/40"
+          className="mt-2 w-full rounded-xl border border-white/[0.08] bg-[#181818] px-3 py-2 text-sm text-white placeholder:text-white/40"
           required
         />
       </div>

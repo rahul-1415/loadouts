@@ -85,7 +85,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
       </header>
 
       <form
-        className="space-y-4 rounded-3xl border border-white/12 bg-[#11131a] p-6"
+        className="space-y-4 rounded-3xl border border-white/[0.05] bg-[#171717] p-6"
         method="GET"
       >
         <div className="grid gap-4 md:grid-cols-[1.2fr_1fr]">
@@ -93,12 +93,12 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
             name="q"
             defaultValue={query}
             placeholder="Search keyword"
-            className="w-full rounded-xl border border-white/20 bg-transparent px-3 py-2 text-sm text-white placeholder:text-white/40"
+            className="w-full rounded-xl border border-white/[0.08] bg-[#181818] px-3 py-2 text-sm text-white placeholder:text-white/40"
           />
           <select
             name="category"
             defaultValue={category}
-            className="w-full rounded-xl border border-white/20 bg-[#0f1218] px-3 py-2 text-sm text-white"
+            className="w-full rounded-xl border border-white/[0.08] bg-[#181818] px-3 py-2 text-sm text-white"
           >
             <option value="">All categories</option>
             {categories.map((item) => (
@@ -113,7 +113,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
           {typeOptions.map((item) => (
             <label
               key={item.value}
-              className="inline-flex items-center gap-2 rounded-full border border-white/20 px-3 py-1.5 text-[11px] uppercase tracking-[0.2em] text-white/70"
+              className="inline-flex items-center gap-2 rounded-full border border-white/[0.08] px-3 py-1.5 text-[11px] uppercase tracking-[0.2em] text-white/70"
             >
               <input
                 type="checkbox"
@@ -129,7 +129,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
 
         <button
           type="submit"
-          className="inline-flex items-center justify-center rounded-full border border-white/25 px-5 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-[#f4f5f7] transition hover:border-white/45"
+          className="inline-flex items-center justify-center rounded-full border border-white/[0.12] px-5 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-[#f4f5f7] transition hover:border-white/[0.22]"
         >
           Search
         </button>
@@ -152,7 +152,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
             <Link
               key={item.id}
               href={`/loadouts/${item.slug}`}
-              className="rounded-2xl border border-white/12 bg-[#11131a] p-4 transition hover:border-white/28"
+              className="rounded-2xl border border-white/[0.05] bg-[#171717] p-4 transition hover:border-white/[0.14]"
             >
               <p className="text-[11px] uppercase tracking-[0.25em] text-white/55">
                 {item.author}
@@ -178,7 +178,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
               href={item.productUrl ?? "#"}
               target={item.productUrl ? "_blank" : undefined}
               rel={item.productUrl ? "noreferrer" : undefined}
-              className="rounded-2xl border border-white/12 bg-[#11131a] p-4 transition hover:border-white/28"
+              className="rounded-2xl border border-white/[0.05] bg-[#171717] p-4 transition hover:border-white/[0.14]"
             >
               <p className="text-[11px] uppercase tracking-[0.25em] text-white/55">
                 {item.brand ?? "Product"}
@@ -202,7 +202,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
             <Link
               key={item.id}
               href={`/profile/${item.handle}`}
-              className="rounded-2xl border border-white/12 bg-[#11131a] p-4 transition hover:border-white/28"
+              className="rounded-2xl border border-white/[0.05] bg-[#171717] p-4 transition hover:border-white/[0.14]"
             >
               <p className="text-[11px] uppercase tracking-[0.25em] text-white/55">
                 @{item.handle}
@@ -226,7 +226,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
             <Link
               key={item.id}
               href={`/categories/${item.slug}`}
-              className="rounded-2xl border border-white/12 bg-[#11131a] p-4 transition hover:border-white/28"
+              className="rounded-2xl border border-white/[0.05] bg-[#171717] p-4 transition hover:border-white/[0.14]"
             >
               <p className="text-[11px] uppercase tracking-[0.25em] text-white/55">
                 Category

@@ -75,7 +75,7 @@ export default function ProfileEditForm({
 
   return (
     <form
-      className="space-y-4 rounded-2xl border border-white/10 bg-black/20 p-4"
+      className="space-y-4 rounded-2xl border border-white/[0.04] bg-[#171717] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]"
       onSubmit={handleSubmit}
     >
       <h2 className="text-sm font-semibold uppercase tracking-[0.3em] text-white/65">
@@ -89,7 +89,7 @@ export default function ProfileEditForm({
         <input
           value={displayName}
           onChange={(event) => setDisplayName(event.target.value)}
-          className="mt-2 w-full rounded-xl border border-white/20 bg-transparent px-3 py-2 text-sm text-white placeholder:text-white/40"
+          className="mt-2 w-full rounded-xl border border-white/[0.08] bg-[#181818] px-3 py-2 text-sm text-white placeholder:text-white/40"
           required
         />
       </div>
@@ -102,7 +102,7 @@ export default function ProfileEditForm({
           value={bio}
           onChange={(event) => setBio(event.target.value)}
           rows={3}
-          className="mt-2 w-full rounded-xl border border-white/20 bg-transparent px-3 py-2 text-sm text-white placeholder:text-white/40"
+          className="mt-2 w-full rounded-xl border border-white/[0.08] bg-[#181818] px-3 py-2 text-sm text-white placeholder:text-white/40"
           placeholder="Tell people what you build"
         />
       </div>
@@ -114,7 +114,7 @@ export default function ProfileEditForm({
         <input
           value={avatarUrl}
           onChange={(event) => setAvatarUrl(event.target.value)}
-          className="mt-2 w-full rounded-xl border border-white/20 bg-transparent px-3 py-2 text-sm text-white placeholder:text-white/40"
+          className="mt-2 w-full rounded-xl border border-white/[0.08] bg-[#181818] px-3 py-2 text-sm text-white placeholder:text-white/40"
           placeholder="https://..."
         />
       </div>
@@ -126,7 +126,7 @@ export default function ProfileEditForm({
         <input
           value={interestsInput}
           onChange={(event) => setInterestsInput(event.target.value)}
-          className="mt-2 w-full rounded-xl border border-white/20 bg-transparent px-3 py-2 text-sm text-white placeholder:text-white/40"
+          className="mt-2 w-full rounded-xl border border-white/[0.08] bg-[#181818] px-3 py-2 text-sm text-white placeholder:text-white/40"
           placeholder="photography, ai-tools, productivity"
         />
       </div>

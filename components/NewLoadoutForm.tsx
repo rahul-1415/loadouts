@@ -173,7 +173,7 @@ export default function NewLoadoutForm({
 
   return (
     <form
-      className="space-y-5 rounded-3xl border border-white/12 bg-[#11131a] p-6"
+      className="space-y-5 rounded-3xl border border-white/[0.05] bg-[#171717] p-6"
       onSubmit={handleSubmit}
     >
       <div className="flex items-center justify-between text-[11px] uppercase tracking-[0.3em] text-white/55">
@@ -194,7 +194,7 @@ export default function NewLoadoutForm({
               value={categoryId}
               onChange={(event) => setCategoryId(event.target.value)}
               required
-              className="mt-2 w-full rounded-xl border border-white/20 bg-[#0f1218] px-3 py-2 text-sm text-white"
+              className="mt-2 w-full rounded-xl border border-white/[0.08] bg-[#181818] px-3 py-2 text-sm text-white"
             >
               <option value="">Select a category</option>
               {categories.map((category) => (
@@ -205,7 +205,7 @@ export default function NewLoadoutForm({
             </select>
           </div>
 
-          <div className="rounded-2xl border border-white/10 bg-white/[0.02] px-4 py-3 text-sm text-white/70">
+          <div className="rounded-2xl border border-white/[0.04] bg-white/[0.03] px-4 py-3 text-sm text-white/70">
             Pick one of the fixed 100 categories. You can move this loadout to a
             different category later.
           </div>
@@ -222,7 +222,7 @@ export default function NewLoadoutForm({
         </div>
       ) : (
         <div className="space-y-4">
-          <div className="rounded-2xl border border-white/10 bg-white/[0.02] px-4 py-3 text-xs uppercase tracking-[0.25em] text-white/60">
+          <div className="rounded-2xl border border-white/[0.04] bg-white/[0.03] px-4 py-3 text-xs uppercase tracking-[0.25em] text-white/60">
             Category: <span className="text-white">{selectedCategoryLabel || "None"}</span>
           </div>
 
@@ -236,7 +236,7 @@ export default function NewLoadoutForm({
               onChange={(event) => setTitle(event.target.value)}
               placeholder="My Creator Loadout"
               required
-              className="mt-2 w-full rounded-xl border border-white/20 bg-transparent px-3 py-2 text-sm text-white placeholder:text-white/40"
+              className="mt-2 w-full rounded-xl border border-white/[0.08] bg-[#181818] px-3 py-2 text-sm text-white placeholder:text-white/40"
             />
           </div>
 
@@ -249,7 +249,7 @@ export default function NewLoadoutForm({
               value={description}
               onChange={(event) => setDescription(event.target.value)}
               placeholder="Add a short description"
-              className="mt-2 w-full rounded-xl border border-white/20 bg-transparent px-3 py-2 text-sm text-white placeholder:text-white/40"
+              className="mt-2 w-full rounded-xl border border-white/[0.08] bg-[#181818] px-3 py-2 text-sm text-white placeholder:text-white/40"
               rows={4}
             />
           </div>
@@ -262,7 +262,7 @@ export default function NewLoadoutForm({
               id="visibility"
               value={isPublic ? "public" : "draft"}
               onChange={(event) => setIsPublic(event.target.value === "public")}
-              className="mt-2 w-full rounded-xl border border-white/20 bg-[#0f1218] px-3 py-2 text-sm text-white"
+              className="mt-2 w-full rounded-xl border border-white/[0.08] bg-[#181818] px-3 py-2 text-sm text-white"
             >
               <option value="public">Public (visible to everyone)</option>
               <option value="draft">Draft (only you can access)</option>

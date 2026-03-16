@@ -16,13 +16,13 @@ interface ButtonLinkProps
 
 const variantStyles: Record<ButtonVariant, string> = {
   primary:
-    "border border-white/10 bg-[#f4f5f7] text-[#0b0c0f] hover:text-[#0b0c0f] focus-visible:ring-white/60",
+    "border border-[#d4dd7f]/70 bg-[#e6ef92] text-[#111111] hover:border-[#e6ef92] hover:text-[#111111] focus-visible:ring-[#e6ef92]/55",
   secondary:
-    "border border-white/25 bg-transparent text-[#f4f5f7] hover:border-white/45 focus-visible:ring-white/35",
+    "border border-white/[0.08] bg-[#181818] text-[#f5f5f5] hover:border-white/[0.16] hover:bg-[#202020] focus-visible:ring-white/25",
 };
 
 const baseClasses =
-  "group relative inline-flex items-center justify-center overflow-hidden rounded-full px-5 py-2 text-xs font-semibold uppercase tracking-[0.3em] transition focus-visible:outline-none focus-visible:ring-2";
+  "group relative inline-flex items-center justify-center overflow-hidden rounded-full px-5 py-2 text-xs font-semibold uppercase tracking-[0.3em] transition focus-visible:outline-none focus-visible:ring-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]";
 
 function ButtonInner({
   variant,
@@ -32,11 +32,11 @@ function ButtonInner({
   children: React.ReactNode;
 }) {
   const overlay =
-    variant === "primary" ? "bg-[#d7dadf]/85" : "bg-white/10";
+    variant === "primary" ? "bg-[#f2f7b8]" : "bg-[#262626]";
   const label =
     variant === "primary"
-      ? "text-[#0b0c0f] group-hover:text-[#0b0c0f]"
-      : "text-[#f4f5f7]";
+      ? "text-[#111111] group-hover:text-[#111111]"
+      : "text-[#f5f5f5]";
 
   return (
     <>

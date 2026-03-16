@@ -85,7 +85,7 @@ export default async function SavedPage() {
           </div>
 
           {myLoadouts.length === 0 ? (
-            <div className="rounded-3xl border border-white/10 bg-[#11131a] p-8 text-center">
+            <div className="rounded-3xl border border-white/[0.04] bg-[#171717] p-8 text-center">
               <p className="text-[11px] uppercase tracking-[0.35em] text-white/55">
                 Empty State
               </p>
@@ -104,9 +104,15 @@ export default async function SavedPage() {
               {myLoadouts.map((loadout) => (
                 <article
                   key={loadout.id}
-                  className="overflow-hidden rounded-3xl border border-white/10 bg-[#11131a] shadow-[0_22px_48px_rgba(0,0,0,0.3)]"
+                  className="overflow-hidden rounded-3xl border border-white/[0.04] bg-[#171717] shadow-[inset_0_1px_0_rgba(255,255,255,0.03),0_18px_36px_rgba(0,0,0,0.16)]"
                 >
-                  <div className="h-40 w-full bg-gradient-to-br from-white/5 via-white/[0.08] to-[#1a2230]">
+                  <div
+                    className={
+                      loadout.coverImageUrl
+                        ? "h-40 w-full bg-[linear-gradient(180deg,rgba(230,239,146,0.12),transparent_58%),linear-gradient(135deg,#2d301d,#171915_62%,#101010)]"
+                        : "h-40 w-full bg-[#111111]"
+                    }
+                  >
                     {loadout.coverImageUrl ? (
                       <img
                         src={loadout.coverImageUrl}
@@ -119,7 +125,7 @@ export default async function SavedPage() {
                   <div className="space-y-4 p-5">
                     <div className="space-y-2">
                       <div className="flex flex-wrap items-center gap-2">
-                        <span className="rounded-full border border-white/20 px-2.5 py-1 text-[10px] uppercase tracking-[0.23em] text-white/75">
+                        <span className="rounded-full border border-white/[0.08] px-2.5 py-1 text-[10px] uppercase tracking-[0.23em] text-white/75">
                           {loadout.isPublic ? "Public" : "Draft"}
                         </span>
                         <span className="text-[10px] uppercase tracking-[0.2em] text-white/45">

@@ -43,7 +43,7 @@ export default async function SignupPage({ searchParams }: SignupPageProps) {
 
   return (
     <div className="flex min-h-[60vh] items-center justify-center">
-      <div className="w-full max-w-md rounded-3xl border border-ink/15 bg-paper/80 p-8 shadow-[0_20px_40px_rgba(27,29,38,0.1)]">
+      <div className="w-full max-w-md rounded-3xl border border-ink/15 bg-paper/80 p-8 shadow-[inset_0_1px_0_rgba(255,255,255,0.03),0_18px_36px_rgba(0,0,0,0.14)]">
         <p className="text-[11px] font-semibold uppercase tracking-[0.45em] text-ink/50">
           Sign up
         </p>

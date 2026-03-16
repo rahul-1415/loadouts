@@ -41,7 +41,7 @@ export default async function LoadoutPage({ params }: LoadoutPageProps) {
           by <span className="font-medium text-white">{loadout.author}</span>
         </p>
         <div className="flex flex-wrap items-center gap-3">
-          <span className="rounded-full border border-white/20 px-3 py-1 text-[10px] uppercase tracking-[0.25em] text-white/70">
+          <span className="rounded-full border border-white/[0.08] px-3 py-1 text-[10px] uppercase tracking-[0.25em] text-white/70">
             {loadout.isPublic ? "Public" : "Draft"}
           </span>
           {isOwner ? (

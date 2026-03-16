@@ -294,7 +294,7 @@ export default function LoadoutProductsManager({
   };
 
   return (
-    <section className="space-y-5 rounded-3xl border border-white/12 bg-[#11131a] p-6">
+    <section className="space-y-5 rounded-3xl border border-white/[0.05] bg-[#171717] p-6">
       <header className="space-y-2">
         <p className="text-[11px] uppercase tracking-[0.45em] text-white/50">
           Products
@@ -308,14 +308,14 @@ export default function LoadoutProductsManager({
       </header>
 
       <div className="grid gap-4 md:grid-cols-2">
-        <div className="space-y-3 rounded-2xl border border-white/10 bg-white/[0.02] p-4">
+        <div className="space-y-3 rounded-2xl border border-white/[0.04] bg-white/[0.03] p-4">
           <p className="text-[11px] uppercase tracking-[0.25em] text-white/55">
             Add Existing Product
           </p>
           <select
             value={selectedProductId}
             onChange={(event) => setSelectedProductId(event.target.value)}
-            className="w-full rounded-xl border border-white/20 bg-[#0f1218] px-3 py-2 text-sm text-white"
+            className="w-full rounded-xl border border-white/[0.08] bg-[#181818] px-3 py-2 text-sm text-white"
           >
             <option value="">Select product</option>
             {availableProducts.map((product) => (
@@ -339,7 +339,7 @@ export default function LoadoutProductsManager({
           </Button>
         </div>
 
-        <div className="space-y-3 rounded-2xl border border-white/10 bg-white/[0.02] p-4">
+        <div className="space-y-3 rounded-2xl border border-white/[0.04] bg-white/[0.03] p-4">
           <p className="text-[11px] uppercase tracking-[0.25em] text-white/55">
             Add New Product
           </p>
@@ -347,32 +347,32 @@ export default function LoadoutProductsManager({
             value={newProductName}
             onChange={(event) => setNewProductName(event.target.value)}
             placeholder="Product name"
-            className="w-full rounded-xl border border-white/20 bg-transparent px-3 py-2 text-sm text-white placeholder:text-white/40"
+            className="w-full rounded-xl border border-white/[0.08] bg-[#181818] px-3 py-2 text-sm text-white placeholder:text-white/40"
           />
           <input
             value={newProductBrand}
             onChange={(event) => setNewProductBrand(event.target.value)}
             placeholder="Brand (optional)"
-            className="w-full rounded-xl border border-white/20 bg-transparent px-3 py-2 text-sm text-white placeholder:text-white/40"
+            className="w-full rounded-xl border border-white/[0.08] bg-[#181818] px-3 py-2 text-sm text-white placeholder:text-white/40"
           />
           <input
             value={newProductUrl}
             onChange={(event) => setNewProductUrl(event.target.value)}
             placeholder="Product URL (optional)"
-            className="w-full rounded-xl border border-white/20 bg-transparent px-3 py-2 text-sm text-white placeholder:text-white/40"
+            className="w-full rounded-xl border border-white/[0.08] bg-[#181818] px-3 py-2 text-sm text-white placeholder:text-white/40"
           />
           <input
             value={newProductImageUrl}
             onChange={(event) => setNewProductImageUrl(event.target.value)}
             placeholder="Image URL (optional)"
-            className="w-full rounded-xl border border-white/20 bg-transparent px-3 py-2 text-sm text-white placeholder:text-white/40"
+            className="w-full rounded-xl border border-white/[0.08] bg-[#181818] px-3 py-2 text-sm text-white placeholder:text-white/40"
           />
           <textarea
             value={newProductDescription}
             onChange={(event) => setNewProductDescription(event.target.value)}
             placeholder="Description (optional)"
             rows={3}
-            className="w-full rounded-xl border border-white/20 bg-transparent px-3 py-2 text-sm text-white placeholder:text-white/40"
+            className="w-full rounded-xl border border-white/[0.08] bg-[#181818] px-3 py-2 text-sm text-white placeholder:text-white/40"
           />
           <Button
             type="button"
@@ -384,7 +384,7 @@ export default function LoadoutProductsManager({
         </div>
       </div>
 
-      <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-4">
+      <div className="rounded-2xl border border-white/[0.04] bg-white/[0.03] p-4">
         <label className="text-[11px] uppercase tracking-[0.25em] text-white/55">
           Note for next add
         </label>
@@ -392,7 +392,7 @@ export default function LoadoutProductsManager({
           value={addNote}
           onChange={(event) => setAddNote(event.target.value)}
           placeholder="Optional note for added product"
-          className="mt-2 w-full rounded-xl border border-white/20 bg-transparent px-3 py-2 text-sm text-white placeholder:text-white/40"
+          className="mt-2 w-full rounded-xl border border-white/[0.08] bg-[#181818] px-3 py-2 text-sm text-white placeholder:text-white/40"
         />
       </div>
 
@@ -400,7 +400,7 @@ export default function LoadoutProductsManager({
         {items.map((item, index) => (
           <div
             key={item.productId}
-            className="space-y-3 rounded-2xl border border-white/10 bg-white/[0.02] p-4"
+            className="space-y-3 rounded-2xl border border-white/[0.04] bg-white/[0.03] p-4"
           >
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
@@ -449,7 +449,7 @@ export default function LoadoutProductsManager({
               onChange={(event) => updateNote(index, event.target.value)}
               placeholder="Product note in this loadout"
               rows={2}
-              className="w-full rounded-xl border border-white/20 bg-transparent px-3 py-2 text-sm text-white placeholder:text-white/40"
+              className="w-full rounded-xl border border-white/[0.08] bg-[#181818] px-3 py-2 text-sm text-white placeholder:text-white/40"
             />
           </div>
         ))}

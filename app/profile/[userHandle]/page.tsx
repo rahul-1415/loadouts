@@ -40,10 +40,10 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
 
   return (
     <div className="space-y-8">
-      <section className="space-y-4 rounded-3xl border border-white/12 bg-[#11131a] p-6 shadow-[0_24px_52px_rgba(0,0,0,0.32)] sm:p-8">
+      <section className="space-y-4 rounded-3xl border border-white/[0.05] bg-[#171717] p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.03),0_18px_36px_rgba(0,0,0,0.16)] sm:p-8">
         <div className="flex flex-wrap items-start justify-between gap-5">
           <div className="flex items-center gap-4">
-            <div className="h-16 w-16 overflow-hidden rounded-full border border-white/20 bg-white/10">
+            <div className="h-16 w-16 overflow-hidden rounded-full border border-white/[0.08] bg-white/[0.06]">
               {profile.avatarUrl ? (
                 <img
                   src={profile.avatarUrl}
@@ -102,7 +102,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
             {profile.interests.map((interest) => (
               <span
                 key={interest}
-                className="rounded-full border border-white/20 px-3 py-1 text-[10px] uppercase tracking-[0.2em] text-white/70"
+                className="rounded-full border border-white/[0.08] px-3 py-1 text-[10px] uppercase tracking-[0.2em] text-white/70"
               >
                 {interest}
               </span>
@@ -141,7 +141,6 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
               coverImageUrl={loadout.coverImageUrl}
               coverImageSourceUrl={loadout.coverImageSourceUrl}
               href={`/loadouts/${loadout.slug}`}
-              ctaLabel="View loadout"
             />
           ))}
         </div>

@@ -288,7 +288,7 @@ export default function CollectionEngagement({
             placeholder="Add a comment..."
             value={commentBody}
             onChange={(event) => setCommentBody(event.target.value)}
-            className="flex-1 rounded-xl border border-white/20 bg-transparent px-3 py-2 text-sm text-white placeholder:text-white/40"
+            className="flex-1 rounded-xl border border-white/[0.08] bg-[#181818] px-3 py-2 text-sm text-white placeholder:text-white/40"
           />
           <Button type="submit" disabled={isPosting}>
             {isPosting ? "Posting..." : "Post"}
@@ -309,7 +309,7 @@ export default function CollectionEngagement({
                   <button
                     type="button"
                     onClick={() => editComment(comment)}
-                    className="rounded-full border border-white/20 px-3 py-1 text-[10px] uppercase tracking-[0.2em] text-white/65"
+                    className="rounded-full border border-white/[0.08] px-3 py-1 text-[10px] uppercase tracking-[0.2em] text-white/65"
                   >
                     Edit
                   </button>

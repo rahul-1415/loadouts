@@ -62,7 +62,7 @@ export default async function OnboardingProfilePage({
 
   return (
     <div className="flex min-h-[60vh] items-center justify-center">
-      <div className="w-full max-w-md rounded-3xl border border-white/12 bg-[#11131a] p-8 shadow-[0_20px_40px_rgba(0,0,0,0.3)]">
+      <div className="w-full max-w-md rounded-3xl border border-white/[0.05] bg-[#171717] p-8 shadow-[inset_0_1px_0_rgba(255,255,255,0.03),0_18px_36px_rgba(0,0,0,0.16)]">
         <p className="text-[11px] font-semibold uppercase tracking-[0.45em] text-white/50">
           Profile setup
         </p>

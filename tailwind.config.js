@@ -7,15 +7,15 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        ink: "#f4f5f7",
-        paper: "#0b0d12",
-        fog: "#c7cbd2",
-        mist: "#8d929b",
+        ink: "#f5f5f5",
+        paper: "#0b0b0b",
+        fog: "#d0d0d0",
+        mist: "#959595",
         accent: {
-          yellow: "#e6e8ec",
-          orange: "#9ea5af",
-          red: "#8d96a3",
-          blue: "#a8b1be",
+          yellow: "#e6ef92",
+          orange: "#d7e37c",
+          red: "#b9c36d",
+          blue: "#ecefb7",
         },
       },
       fontFamily: {

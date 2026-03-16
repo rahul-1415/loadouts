@@ -102,7 +102,7 @@ export default async function NotificationsPage({
       </header>
 
       {notifications.length === 0 ? (
-        <div className="rounded-3xl border border-white/12 bg-[#11131a] p-7">
+        <div className="rounded-3xl border border-white/[0.05] bg-[#171717] p-7">
           <p className="text-sm text-white/70">No notifications yet.</p>
         </div>
       ) : (
@@ -113,8 +113,8 @@ export default async function NotificationsPage({
                 key={item.id}
                 className={`rounded-2xl border px-4 py-3 ${
                   item.isRead
-                    ? "border-white/10 bg-[#11131a]"
-                    : "border-white/25 bg-[#151a22]"
+                    ? "border-white/[0.04] bg-[#171717]"
+                    : "border-white/[0.12] bg-[#151a22]"
                 }`}
               >
                 <p className="text-sm text-white/80">
@@ -136,7 +136,7 @@ export default async function NotificationsPage({
                 href={`/notifications?cursor=${encodeURIComponent(
                   notificationPage.nextCursor
                 )}`}
-                className="rounded-full border border-white/20 px-5 py-2 text-xs uppercase tracking-[0.25em] text-white/75 transition hover:border-white/45 hover:text-white"
+                className="rounded-full border border-white/[0.08] px-5 py-2 text-xs uppercase tracking-[0.25em] text-white/75 transition hover:border-white/[0.22] hover:text-white"
               >
                 Load more
               </Link>

@@ -380,7 +380,7 @@ export default function AuthPasswordForm({
           <input
             type="email"
             placeholder="you@example.com"
-            className="mt-2 w-full rounded-xl border border-ink/20 bg-transparent px-3 py-2 text-sm text-ink placeholder:text-ink/40"
+            className="mt-2 w-full rounded-xl border border-ink/20 bg-[#181818] px-3 py-2 text-sm text-ink placeholder:text-ink/40"
             value={email}
             onChange={(event) => setEmail(event.target.value)}
             disabled={signupStep !== "email"}
@@ -420,7 +420,7 @@ export default function AuthPasswordForm({
           <input
             type="email"
             placeholder="you@example.com"
-            className="mt-2 w-full rounded-xl border border-ink/20 bg-transparent px-3 py-2 text-sm text-ink placeholder:text-ink/40"
+            className="mt-2 w-full rounded-xl border border-ink/20 bg-[#181818] px-3 py-2 text-sm text-ink placeholder:text-ink/40"
             value={email}
             onChange={(event) => setEmail(event.target.value)}
             required
@@ -437,7 +437,7 @@ export default function AuthPasswordForm({
             <input
               type="text"
               placeholder="yourname"
-              className="mt-2 w-full rounded-xl border border-ink/20 bg-transparent px-3 py-2 text-sm text-ink placeholder:text-ink/40"
+              className="mt-2 w-full rounded-xl border border-ink/20 bg-[#181818] px-3 py-2 text-sm text-ink placeholder:text-ink/40"
               value={username}
               onChange={(event) => setUsername(event.target.value)}
               required
@@ -454,7 +454,7 @@ export default function AuthPasswordForm({
             <input
               type="text"
               placeholder="Your name"
-              className="mt-2 w-full rounded-xl border border-ink/20 bg-transparent px-3 py-2 text-sm text-ink placeholder:text-ink/40"
+              className="mt-2 w-full rounded-xl border border-ink/20 bg-[#181818] px-3 py-2 text-sm text-ink placeholder:text-ink/40"
               value={displayName}
               onChange={(event) => setDisplayName(event.target.value)}
               required
@@ -471,7 +471,7 @@ export default function AuthPasswordForm({
           <input
             type="password"
             placeholder="••••••••"
-            className="mt-2 w-full rounded-xl border border-ink/20 bg-transparent px-3 py-2 text-sm text-ink placeholder:text-ink/40"
+            className="mt-2 w-full rounded-xl border border-ink/20 bg-[#181818] px-3 py-2 text-sm text-ink placeholder:text-ink/40"
             value={password}
             onChange={(event) => setPassword(event.target.value)}
             required
@@ -510,7 +510,7 @@ export default function AuthPasswordForm({
           <input
             type="password"
             placeholder="••••••••"
-            className="mt-2 w-full rounded-xl border border-ink/20 bg-transparent px-3 py-2 text-sm text-ink placeholder:text-ink/40"
+            className="mt-2 w-full rounded-xl border border-ink/20 bg-[#181818] px-3 py-2 text-sm text-ink placeholder:text-ink/40"
             value={confirmPassword}
             onChange={(event) => setConfirmPassword(event.target.value)}
             required

@@ -148,7 +148,7 @@ export default function NavBar() {
   };
 
   return (
-    <header className="sticky top-0 z-20 border-b border-white/10 bg-[#0d0f13]/90 backdrop-blur">
+    <header className="sticky top-0 z-20 border-b border-white/[0.04] bg-[#050505]/92 backdrop-blur">
       <div className="mx-auto flex max-w-[1200px] flex-wrap items-center justify-between gap-4 px-4 py-5 sm:px-6 lg:px-10 2xl:max-w-[1400px] 2xl:px-16">
         <Link className="inline-flex shrink-0 items-center" href="/" aria-label="Loadouts">
           <BrandLogo variant="lockup" size="sm" priority ariaLabel="Loadouts" />
@@ -157,7 +157,7 @@ export default function NavBar() {
           {navLinks.map((link) => (
             <Link
               key={link.href}
-              className="transition hover:text-white"
+              className="transition hover:text-[#e6ef92]"
               href={link.href}
             >
               {link.label}
@@ -169,7 +169,7 @@ export default function NavBar() {
             className="w-full max-w-[180px] sm:max-w-xs"
             onSubmit={handleSearchSubmit}
           >
-            <div className="flex items-center gap-2 rounded-full border border-white/20 bg-[#171b24] px-3 py-2 text-[11px] uppercase tracking-[0.3em] text-white/50">
+            <div className="flex items-center gap-2 rounded-full border border-white/[0.08] bg-[#181818] px-3 py-2 text-[11px] uppercase tracking-[0.3em] text-white/50 shadow-[inset_0_1px_0_rgba(255,255,255,0.04)]">
               <input
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
@@ -181,14 +181,14 @@ export default function NavBar() {
                 <button
                   type="button"
                   onClick={() => setQuery("")}
-                  className="rounded-full border border-white/20 px-2 py-0.5 text-[10px] uppercase tracking-[0.2em] text-white/62"
+                  className="rounded-full border border-white/[0.08] bg-[#202020] px-2 py-0.5 text-[10px] uppercase tracking-[0.2em] text-white/62"
                 >
                   Clear
                 </button>
               )}
               <button
                 type="submit"
-                className="rounded-full border border-white/20 px-2 py-0.5 text-[10px] uppercase tracking-[0.2em] text-white/62"
+                className="rounded-full border border-white/[0.08] bg-[#202020] px-2 py-0.5 text-[10px] uppercase tracking-[0.2em] text-white/62"
               >
                 Go
               </button>
@@ -196,7 +196,7 @@ export default function NavBar() {
           </form>
           <div className="flex items-center gap-2">
             {isAuthLoading ? (
-              <div className="h-10 w-36 animate-pulse rounded-full bg-white/10" />
+              <div className="h-10 w-36 animate-pulse rounded-full bg-[#181818]" />
             ) : user ? (
               <>
                 <ButtonLink
@@ -208,7 +208,7 @@ export default function NavBar() {
                 </ButtonLink>
                 <ButtonLink href={profileHref} variant="secondary" className="px-4 py-2 text-[10px]">
                   <span className="inline-flex items-center gap-2">
-                    <span className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-white/20 bg-white/10 text-[9px] font-semibold uppercase">
+                    <span className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-white/[0.08] bg-[#222222] text-[9px] font-semibold uppercase">
                       {(displayName[0] ?? "P").toUpperCase()}
                     </span>
                     {displayName}
@@ -218,7 +218,7 @@ export default function NavBar() {
                   type="button"
                   onClick={handleSignOut}
                   disabled={isSigningOut}
-                  className="group relative inline-flex items-center justify-center overflow-hidden rounded-full border border-white/25 bg-transparent px-4 py-2 text-[10px] font-semibold uppercase tracking-[0.3em] text-[#f4f5f7] transition hover:border-white/45 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/35 disabled:opacity-70"
+                  className="group relative inline-flex items-center justify-center overflow-hidden rounded-full border border-white/[0.08] bg-[#181818] px-4 py-2 text-[10px] font-semibold uppercase tracking-[0.3em] text-[#f5f5f5] transition hover:border-white/[0.16] hover:bg-[#202020] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/25 disabled:opacity-70"
                 >
                   {isSigningOut ? "Working" : "Log out"}
                 </button>

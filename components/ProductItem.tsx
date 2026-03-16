@@ -15,9 +15,13 @@ export default function ProductItem({
   sourceUrl,
   description,
 }: ProductItemProps) {
+  const imageClassName = imageUrl
+    ? "h-16 w-16 shrink-0 overflow-hidden rounded-2xl bg-[linear-gradient(180deg,rgba(230,239,146,0.12),transparent_58%),linear-gradient(135deg,#2b2e1c,#171915)]"
+    : "h-16 w-16 shrink-0 overflow-hidden rounded-2xl bg-[#111111]";
+
   return (
-    <article className="flex gap-4 rounded-2xl border border-white/12 bg-[#141821] p-4">
-      <div className="h-16 w-16 shrink-0 overflow-hidden rounded-2xl bg-white/8">
+    <article className="flex gap-4 rounded-2xl border border-white/[0.05] bg-[#171717] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]">
+      <div className={imageClassName}>
         {imageUrl ? (
           <img
             src={imageUrl}
@@ -38,7 +42,7 @@ export default function ProductItem({
             href={productUrl}
             target="_blank"
             rel="noreferrer"
-            className="text-sm font-semibold text-white underline decoration-white/30 underline-offset-4"
+            className="text-sm font-semibold text-white underline decoration-[#e6ef92]/45 underline-offset-4"
           >
             {name}
           </a>
@@ -51,7 +55,7 @@ export default function ProductItem({
             href={sourceUrl}
             target="_blank"
             rel="noreferrer"
-            className="text-[11px] uppercase tracking-[0.2em] text-white/45 underline decoration-white/20 underline-offset-4"
+            className="text-[11px] uppercase tracking-[0.2em] text-white/45 underline decoration-white/15 underline-offset-4"
           >
             Source
           </a>

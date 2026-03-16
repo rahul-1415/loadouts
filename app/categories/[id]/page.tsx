@@ -53,7 +53,6 @@ export default async function CategoryDetailPage({
               coverImageUrl={loadout.coverImageUrl}
               coverImageSourceUrl={loadout.coverImageSourceUrl}
               href={`/loadouts/${loadout.slug}`}
-              ctaLabel="View loadout"
             />
           ))}
         </div>

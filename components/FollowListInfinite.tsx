@@ -120,11 +120,11 @@ export default function FollowListInfinite({
       {items.map((item) => (
         <article
           key={item.id}
-          className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-white/10 bg-[#11131a] p-4"
+          className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-white/[0.04] bg-[#171717] p-4"
         >
           <Link href={`/profile/${item.handle}`} className="min-w-0 flex-1">
             <div className="flex min-w-0 items-center gap-3">
-              <div className="h-10 w-10 overflow-hidden rounded-full border border-white/20 bg-white/10">
+              <div className="h-10 w-10 overflow-hidden rounded-full border border-white/[0.08] bg-white/[0.06]">
                 {item.avatarUrl ? (
                   <img
                     src={item.avatarUrl}
