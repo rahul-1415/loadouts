@@ -31,6 +31,13 @@ interface CategoryRow {
   cover_image_url: string | null;
 }
 
+interface HomepageCategoryRow {
+  id: string;
+  slug: string;
+  title: string;
+  cover_image_url: string | null;
+}
+
 interface CategoryImageRow {
   slug: string;
   cover_image_url: string | null;
@@ -550,6 +557,53 @@ export async function getActiveCategoryOptions(limit = 200) {
 
   const rows = (data ?? []) as CategoryOption[];
   return rows;
+}
+
+export async function getActiveCategoriesBySlugs(slugs: string[]) {
+  const normalizedSlugs = Array.from(
+    new Set(
+      slugs
+        .map((slug) => slug.trim().toLowerCase())
+        .filter((slug) => isFixedCategorySlug(slug))
+    )
+  );
+
+  if (normalizedSlugs.length === 0) {
+    return [] as Array<{
+      id: string;
+      slug: string;
+      title: string;
+      coverImageUrl: string | null;
+    }>;
+  }
+
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from("categories")
+    .select("id,slug,title,cover_image_url")
+    .eq("is_active", true)
+    .in("slug", normalizedSlugs);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  const rowBySlug = new Map<string, HomepageCategoryRow>(
+    ((data ?? []) as HomepageCategoryRow[]).map((row) => [
+      row.slug.toLowerCase(),
+      row,
+    ])
+  );
+
+  return normalizedSlugs
+    .map((slug) => rowBySlug.get(slug))
+    .filter((row): row is HomepageCategoryRow => row !== undefined)
+    .map((row) => ({
+      id: row.id,
+      slug: row.slug,
+      title: row.title,
+      coverImageUrl: row.cover_image_url,
+    }));
 }
 
 export async function getCategoryImageMapBySlugs(slugs: string[]) {

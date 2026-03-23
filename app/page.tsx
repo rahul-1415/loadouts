@@ -1,7 +1,18 @@
 import CollectionCard from "../components/CollectionCard";
 import { ButtonLink } from "../components/Button";
-import { getPublicCollections } from "../lib/data/collections";
+import {
+  getActiveCategoriesBySlugs,
+  getPublicCollections,
+} from "../lib/data/collections";
 import { createSupabaseServerClient } from "../lib/supabase/server";
+
+const homepageFeaturedCategorySlugs = [
+  "cat-001",
+  "cat-041",
+  "cat-061",
+  "cat-062",
+  "cat-076",
+];
 
 const faqs = [
   {
@@ -31,7 +42,10 @@ export default async function HomePage() {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  const collections = await getPublicCollections({ limit: 6 });
+  const [featuredCategories, featuredLoadouts] = await Promise.all([
+    getActiveCategoriesBySlugs(homepageFeaturedCategorySlugs),
+    getPublicCollections({ limit: 6, kind: "loadout" }),
+  ]);
 
   return (
     <div className="space-y-8 text-[#f4f5f7]">
@@ -76,34 +90,56 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section className="flex flex-wrap items-center justify-between gap-4">
+      <section className="space-y-4">
         <div>
           <h2 className="text-[clamp(1.8rem,3vw,2.5rem)] font-semibold text-white">
             Featured Categories
           </h2>
         </div>
+        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-5">
+          {featuredCategories.map((category) => (
+            <CollectionCard
+              key={category.id}
+              id={category.slug}
+              title={category.title}
+              description=""
+              coverImageUrl={category.coverImageUrl}
+              href={`/categories/${category.slug}`}
+            />
+          ))}
+          {featuredCategories.length === 0 ? (
+            <p className="text-sm text-white/70">
+              No featured categories found yet. Seed your database and refresh.
+            </p>
+          ) : null}
+        </div>
       </section>
 
-      <section className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-        {collections.map((collection) => (
-          <CollectionCard
-            key={collection.id}
-            id={collection.slug}
-            title={collection.title}
-            author={collection.author}
-            description={collection.description}
-            coverImageUrl={collection.coverImageUrl}
-            coverImageSourceUrl={collection.coverImageSourceUrl}
-            href={`/${
-              collection.kind === "loadout" ? "loadouts" : "categories"
-            }/${collection.slug}`}
-          />
-        ))}
-        {collections.length === 0 ? (
-          <p className="text-sm text-white/70">
-            No collections found yet. Seed your database and refresh.
-          </p>
-        ) : null}
+      <section className="space-y-4">
+        <div>
+          <h2 className="text-[clamp(1.8rem,3vw,2.5rem)] font-semibold text-white">
+            Featured Loadouts
+          </h2>
+        </div>
+        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+          {featuredLoadouts.map((loadout) => (
+            <CollectionCard
+              key={loadout.id}
+              id={loadout.slug}
+              title={loadout.title}
+              author={loadout.author}
+              description={loadout.description}
+              coverImageUrl={loadout.coverImageUrl}
+              coverImageSourceUrl={loadout.coverImageSourceUrl}
+              href={`/loadouts/${loadout.slug}`}
+            />
+          ))}
+          {featuredLoadouts.length === 0 ? (
+            <p className="text-sm text-white/70">
+              No featured loadouts found yet. Seed your database and refresh.
+            </p>
+          ) : null}
+        </div>
       </section>
 
       <section className="rounded-3xl border border-white/[0.04] bg-[#171717] p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.03),0_18px_36px_rgba(0,0,0,0.16)]">
