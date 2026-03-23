@@ -1,4 +1,5 @@
 import CollectionCard from "../../components/CollectionCard";
+import CategorySearchGrid from "../../components/CategorySearchGrid";
 import { getCategoryImageMapBySlugs } from "../../lib/data/collections";
 
 interface StaticCategory {
@@ -659,33 +660,7 @@ export default async function CategoriesPage() {
         </div>
       </section>
 
-      <section className="space-y-4">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div>
-            <h2 className="text-[clamp(1.6rem,3vw,2.4rem)] font-semibold text-ink">
-              All Categories
-            </h2>
-            <p className="mt-2 max-w-2xl text-sm text-ink/70">
-              100 categories from A to Z covering audio, PC builds, kitchen
-              tech, photography, and more.
-            </p>
-          </div>
-          <div className="w-full max-w-xs">
-            <div className="flex items-center gap-2 rounded-full border border-ink/20 bg-paper px-3 py-2 text-[11px] uppercase tracking-[0.3em] text-ink/50">
-              <input
-                placeholder="Search"
-                className="w-full bg-transparent text-[11px] uppercase tracking-[0.25em] text-ink placeholder:text-ink/40 focus:outline-none"
-                aria-label="Search categories"
-              />
-            </div>
-          </div>
-        </div>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-          {remainingCategories.map((category) => (
-            <CollectionCard key={category.id} {...category} />
-          ))}
-        </div>
-      </section>
+      <CategorySearchGrid categories={remainingCategories} />
     </div>
   );
 }
