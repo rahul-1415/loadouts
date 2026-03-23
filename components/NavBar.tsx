@@ -13,7 +13,7 @@ const navLinks = [
   { label: "Feed", href: "/feed" },
   { label: "Categories", href: "/categories" },
   { label: "Saved", href: "/saved" },
-  { label: "My Loadouts", href: "/my-loadouts" },
+  { label: "Studio", href: "/studio" },
 ];
 
 interface NavProfile {

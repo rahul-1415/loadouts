@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import CollectionCard from "../../../components/CollectionCard";
+import ContentCard from "../../../components/ContentCard";
 import FollowButton from "../../../components/FollowButton";
 import ProfileEditForm from "../../../components/ProfileEditForm";
 import {
@@ -132,7 +132,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {loadouts.map((loadout) => (
-            <CollectionCard
+            <ContentCard
               key={loadout.id}
               id={loadout.slug}
               title={loadout.title}

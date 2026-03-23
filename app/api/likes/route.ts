@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireCompleteUser } from "../../../lib/auth/api";
+import { captureOperationalEvent } from "../../../lib/data/analytics";
 import { createNotification } from "../../../lib/data/notifications";
 import { createSupabaseServerClient } from "../../../lib/supabase/server";
 
@@ -117,6 +118,23 @@ export async function POST(request: Request) {
     .maybeSingle();
 
   if (existingLikeError) {
+    try {
+      await captureOperationalEvent({
+        userId: auth.user.id,
+        eventName: "like_toggle_failed",
+        status: "error",
+        context: "Like lookup failed",
+        metadata: {
+          code: existingLikeError.code,
+          message: existingLikeError.message,
+          collectionId: collection.id,
+        },
+        client: supabase,
+      });
+    } catch {
+      // Non-blocking for like flow.
+    }
+
     return writeErrorResponse(existingLikeError.message, existingLikeError.code);
   }
 
@@ -130,6 +148,23 @@ export async function POST(request: Request) {
       .eq("user_id", auth.user.id);
 
     if (unlikeError) {
+      try {
+        await captureOperationalEvent({
+          userId: auth.user.id,
+          eventName: "like_toggle_failed",
+          status: "error",
+          context: "Removing like failed",
+          metadata: {
+            code: unlikeError.code,
+            message: unlikeError.message,
+            collectionId: collection.id,
+          },
+          client: supabase,
+        });
+      } catch {
+        // Non-blocking for like flow.
+      }
+
       return writeErrorResponse(unlikeError.message, unlikeError.code);
     }
   } else {
@@ -139,10 +174,42 @@ export async function POST(request: Request) {
     });
 
     if (likeError) {
+      try {
+        await captureOperationalEvent({
+          userId: auth.user.id,
+          eventName: "like_toggle_failed",
+          status: "error",
+          context: "Creating like failed",
+          metadata: {
+            code: likeError.code,
+            message: likeError.message,
+            collectionId: collection.id,
+          },
+          client: supabase,
+        });
+      } catch {
+        // Non-blocking for like flow.
+      }
+
       return writeErrorResponse(likeError.message, likeError.code);
     }
 
     liked = true;
+
+    try {
+      await captureOperationalEvent({
+        userId: auth.user.id,
+        eventName: "like_added",
+        status: "success",
+        context: "Like added",
+        metadata: {
+          collectionId: collection.id,
+        },
+        client: supabase,
+      });
+    } catch {
+      // Non-blocking for like flow.
+    }
 
     try {
       await createNotification({

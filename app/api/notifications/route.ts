@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { requireCompleteUser } from "../../../lib/auth/api";
-import { trackMilestoneEvent } from "../../../lib/data/analytics";
+import {
+  captureOperationalEvent,
+  trackMilestoneEvent,
+} from "../../../lib/data/analytics";
 import {
   decodeNotificationCursor,
   getNotificationsByRecipient,
@@ -47,6 +50,20 @@ export async function GET(request: Request) {
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Unable to fetch notifications";
+
+    try {
+      await captureOperationalEvent({
+        userId: auth.user.id,
+        eventName: "notifications_fetch_failed",
+        status: "error",
+        context: "Notifications fetch failed",
+        metadata: {
+          message,
+        },
+      });
+    } catch {
+      // Non-blocking for notifications fetch.
+    }
 
     return NextResponse.json(
       {

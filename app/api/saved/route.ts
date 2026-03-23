@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireCompleteUser, requireUser } from "../../../lib/auth/api";
+import { captureOperationalEvent } from "../../../lib/data/analytics";
 import { getSavedCollectionsByUserId } from "../../../lib/data/collections";
 import { createSupabaseServerClient } from "../../../lib/supabase/server";
 
@@ -139,6 +140,23 @@ export async function POST(request: Request) {
     .maybeSingle();
 
   if (existingSaveError) {
+    try {
+      await captureOperationalEvent({
+        userId: auth.user.id,
+        eventName: "save_toggle_failed",
+        status: "error",
+        context: "Saved-items lookup failed",
+        metadata: {
+          code: existingSaveError.code,
+          message: existingSaveError.message,
+          collectionId: collection.id,
+        },
+        client: supabase,
+      });
+    } catch {
+      // Non-blocking for saved-items flow.
+    }
+
     return writeErrorResponse(existingSaveError.message, existingSaveError.code);
   }
 
@@ -152,6 +170,23 @@ export async function POST(request: Request) {
       .eq("user_id", auth.user.id);
 
     if (unsaveError) {
+      try {
+        await captureOperationalEvent({
+          userId: auth.user.id,
+          eventName: "save_toggle_failed",
+          status: "error",
+          context: "Removing saved item failed",
+          metadata: {
+            code: unsaveError.code,
+            message: unsaveError.message,
+            collectionId: collection.id,
+          },
+          client: supabase,
+        });
+      } catch {
+        // Non-blocking for saved-items flow.
+      }
+
       return writeErrorResponse(unsaveError.message, unsaveError.code);
     }
   } else {
@@ -161,10 +196,42 @@ export async function POST(request: Request) {
     });
 
     if (saveError) {
+      try {
+        await captureOperationalEvent({
+          userId: auth.user.id,
+          eventName: "save_toggle_failed",
+          status: "error",
+          context: "Saving item failed",
+          metadata: {
+            code: saveError.code,
+            message: saveError.message,
+            collectionId: collection.id,
+          },
+          client: supabase,
+        });
+      } catch {
+        // Non-blocking for saved-items flow.
+      }
+
       return writeErrorResponse(saveError.message, saveError.code);
     }
 
     saved = true;
+
+    try {
+      await captureOperationalEvent({
+        userId: auth.user.id,
+        eventName: "saved_item_added",
+        status: "success",
+        context: "Saved item added",
+        metadata: {
+          collectionId: collection.id,
+        },
+        client: supabase,
+      });
+    } catch {
+      // Non-blocking for saved-items flow.
+    }
   }
 
   return NextResponse.json({

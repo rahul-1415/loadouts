@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import CollectionCard from "./CollectionCard";
+import ContentCard from "./ContentCard";
 
 interface CategoryCardItem {
   id: string;
@@ -32,7 +32,7 @@ export default function CategorySearchGrid({
     }
 
     return categories.filter((category) => {
-      const haystack = [category.title, category.id]
+      const haystack = [category.title, category.id, category.description ?? ""]
         .join(" ")
         .toLowerCase();
 
@@ -86,7 +86,7 @@ export default function CategorySearchGrid({
       {filteredCategories.length > 0 ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
           {filteredCategories.map((category) => (
-            <CollectionCard key={category.id} {...category} />
+            <ContentCard key={category.id} {...category} />
           ))}
         </div>
       ) : (

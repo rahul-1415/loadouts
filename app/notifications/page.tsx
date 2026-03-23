@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import { ButtonLink } from "../../components/Button";
 import { getQueryParam } from "../../lib/auth/redirect";
 import { createSupabaseServerClient } from "../../lib/supabase/server";
 import { trackMilestoneEvent } from "../../lib/data/analytics";
@@ -115,7 +116,31 @@ export default async function NotificationsPage({
 
       {notifications.length === 0 ? (
         <div className="rounded-3xl border border-white/[0.05] bg-[#171717] p-7">
-          <p className="text-sm text-white/70">No notifications yet.</p>
+          <p className="text-[11px] uppercase tracking-[0.35em] text-white/55">
+            No Activity Yet
+          </p>
+          <h2 className="mt-2 text-2xl font-semibold text-white">
+            Give people something to react to
+          </h2>
+          <p className="mt-2 text-sm text-white/70">
+            Notifications appear when other creators follow you, like a loadout,
+            or join the conversation. Publishing a loadout and following a few
+            creators is the fastest way to start the loop.
+          </p>
+          <div className="mt-4 rounded-2xl border border-white/[0.05] bg-[#111111] px-4 py-4 text-left text-sm text-white/68">
+            <p>1. Publish a public loadout from Studio.</p>
+            <p className="mt-2">2. Follow creators whose setups you want to track.</p>
+            <p className="mt-2">3. Comment on loadouts to start discussion threads.</p>
+          </div>
+          <div className="mt-5 flex flex-wrap gap-3">
+            <ButtonLink href="/studio">Open Studio</ButtonLink>
+            <ButtonLink href="/feed" variant="secondary">
+              Browse Feed
+            </ButtonLink>
+            <ButtonLink href="/categories" variant="secondary">
+              Explore Categories
+            </ButtonLink>
+          </div>
         </div>
       ) : (
         <div className="space-y-5">

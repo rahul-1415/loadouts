@@ -2,7 +2,10 @@ import { NextResponse } from "next/server";
 import { requireCompleteUser } from "../../../lib/auth/api";
 import { getProfileByHandle } from "../../../lib/auth/profile";
 import { normalizeUsername } from "../../../lib/auth/username";
-import { trackMilestoneEvent } from "../../../lib/data/analytics";
+import {
+  captureOperationalEvent,
+  trackMilestoneEvent,
+} from "../../../lib/data/analytics";
 import { createNotification } from "../../../lib/data/notifications";
 import { createSupabaseServerClient } from "../../../lib/supabase/server";
 
@@ -67,6 +70,23 @@ export async function POST(request: Request) {
   const createdFollow = !error;
 
   if (error && error.code !== "23505") {
+    try {
+      await captureOperationalEvent({
+        userId: auth.user.id,
+        eventName: "follow_failed",
+        status: "error",
+        context: "Follow action failed",
+        metadata: {
+          code: error.code,
+          message: error.message,
+          targetUserId: targetProfile.id,
+        },
+        client: supabase,
+      });
+    } catch {
+      // Non-blocking for follow action.
+    }
+
     return NextResponse.json(
       {
         error: {
@@ -79,6 +99,22 @@ export async function POST(request: Request) {
   }
 
   if (createdFollow) {
+    try {
+      await captureOperationalEvent({
+        userId: auth.user.id,
+        eventName: "follow_created",
+        status: "success",
+        context: "Profile followed",
+        metadata: {
+          targetUserId: targetProfile.id,
+          targetHandle: targetProfile.handle,
+        },
+        client: supabase,
+      });
+    } catch {
+      // Non-blocking for follow action.
+    }
+
     try {
       await trackMilestoneEvent({
         userId: auth.user.id,

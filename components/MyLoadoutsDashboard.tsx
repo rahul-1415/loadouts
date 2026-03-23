@@ -29,14 +29,14 @@ export default async function MyLoadoutsDashboard({
       <header className="flex flex-wrap items-end justify-between gap-6">
         <div>
           <p className="text-[11px] uppercase tracking-[0.45em] text-ink/50">
-            My Loadouts
+            Studio
           </p>
           <h1 className="text-[clamp(2rem,3.6vw,3rem)] font-semibold text-ink">
-            Manage and build your loadouts
+            Build and manage your loadouts
           </h1>
           <p className="mt-2 text-sm text-ink/70">
-            Build drafts, publish when ready, and keep every loadout organized by
-            category.
+            This is your creator workspace for drafts, publishing, product
+            updates, and performance signals.
           </p>
         </div>
         <ButtonLink href="/loadouts/new" variant="secondary">
@@ -64,6 +64,9 @@ export default async function MyLoadoutsDashboard({
             <ButtonLink href="/loadouts/new" className="w-full">
               New Loadout
             </ButtonLink>
+            <ButtonLink href="/saved" variant="secondary" className="w-full">
+              View Saved
+            </ButtonLink>
           </div>
         </aside>
 
@@ -80,16 +83,20 @@ export default async function MyLoadoutsDashboard({
           {myLoadouts.length === 0 ? (
             <div className="rounded-3xl border border-white/[0.04] bg-[#171717] p-8 text-center">
               <p className="text-[11px] uppercase tracking-[0.35em] text-white/55">
-                Empty State
+                Studio Empty
               </p>
               <h2 className="mt-2 text-2xl font-semibold text-white">
                 Create your first loadout
               </h2>
               <p className="mt-2 text-sm text-white/70">
-                Start with a category, add details, then publish when you are ready.
+                Start with a category, add details, attach products, then
+                publish when the stack is ready to share.
               </p>
-              <div className="mt-5">
+              <div className="mt-5 flex flex-wrap justify-center gap-3">
                 <ButtonLink href="/loadouts/new">Create Loadout</ButtonLink>
+                <ButtonLink href="/categories" variant="secondary">
+                  Browse Categories
+                </ButtonLink>
               </div>
             </div>
           ) : (

@@ -38,7 +38,7 @@ export default async function SavedPage() {
           <ButtonLink href="/categories" variant="secondary">
             Explore Categories
           </ButtonLink>
-          <ButtonLink href="/my-loadouts">My Loadouts</ButtonLink>
+          <ButtonLink href="/studio">Studio</ButtonLink>
         </div>
       </header>
 
@@ -62,8 +62,8 @@ export default async function SavedPage() {
             <ButtonLink href="/feed" variant="secondary" className="w-full">
               Browse Feed
             </ButtonLink>
-            <ButtonLink href="/my-loadouts" className="w-full">
-              Manage My Loadouts
+            <ButtonLink href="/studio" className="w-full">
+              Open Studio
             </ButtonLink>
           </div>
         </aside>
@@ -81,19 +81,28 @@ export default async function SavedPage() {
           {savedItems.length === 0 ? (
             <div className="rounded-3xl border border-white/[0.04] bg-[#171717] p-8 text-center">
               <p className="text-[11px] uppercase tracking-[0.35em] text-white/55">
-                Empty State
+                Nothing Saved Yet
               </p>
               <h2 className="mt-2 text-2xl font-semibold text-white">
-                Save loadouts you want to revisit
+                Start collecting references worth revisiting
               </h2>
               <p className="mt-2 text-sm text-white/70">
-                Open any loadout or category and use the save button to keep it here.
+                Use Saved for bookmarks only. Browse the feed or category pages,
+                then save the loadouts and references you want to come back to.
               </p>
+              <div className="mt-4 rounded-2xl border border-white/[0.05] bg-[#111111] px-4 py-4 text-left text-sm text-white/68">
+                <p>1. Explore the feed to find active creator setups.</p>
+                <p className="mt-2">2. Open a loadout or category page.</p>
+                <p className="mt-2">3. Hit Save to pin it here for later.</p>
+              </div>
               <div className="mt-5 flex flex-wrap justify-center gap-3">
                 <ButtonLink href="/categories" variant="secondary">
                   Explore Categories
                 </ButtonLink>
                 <ButtonLink href="/feed">Browse Feed</ButtonLink>
+                <ButtonLink href="/studio" variant="secondary">
+                  Open Studio
+                </ButtonLink>
               </div>
             </div>
           ) : (

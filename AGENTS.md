@@ -43,20 +43,28 @@ Optional (admin-only seed scripts):
 - Data access layer: `lib/data/*`
 - SQL migrations/seeds: `supabase/*`
 
+## Naming Conventions
+- Use `category` for the fixed discovery taxonomy only.
+- Use `loadout` for creator-published setups in UI copy and route naming.
+- The `collections` table is a storage detail; avoid exposing `collection` in new user-facing copy unless the API contract already depends on it.
+- Use `saved` for bookmarks and `studio` for the owner workspace.
+
 ## Supabase Migration/Seed Order
 When bootstrapping a new environment, apply in order:
 1. `supabase/content-schema.md` (core schema SQL)
 2. `supabase/add-profile-onboarding-and-follows.sql`
 3. `supabase/add-notifications.sql`
 4. `supabase/add-notification-guards-and-analytics.sql`
-5. `supabase/seed-100-categories.sql`
-6. `supabase/seed-100-category-images.sql` (optional starter)
-7. `supabase/seed-content.sql`
+5. `supabase/add-operational-visibility.sql`
+6. `supabase/seed-100-categories.sql`
+7. `supabase/seed-100-category-images.sql` (optional starter)
+8. `supabase/seed-content.sql`
 
 Validation helpers:
 - `supabase/verify-profile-onboarding-and-follows.sql`
 - `supabase/verify-category-images.sql`
 - `supabase/verify-notifications-and-analytics.sql`
+- `supabase/verify-operational-visibility.sql`
 
 ## Coding Rules
 1. Keep changes TypeScript-safe and App Router compatible.
@@ -91,11 +99,14 @@ Implemented:
 - Notifications + pagination + mark-read
 - Following feed + pagination
 - Search across entities
-- Loadout create/edit/delete + product management
+- Studio workspace for owned loadouts + operational visibility
+- Loadout create/edit/delete + inline product management
+- Vitest integration coverage for auth, onboarding, saves, notifications, and interaction validation
 
 ## Quality Gates Before Handoff
 Run:
 ```bash
+npm test
 npm run build
 ```
 

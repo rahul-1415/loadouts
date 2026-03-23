@@ -2,7 +2,10 @@ import { NextResponse } from "next/server";
 import { requireUser } from "../../../../lib/auth/api";
 import { getProfileById, isUsernameAvailable } from "../../../../lib/auth/profile";
 import { validateUsername } from "../../../../lib/auth/username";
-import { trackMilestoneEvent } from "../../../../lib/data/analytics";
+import {
+  captureOperationalEvent,
+  trackMilestoneEvent,
+} from "../../../../lib/data/analytics";
 import { createSupabaseServerClient } from "../../../../lib/supabase/server";
 
 export async function POST(request: Request) {
@@ -123,12 +126,41 @@ export async function POST(request: Request) {
       // Non-blocking for onboarding completion flow.
     }
 
+    try {
+      await captureOperationalEvent({
+        userId: auth.user.id,
+        eventName: "profile_setup_completed",
+        status: "success",
+        context: "Profile setup saved",
+        metadata: {
+          handle: data.handle,
+        },
+        client: supabase,
+      });
+    } catch {
+      // Non-blocking for onboarding completion flow.
+    }
+
     return NextResponse.json({
       data,
     });
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Failed to complete profile.";
+
+    try {
+      await captureOperationalEvent({
+        userId: auth.user.id,
+        eventName: "profile_setup_failed",
+        status: "error",
+        context: "Profile setup failed",
+        metadata: {
+          message,
+        },
+      });
+    } catch {
+      // Non-blocking for onboarding completion flow.
+    }
 
     return NextResponse.json(
       {

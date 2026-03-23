@@ -7,6 +7,7 @@ const protectedPaths = new Set([
   "/feed",
   "/notifications",
   "/saved",
+  "/studio",
   "/my-loadouts",
   "/collections/new",
   "/categories/new",

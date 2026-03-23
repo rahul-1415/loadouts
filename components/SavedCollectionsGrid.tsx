@@ -33,14 +33,24 @@ export default function SavedCollectionsGrid({
     return (
       <div className="rounded-3xl border border-white/[0.04] bg-[#171717] p-8 text-center">
         <p className="text-[11px] uppercase tracking-[0.35em] text-white/55">
-          Empty State
+          Saved Cleared
         </p>
         <h2 className="mt-2 text-2xl font-semibold text-white">
-          No saved items left
+          You removed the last saved item
         </h2>
         <p className="mt-2 text-sm text-white/70">
-          Browse the feed or categories to save more loadouts and references.
+          Jump back into discovery and save more loadouts or category references
+          when you find something worth revisiting.
         </p>
+        <div className="mt-5 flex flex-wrap justify-center gap-3">
+          <ButtonLink href="/feed">Browse Feed</ButtonLink>
+          <ButtonLink href="/categories" variant="secondary">
+            Explore Categories
+          </ButtonLink>
+          <ButtonLink href="/studio" variant="secondary">
+            Open Studio
+          </ButtonLink>
+        </div>
       </div>
     );
   }

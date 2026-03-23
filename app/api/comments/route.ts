@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireCompleteUser } from "../../../lib/auth/api";
+import { captureOperationalEvent } from "../../../lib/data/analytics";
 import { createNotification } from "../../../lib/data/notifications";
 import { createSupabaseServerClient } from "../../../lib/supabase/server";
 
@@ -132,6 +133,23 @@ export async function POST(request: Request) {
     .single();
 
   if (createError) {
+    try {
+      await captureOperationalEvent({
+        userId: auth.user.id,
+        eventName: "comment_create_failed",
+        status: "error",
+        context: "Comment creation failed",
+        metadata: {
+          code: createError.code,
+          message: createError.message,
+          collectionId: collection.id,
+        },
+        client: supabase,
+      });
+    } catch {
+      // Non-blocking for comment flow.
+    }
+
     return createErrorResponse(createError.message, createError.code);
   }
 
@@ -146,6 +164,22 @@ export async function POST(request: Request) {
     authorProfile?.handle
       ? `@${authorProfile.handle}`
       : authorProfile?.display_name ?? "@unknown";
+
+  try {
+    await captureOperationalEvent({
+      userId: auth.user.id,
+      eventName: "comment_added",
+      status: "success",
+      context: "Comment added",
+      metadata: {
+        collectionId: collection.id,
+        commentId: createdComment.id,
+      },
+      client: supabase,
+    });
+  } catch {
+    // Non-blocking for comment flow.
+  }
 
   try {
     await createNotification({

@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import CollectionCard from "../../../components/CollectionCard";
+import ContentCard from "../../../components/ContentCard";
 import { getCategoryWithLoadouts } from "../../../lib/data/collections";
 
 interface CategoryDetailPageProps {
@@ -44,7 +44,7 @@ export default async function CategoryDetailPage({
         </div>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {loadouts.map((loadout) => (
-            <CollectionCard
+            <ContentCard
               key={loadout.id}
               id={loadout.slug}
               title={loadout.title}

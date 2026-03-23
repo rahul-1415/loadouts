@@ -16,12 +16,14 @@ Loadouts is a Next.js + Supabase app for sharing creator/product loadouts, organ
 - Follow/unfollow APIs and profile lists (cursor pagination)
 - Fixed 100 category model (`cat-001` to `cat-100`)
 - Loadout create/edit/delete with category assignment
-- Product management inside loadouts
+- Inline product management during loadout creation and editing
 - Save/bookmark system with a dedicated saved-items page
+- Studio workspace for creator-owned loadouts and operational insights
 - Likes and comments persisted in Supabase
 - Notification center + unread state + pagination
 - Following feed with pagination
 - Search across content types
+- Vitest integration coverage for auth, onboarding, saves, notifications, and interaction validation
 
 ## Project Structure
 - `app/` routes and API handlers
@@ -53,7 +55,12 @@ SUPABASE_SERVICE_ROLE_KEY=<service-role-key>
 npm run dev
 ```
 
-4. Build check:
+4. Test suite:
+```bash
+npm test
+```
+
+5. Build check:
 ```bash
 npm run build
 ```
@@ -65,14 +72,16 @@ Run these in Supabase SQL editor, in this order:
 2. Profile onboarding + follows: `supabase/add-profile-onboarding-and-follows.sql`
 3. Notifications table/policies: `supabase/add-notifications.sql`
 4. Notification dedupe + analytics milestones: `supabase/add-notification-guards-and-analytics.sql`
-5. Fixed categories: `supabase/seed-100-categories.sql`
-6. Category images (optional starter): `supabase/seed-100-category-images.sql`
-7. Seed content/products/loadouts: `supabase/seed-content.sql`
+5. Operational visibility events: `supabase/add-operational-visibility.sql`
+6. Fixed categories: `supabase/seed-100-categories.sql`
+7. Category images (optional starter): `supabase/seed-100-category-images.sql`
+8. Seed content/products/loadouts: `supabase/seed-content.sql`
 
 Verification helpers:
 - `supabase/verify-profile-onboarding-and-follows.sql`
 - `supabase/verify-category-images.sql`
 - `supabase/verify-notifications-and-analytics.sql`
+- `supabase/verify-operational-visibility.sql`
 
 ## Auth Provider Configuration (Supabase Dashboard)
 Enable providers you need and add redirect URLs:
@@ -80,6 +89,12 @@ Enable providers you need and add redirect URLs:
 - `http://localhost:3000/auth/confirm`
 
 For production, add your deployed domain equivalents.
+
+## Naming Model
+- `categories`: fixed taxonomy only (`cat-001` ... `cat-100`)
+- `loadouts`: creator-published setups stored in the `collections` table with `kind = "loadout"`
+- `saved`: private bookmarks for the signed-in user
+- `studio`: creator workspace for managing owned loadouts and viewing operational signals
 
 ## Utility Scripts
 - Fetch category images from Pexels:
@@ -97,5 +112,5 @@ More details: `supabase/test-social-flow.md`
 ## Important Notes
 - Like/comment writes require an authenticated user with a complete profile.
 - Save writes require an authenticated user with a complete profile.
-- `/saved` is the saved-items page and `/my-loadouts` is the owner dashboard for managing your own loadouts.
+- `/saved` is the bookmark page; `/studio` is the creator workspace. `/my-loadouts` now redirects to `/studio` for backward compatibility.
 - Categories are intentionally fixed to the 100 seeded slugs.

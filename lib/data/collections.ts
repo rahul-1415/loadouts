@@ -35,11 +35,13 @@ interface HomepageCategoryRow {
   id: string;
   slug: string;
   title: string;
+  description: string | null;
   cover_image_url: string | null;
 }
 
-interface CategoryImageRow {
+interface CategoryCardRow {
   slug: string;
+  description: string | null;
   cover_image_url: string | null;
   cover_image_source_url: string | null;
 }
@@ -163,7 +165,8 @@ export interface CategoryWithLoadouts {
   loadouts: CollectionListItem[];
 }
 
-export interface CategoryImageFields {
+export interface CategoryCardFields {
+  description: string | null;
   coverImageUrl: string | null;
   coverImageSourceUrl: string | null;
 }
@@ -573,6 +576,7 @@ export async function getActiveCategoriesBySlugs(slugs: string[]) {
       id: string;
       slug: string;
       title: string;
+      description: string;
       coverImageUrl: string | null;
     }>;
   }
@@ -580,7 +584,7 @@ export async function getActiveCategoriesBySlugs(slugs: string[]) {
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase
     .from("categories")
-    .select("id,slug,title,cover_image_url")
+    .select("id,slug,title,description,cover_image_url")
     .eq("is_active", true)
     .in("slug", normalizedSlugs);
 
@@ -602,12 +606,13 @@ export async function getActiveCategoriesBySlugs(slugs: string[]) {
       id: row.id,
       slug: row.slug,
       title: row.title,
+      description: row.description ?? "",
       coverImageUrl: row.cover_image_url,
     }));
 }
 
-export async function getCategoryImageMapBySlugs(slugs: string[]) {
-  const imageBySlug = new Map<string, CategoryImageFields>();
+export async function getCategoryCardFieldsBySlugs(slugs: string[]) {
+  const fieldsBySlug = new Map<string, CategoryCardFields>();
   const uniqueSlugs = Array.from(
     new Set(
       slugs
@@ -617,13 +622,13 @@ export async function getCategoryImageMapBySlugs(slugs: string[]) {
   );
 
   if (uniqueSlugs.length === 0) {
-    return imageBySlug;
+    return fieldsBySlug;
   }
 
   const supabase = await createSupabaseServerClient();
   const { data, error } = await supabase
     .from("categories")
-    .select("slug,cover_image_url,cover_image_source_url")
+    .select("slug,description,cover_image_url,cover_image_source_url")
     .eq("is_active", true)
     .in("slug", uniqueSlugs);
 
@@ -631,16 +636,17 @@ export async function getCategoryImageMapBySlugs(slugs: string[]) {
     throw new Error(error.message);
   }
 
-  const rows = (data ?? []) as CategoryImageRow[];
+  const rows = (data ?? []) as CategoryCardRow[];
 
   rows.forEach((row) => {
-    imageBySlug.set(row.slug.toLowerCase(), {
+    fieldsBySlug.set(row.slug.toLowerCase(), {
+      description: row.description ?? "",
       coverImageUrl: row.cover_image_url,
       coverImageSourceUrl: row.cover_image_source_url,
     });
   });
 
-  return imageBySlug;
+  return fieldsBySlug;
 }
 
 export async function getCategoryWithLoadouts(

@@ -1,6 +1,6 @@
-import CollectionCard from "../../components/CollectionCard";
+import ContentCard from "../../components/ContentCard";
 import CategorySearchGrid from "../../components/CategorySearchGrid";
-import { getCategoryImageMapBySlugs } from "../../lib/data/collections";
+import { getCategoryCardFieldsBySlugs } from "../../lib/data/collections";
 
 interface StaticCategory {
   id: string;
@@ -622,16 +622,17 @@ const featuredNames = new Set([
 ]);
 
 export default async function CategoriesPage() {
-  const imageBySlug = await getCategoryImageMapBySlugs(
+  const categoryFieldsBySlug = await getCategoryCardFieldsBySlugs(
     categories.map((category) => category.id)
   );
 
   const categoriesWithImages = categories.map((category) => {
-    const imageFields = imageBySlug.get(category.id.toLowerCase());
+    const categoryFields = categoryFieldsBySlug.get(category.id.toLowerCase());
 
     return {
       ...category,
-      coverImageUrl: imageFields?.coverImageUrl ?? null,
+      description: categoryFields?.description ?? "",
+      coverImageUrl: categoryFields?.coverImageUrl ?? null,
     };
   });
 
@@ -655,7 +656,7 @@ export default async function CategoriesPage() {
       <section className="space-y-4">
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
           {featuredCategories.map((category) => (
-            <CollectionCard key={category.id} {...category} />
+            <ContentCard key={category.id} {...category} />
           ))}
         </div>
       </section>

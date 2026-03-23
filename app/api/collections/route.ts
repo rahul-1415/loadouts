@@ -9,7 +9,10 @@ import {
   FIXED_CATEGORY_MIN_SLUG,
   isFixedCategorySlug,
 } from "../../../lib/data/fixedCategories";
-import { trackMilestoneEvent } from "../../../lib/data/analytics";
+import {
+  captureOperationalEvent,
+  trackMilestoneEvent,
+} from "../../../lib/data/analytics";
 import { createSupabaseServerClient } from "../../../lib/supabase/server";
 
 function parseKind(kind: string | null): CollectionKind | undefined {
@@ -217,6 +220,23 @@ export async function POST(request: Request) {
     .single();
 
   if (error) {
+    try {
+      await captureOperationalEvent({
+        userId: user.id,
+        eventName: "loadout_create_failed",
+        status: "error",
+        context: "Loadout creation failed",
+        metadata: {
+          message: error.message,
+          title,
+          categoryId,
+        },
+        client: supabase,
+      });
+    } catch {
+      // Non-blocking for loadout creation.
+    }
+
     return NextResponse.json(
       {
         error: {
@@ -236,6 +256,23 @@ export async function POST(request: Request) {
         metadata: {
           loadoutId: data.id,
           categoryId: data.category_id,
+        },
+        client: supabase,
+      });
+    } catch {
+      // Non-blocking for loadout creation.
+    }
+
+    try {
+      await captureOperationalEvent({
+        userId: user.id,
+        eventName: "loadout_created",
+        status: "success",
+        context: "Loadout created",
+        metadata: {
+          loadoutId: data.id,
+          categoryId: data.category_id,
+          isPublic: data.is_public,
         },
         client: supabase,
       });
