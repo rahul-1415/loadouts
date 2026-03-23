@@ -48,7 +48,7 @@ export default function RootLayout({
               {children}
             </div>
           </main>
-          <footer className="border-t border-white/[0.04] bg-[#050505] px-4 py-6 text-xs uppercase tracking-[0.3em] text-white/55 md:px-8">
+          <footer className="border-t border-white/[0.04] bg-transparent px-4 py-6 text-xs uppercase tracking-[0.3em] text-white/55 md:px-8">
             <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-2">
               <span className="inline-flex items-center">
                 <BrandLogo variant="lockup" size="sm" ariaLabel="Loadouts" />

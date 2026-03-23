@@ -35,7 +35,7 @@ export default async function HomePage() {
 
   return (
     <div className="space-y-8 text-[#f4f5f7]">
-      <section className="grid gap-10 rounded-3xl border border-white/[0.04] bg-[#050505] p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.03),0_24px_48px_rgba(0,0,0,0.18)] sm:p-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-center lg:p-10">
+      <section className="grid gap-10 rounded-3xl border border-white/[0.05] bg-[#2f2f2f] p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_24px_48px_rgba(0,0,0,0.18)] sm:p-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-center lg:p-10">
         <div className="space-y-6">
           <h1 className="text-[clamp(2.6rem,6vw,4.75rem)] font-semibold leading-[0.95] text-white">
             Build and share the loadouts that power your best work.
@@ -54,7 +54,7 @@ export default async function HomePage() {
             <span>Save &amp; revisit</span>
           </div>
         </div>
-        <div className="rounded-3xl border border-white/[0.05] bg-[#171717] p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.03),0_18px_36px_rgba(0,0,0,0.16)]">
+        <div className="rounded-3xl border border-white/[0.06] bg-[#1f1f1f] p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.03),0_18px_36px_rgba(0,0,0,0.16)]">
           <h2 className="mt-4 text-2xl font-semibold text-white sm:text-3xl">
             App Walkthrough Video
           </h2>
