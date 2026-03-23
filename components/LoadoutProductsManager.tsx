@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import Button from "./Button";
 
 interface LoadoutProductItem {
@@ -49,6 +50,7 @@ export default function LoadoutProductsManager({
   collectionIdentifier,
   initialItems,
 }: LoadoutProductsManagerProps) {
+  const router = useRouter();
   const [items, setItems] = useState<LoadoutProductItem[]>(
     normalizeSort(initialItems)
   );
@@ -143,6 +145,7 @@ export default function LoadoutProductsManager({
     setAddNote("");
     setMessage("Product added.");
     setBusyAction(null);
+    router.refresh();
   };
 
   const addCustomProduct = async () => {
@@ -192,6 +195,7 @@ export default function LoadoutProductsManager({
     setAddNote("");
     setMessage("Custom product created and added.");
     setBusyAction(null);
+    router.refresh();
   };
 
   const removeProduct = async (productId: string) => {
@@ -223,6 +227,7 @@ export default function LoadoutProductsManager({
     setItems(normalizeSort(payload?.data?.items ?? []));
     setMessage("Product removed.");
     setBusyAction(null);
+    router.refresh();
   };
 
   const moveProduct = (index: number, direction: "up" | "down") => {
@@ -291,6 +296,7 @@ export default function LoadoutProductsManager({
     setItems(normalizeSort(payload?.data?.items ?? []));
     setMessage("Order and notes saved.");
     setBusyAction(null);
+    router.refresh();
   };
 
   return (

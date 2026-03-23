@@ -2,7 +2,8 @@
 
 import { useMemo, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import Button from "./Button";
+import Button, { ButtonLink } from "./Button";
+import LoadoutProductsManager from "./LoadoutProductsManager";
 
 interface CategoryOption {
   id: string;
@@ -36,6 +37,12 @@ interface ApiLoadoutResponse {
   };
 }
 
+interface CreatedLoadoutState {
+  id: string;
+  slug: string;
+  title: string;
+}
+
 export default function NewLoadoutForm({
   categories,
   mode = "create",
@@ -44,16 +51,22 @@ export default function NewLoadoutForm({
 }: NewLoadoutFormProps) {
   const router = useRouter();
   const isEditMode = mode === "edit";
-  const [step, setStep] = useState<1 | 2>(
+  const [step, setStep] = useState<1 | 2 | 3>(
     initialValues?.categoryId ? 2 : 1
   );
   const [title, setTitle] = useState(initialValues?.title ?? "");
-  const [description, setDescription] = useState(initialValues?.description ?? "");
+  const [description, setDescription] = useState(
+    initialValues?.description ?? ""
+  );
   const [categoryId, setCategoryId] = useState(initialValues?.categoryId ?? "");
   const [isPublic, setIsPublic] = useState(initialValues?.isPublic ?? true);
+  const [addProductsNow, setAddProductsNow] = useState(true);
+  const [createdLoadout, setCreatedLoadout] =
+    useState<CreatedLoadoutState | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const totalSteps = isEditMode ? 2 : 3;
 
   const selectedCategoryLabel = useMemo(
     () => categories.find((category) => category.id === categoryId)?.title ?? "",
@@ -125,6 +138,20 @@ export default function NewLoadoutForm({
       | ApiLoadoutResponse
       | null;
     const updatedSlug = payload?.data?.slug;
+    const updatedId = payload?.data?.id;
+
+    if (!isEditMode && addProductsNow && updatedSlug && updatedId) {
+      setCreatedLoadout({
+        id: updatedId,
+        slug: updatedSlug,
+        title: title.trim(),
+      });
+      setSubmitting(false);
+      setErrorMessage(null);
+      setStep(3);
+      router.refresh();
+      return;
+    }
 
     if (updatedSlug) {
       router.push(`/loadouts/${updatedSlug}`);
@@ -172,14 +199,11 @@ export default function NewLoadoutForm({
   }
 
   return (
-    <form
-      className="space-y-5 rounded-3xl border border-white/[0.05] bg-[#171717] p-6"
-      onSubmit={handleSubmit}
-    >
+    <div className="space-y-5 rounded-3xl border border-white/[0.05] bg-[#171717] p-6">
       <div className="flex items-center justify-between text-[11px] uppercase tracking-[0.3em] text-white/55">
         <span>{isEditMode ? "Edit Loadout" : "Create Loadout"}</span>
         <span>
-          Step {step} / 2
+          Step {step} / {totalSteps}
         </span>
       </div>
 
@@ -220,8 +244,10 @@ export default function NewLoadoutForm({
             </Button>
           </div>
         </div>
-      ) : (
-        <div className="space-y-4">
+      ) : null}
+
+      {step === 2 ? (
+        <form className="space-y-4" onSubmit={handleSubmit}>
           <div className="rounded-2xl border border-white/[0.04] bg-white/[0.03] px-4 py-3 text-xs uppercase tracking-[0.25em] text-white/60">
             Category: <span className="text-white">{selectedCategoryLabel || "None"}</span>
           </div>
@@ -269,6 +295,26 @@ export default function NewLoadoutForm({
             </select>
           </div>
 
+          {!isEditMode ? (
+            <label className="flex items-start gap-3 rounded-2xl border border-white/[0.04] bg-white/[0.03] px-4 py-3">
+              <input
+                type="checkbox"
+                checked={addProductsNow}
+                onChange={(event) => setAddProductsNow(event.target.checked)}
+                className="mt-0.5 h-4 w-4 rounded border border-white/[0.16] bg-[#181818] accent-[#e6ef92]"
+              />
+              <span className="space-y-1">
+                <span className="block text-sm font-medium text-white">
+                  Add products right after creating
+                </span>
+                <span className="block text-xs text-white/60">
+                  Stay on this page for one more step so you can attach products
+                  to the loadout immediately.
+                </span>
+              </span>
+            </label>
+          ) : null}
+
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-3">
               <Button type="button" variant="secondary" onClick={() => setStep(1)}>
@@ -297,12 +343,47 @@ export default function NewLoadoutForm({
               </Button>
             ) : null}
           </div>
+        </form>
+      ) : null}
+
+      {step === 3 && createdLoadout ? (
+        <div className="space-y-5">
+          <div className="rounded-2xl border border-white/[0.04] bg-white/[0.03] px-4 py-4">
+            <p className="text-[11px] uppercase tracking-[0.35em] text-white/50">
+              Step 3
+            </p>
+            <h2 className="mt-2 text-2xl font-semibold text-white">
+              Add products to your loadout
+            </h2>
+            <p className="mt-2 text-sm text-white/70">
+              <span className="text-white">{createdLoadout.title}</span> has been
+              created. Add products now or finish and manage them later from the
+              loadout editor.
+            </p>
+          </div>
+
+          <LoadoutProductsManager
+            collectionIdentifier={createdLoadout.slug}
+            initialItems={[]}
+          />
+
+          <div className="flex flex-wrap gap-3">
+            <ButtonLink href={`/loadouts/${createdLoadout.slug}`}>
+              View Loadout
+            </ButtonLink>
+            <ButtonLink
+              href={`/loadouts/${createdLoadout.slug}/edit`}
+              variant="secondary"
+            >
+              Open Editor
+            </ButtonLink>
+          </div>
         </div>
-      )}
+      ) : null}
 
       {errorMessage ? (
         <p className="text-sm text-[#fda4a4]">{errorMessage}</p>
       ) : null}
-    </form>
+    </div>
   );
 }
