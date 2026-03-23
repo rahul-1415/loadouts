@@ -81,6 +81,7 @@ export default async function LoadoutPage({ params }: LoadoutPageProps) {
         collectionSlug={loadout.slug}
         initialLikeCount={loadout.likeCount}
         initialViewerHasLiked={loadout.viewerHasLiked}
+        initialViewerHasSaved={loadout.viewerHasSaved}
         initialComments={loadout.comments}
         viewerUserId={user?.id ?? null}
       />

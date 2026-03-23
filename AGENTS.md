@@ -86,14 +86,12 @@ Implemented:
 - Auth (email/password + callback/confirm flow)
 - Profile onboarding and immutable username setup
 - Follow/unfollow + followers/following pages
+- Save/bookmark system
 - Likes/comments persistence
 - Notifications + pagination + mark-read
 - Following feed + pagination
 - Search across entities
 - Loadout create/edit/delete + product management
-
-Known partial/TODO:
-- `app/api/saved/route.ts` is scaffolded and not fully implemented.
 
 ## Quality Gates Before Handoff
 Run:

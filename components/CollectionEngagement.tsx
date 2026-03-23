@@ -4,6 +4,7 @@ import { useState, type FormEvent } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import Button from "./Button";
 import CommentBox from "./CommentBox";
+import SaveButton from "./SaveButton";
 
 interface CommentItem {
   id: string;
@@ -18,6 +19,7 @@ interface CollectionEngagementProps {
   collectionSlug: string;
   initialLikeCount: number;
   initialViewerHasLiked: boolean;
+  initialViewerHasSaved: boolean;
   initialComments: CommentItem[];
   viewerUserId: string | null;
 }
@@ -34,6 +36,7 @@ export default function CollectionEngagement({
   collectionSlug,
   initialLikeCount,
   initialViewerHasLiked,
+  initialViewerHasSaved,
   initialComments,
   viewerUserId,
 }: CollectionEngagementProps) {
@@ -277,7 +280,12 @@ export default function CollectionEngagement({
               ? `Unlike (${likeCount})`
               : `Like (${likeCount})`}
         </Button>
-        <Button variant="secondary">Save</Button>
+        <SaveButton
+          collectionId={collectionId}
+          collectionSlug={collectionSlug}
+          initialSaved={initialViewerHasSaved}
+          viewerUserId={viewerUserId}
+        />
         <Button variant="secondary">Share</Button>
       </section>
 

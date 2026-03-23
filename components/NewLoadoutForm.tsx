@@ -129,7 +129,7 @@ export default function NewLoadoutForm({
     if (updatedSlug) {
       router.push(`/loadouts/${updatedSlug}`);
     } else {
-      router.push("/saved");
+      router.push("/my-loadouts");
     }
 
     router.refresh();
@@ -167,7 +167,7 @@ export default function NewLoadoutForm({
       return;
     }
 
-    router.push("/saved");
+    router.push("/my-loadouts");
     router.refresh();
   }
 

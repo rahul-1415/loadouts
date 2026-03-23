@@ -17,6 +17,7 @@ Loadouts is a Next.js + Supabase app for sharing creator/product loadouts, organ
 - Fixed 100 category model (`cat-001` to `cat-100`)
 - Loadout create/edit/delete with category assignment
 - Product management inside loadouts
+- Save/bookmark system with a dedicated saved-items page
 - Likes and comments persisted in Supabase
 - Notification center + unread state + pagination
 - Following feed with pagination
@@ -95,5 +96,6 @@ More details: `supabase/test-social-flow.md`
 
 ## Important Notes
 - Like/comment writes require an authenticated user with a complete profile.
-- The Save API (`app/api/saved/route.ts`) is still scaffolded and not fully implemented.
+- Save writes require an authenticated user with a complete profile.
+- `/saved` is the saved-items page and `/my-loadouts` is the owner dashboard for managing your own loadouts.
 - Categories are intentionally fixed to the 100 seeded slugs.

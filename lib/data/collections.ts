@@ -56,6 +56,23 @@ interface CollectionProductJoinRow {
   products: ProductRow | ProductRow[] | null;
 }
 
+interface SavedCollectionRow {
+  id: string;
+  slug: string;
+  kind: CollectionKind;
+  owner_id: string;
+  title: string;
+  description: string | null;
+  cover_image_url: string | null;
+  created_at: string;
+  is_public: boolean;
+}
+
+interface SavedItemJoinRow {
+  created_at: string;
+  collections: SavedCollectionRow | SavedCollectionRow[] | null;
+}
+
 interface ProductRow {
   id: string;
   slug: string | null;
@@ -109,9 +126,15 @@ export interface CollectionCommentItem {
 export interface CollectionDetail extends CollectionListItem {
   isPublic: boolean;
   viewerHasLiked: boolean;
+  viewerHasSaved: boolean;
   likeCount: number;
   products: CollectionProductItem[];
   comments: CollectionCommentItem[];
+}
+
+export interface SavedCollectionListItem extends CollectionListItem {
+  isPublic: boolean;
+  savedAt: string;
 }
 
 export interface CategoryOption {
@@ -220,6 +243,16 @@ function normalizeProduct(product: ProductRow | ProductRow[] | null) {
   }
 
   return Array.isArray(product) ? product[0] ?? null : product;
+}
+
+function normalizeSavedCollection(
+  collection: SavedCollectionRow | SavedCollectionRow[] | null
+) {
+  if (!collection) {
+    return null;
+  }
+
+  return Array.isArray(collection) ? collection[0] ?? null : collection;
 }
 
 export async function getPublicCollections({
@@ -369,6 +402,7 @@ export async function getPublicCollectionByIdentifier(
   }
 
   let viewerHasLiked = false;
+  let viewerHasSaved = false;
 
   if (viewerUserId) {
     const { data: viewerLikeRow, error: viewerLikeError } = await supabase
@@ -384,12 +418,27 @@ export async function getPublicCollectionByIdentifier(
     }
 
     viewerHasLiked = Boolean(viewerLikeRow);
+
+    const { data: viewerSavedRow, error: viewerSavedError } = await supabase
+      .from("saved_items")
+      .select("user_id")
+      .eq("collection_id", collection.id)
+      .eq("user_id", viewerUserId)
+      .limit(1)
+      .maybeSingle();
+
+    if (viewerSavedError) {
+      throw new Error(viewerSavedError.message);
+    }
+
+    viewerHasSaved = Boolean(viewerSavedRow);
   }
 
   return {
     ...listItem,
     isPublic: collectionData.is_public,
     viewerHasLiked,
+    viewerHasSaved,
     likeCount: likeCount ?? 0,
     products,
     comments,
@@ -443,6 +492,45 @@ export async function getOwnedLoadoutByIdentifier(
   }
 
   return (data ?? null) as OwnedCollectionRow | null;
+}
+
+export async function getSavedCollectionsByUserId(userId: string, limit = 120) {
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from("saved_items")
+    .select(
+      "created_at,collections:collection_id(id,slug,kind,owner_id,title,description,cover_image_url,created_at,is_public)"
+    )
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false })
+    .limit(limit);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  const rows = (data ?? []) as SavedItemJoinRow[];
+  const collections = rows
+    .map((row) => normalizeSavedCollection(row.collections))
+    .filter((row): row is SavedCollectionRow => row !== null);
+  const ownerIds = Array.from(new Set(collections.map((row) => row.owner_id)));
+  const profileById = await loadProfilesByIds(ownerIds);
+
+  return rows
+    .map((row) => {
+      const collection = normalizeSavedCollection(row.collections);
+
+      if (!collection) {
+        return null;
+      }
+
+      return {
+        ...toListItem(collection, profileById),
+        isPublic: collection.is_public,
+        savedAt: row.created_at,
+      } satisfies SavedCollectionListItem;
+    })
+    .filter((row): row is SavedCollectionListItem => row !== null);
 }
 
 export async function getActiveCategoryOptions(limit = 200) {

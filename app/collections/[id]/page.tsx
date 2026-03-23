@@ -69,6 +69,7 @@ export default async function CollectionPage({ params }: CollectionPageProps) {
         collectionSlug={collection.slug}
         initialLikeCount={collection.likeCount}
         initialViewerHasLiked={collection.viewerHasLiked}
+        initialViewerHasSaved={collection.viewerHasSaved}
         initialComments={collection.comments}
         viewerUserId={user?.id ?? null}
       />
