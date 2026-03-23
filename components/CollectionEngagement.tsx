@@ -310,7 +310,11 @@ export default function CollectionEngagement({
 
         <div className="space-y-3">
           {comments.map((comment) => (
-            <div key={comment.id} className="space-y-2">
+            <div
+              key={comment.id}
+              id={`comment-${comment.id}`}
+              className="space-y-2 scroll-mt-28"
+            >
               <CommentBox author={comment.author} text={comment.body} />
               {viewerUserId === comment.userId ? (
                 <div className="flex items-center gap-2">

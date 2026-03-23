@@ -2,7 +2,7 @@ begin;
 
 with rows(slug, cover_image_url, cover_image_source_url) as (
   values
-    ('cat-001', 'https://images.pexels.com/photos/7415261/pexels-photo-7415261.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200', 'https://www.pexels.com/photo/orange-and-yellow-color-illustration-7415261/'),
+    ('cat-001', 'https://images.pexels.com/photos/5650544/pexels-photo-5650544.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200', 'https://www.pexels.com/photo/buttons-on-sound-mixer-5650544/'),
     ('cat-002', 'https://images.pexels.com/photos/30530426/pexels-photo-30530426.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200', 'https://www.pexels.com/photo/smartphone-display-with-ai-assistant-interface-30530426/'),
     ('cat-003', 'https://images.pexels.com/photos/20607184/pexels-photo-20607184.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200', 'https://www.pexels.com/photo/close-up-of-a-cnc-milling-machine-20607184/'),
     ('cat-004', 'https://images.pexels.com/photos/10827847/pexels-photo-10827847.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200', 'https://www.pexels.com/photo/roland-boutique-jd-08-synthesizer-module-10827847/'),

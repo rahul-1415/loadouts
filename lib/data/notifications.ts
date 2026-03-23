@@ -25,6 +25,13 @@ interface ActorProfileRow {
   avatar_url: string | null;
 }
 
+interface NotificationCollectionRow {
+  id: string;
+  slug: string;
+  kind: "category" | "loadout";
+  title: string;
+}
+
 export interface NotificationItem {
   id: string;
   type: NotificationType;
@@ -39,6 +46,10 @@ export interface NotificationItem {
     displayName: string | null;
     avatarUrl: string | null;
   };
+  targetHref: string | null;
+  targetLabel: string | null;
+  contextText: string | null;
+  previewText: string | null;
 }
 
 export interface NotificationCursor {
@@ -64,6 +75,35 @@ function normalizeCursorTimestamp(value: string) {
   }
 
   return parsed.toISOString();
+}
+
+function getMetadataString(
+  metadata: Record<string, unknown> | null,
+  key: string
+) {
+  const value = metadata?.[key];
+  return typeof value === "string" && value.trim() ? value.trim() : null;
+}
+
+function getCollectionIdForNotification(row: NotificationRow) {
+  const metadataCollectionId = getMetadataString(row.metadata, "collectionId");
+
+  if (metadataCollectionId) {
+    return metadataCollectionId;
+  }
+
+  if (
+    row.entity_id &&
+    (row.entity_type === "collection" || row.entity_type === "loadout")
+  ) {
+    return row.entity_id;
+  }
+
+  return null;
+}
+
+function getCollectionHref(collection: NotificationCollectionRow) {
+  return `/${collection.kind === "loadout" ? "loadouts" : "categories"}/${collection.slug}`;
 }
 
 export function decodeNotificationCursor(
@@ -182,8 +222,16 @@ export async function getNotificationsByRecipient({
   const hasMore = rows.length > safeLimit;
   const pageRows = hasMore ? rows.slice(0, safeLimit) : rows;
   const actorIds = Array.from(new Set(pageRows.map((row) => row.actor_id)));
+  const collectionIds = Array.from(
+    new Set(
+      pageRows
+        .map((row) => getCollectionIdForNotification(row))
+        .filter((value): value is string => Boolean(value))
+    )
+  );
 
   let actorById = new Map<string, ActorProfileRow>();
+  let collectionById = new Map<string, NotificationCollectionRow>();
 
   if (actorIds.length > 0) {
     const { data: actorData, error: actorError } = await supabase
@@ -200,8 +248,62 @@ export async function getNotificationsByRecipient({
     );
   }
 
+  if (collectionIds.length > 0) {
+    const { data: collectionData, error: collectionError } = await supabase
+      .from("collections")
+      .select("id,slug,kind,title")
+      .in("id", collectionIds);
+
+    if (collectionError) {
+      throw new Error(collectionError.message);
+    }
+
+    collectionById = new Map<string, NotificationCollectionRow>(
+      ((collectionData ?? []) as NotificationCollectionRow[]).map((row) => [
+        row.id,
+        row,
+      ])
+    );
+  }
+
   const items = pageRows.map((row) => {
     const actor = actorById.get(row.actor_id);
+    const previewText = getMetadataString(row.metadata, "preview");
+    const collectionId = getCollectionIdForNotification(row);
+    const collection = collectionId ? collectionById.get(collectionId) : null;
+    const collectionHref = collection ? getCollectionHref(collection) : null;
+    let targetHref: string | null = null;
+    let targetLabel: string | null = null;
+    let contextText: string | null = null;
+
+    if (row.type === "follow" && actor?.handle) {
+      targetHref = `/profile/${actor.handle}`;
+      targetLabel = "View profile";
+    } else if (row.type === "comment" && collection && collectionHref) {
+      targetHref = row.entity_id
+        ? `${collectionHref}#comment-${row.entity_id}`
+        : collectionHref;
+      targetLabel = "View comment";
+      contextText = `On ${collection.title}`;
+    } else if (row.type === "like" && collection && collectionHref) {
+      targetHref = collectionHref;
+      targetLabel = collection.kind === "loadout" ? "View loadout" : "View category";
+      contextText = `On ${collection.title}`;
+    } else if (
+      row.type === "loadout_published" &&
+      collection &&
+      collectionHref
+    ) {
+      targetHref = collectionHref;
+      targetLabel = "View loadout";
+      contextText = collection.title;
+    } else if (collection && collectionHref) {
+      targetHref = collectionHref;
+      targetLabel =
+        collection.kind === "loadout" ? "Open loadout" : "Open category";
+      contextText = collection.title;
+    }
+
     return {
       id: row.id,
       type: row.type,
@@ -216,6 +318,10 @@ export async function getNotificationsByRecipient({
         displayName: actor?.display_name ?? null,
         avatarUrl: actor?.avatar_url ?? null,
       },
+      targetHref,
+      targetLabel,
+      contextText,
+      previewText,
     } as NotificationItem;
   });
 

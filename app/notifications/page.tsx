@@ -43,6 +43,18 @@ function notificationLabel(type: string) {
   return "sent an update";
 }
 
+function actorLabel(displayName: string | null, handle: string | null) {
+  if (displayName) {
+    return displayName;
+  }
+
+  if (handle) {
+    return `@${handle}`;
+  }
+
+  return "Someone";
+}
+
 interface NotificationsPageProps {
   searchParams?: {
     cursor?: string | string[];
@@ -118,11 +130,40 @@ export default async function NotificationsPage({
                 }`}
               >
                 <p className="text-sm text-white/80">
-                  <span className="font-semibold text-white">
-                    {item.actor.displayName || item.actor.handle || "Someone"}
-                  </span>{" "}
+                  {item.actor.handle ? (
+                    <Link
+                      href={`/profile/${item.actor.handle}`}
+                      className="font-semibold text-white underline decoration-white/18 underline-offset-4 transition hover:text-[#e6ef92]"
+                    >
+                      {actorLabel(item.actor.displayName, item.actor.handle)}
+                    </Link>
+                  ) : (
+                    <span className="font-semibold text-white">
+                      {actorLabel(item.actor.displayName, item.actor.handle)}
+                    </span>
+                  )}{" "}
                   {notificationLabel(item.type)}.
                 </p>
+                {item.contextText ? (
+                  <p className="mt-2 text-xs uppercase tracking-[0.22em] text-white/50">
+                    {item.contextText}
+                  </p>
+                ) : null}
+                {item.previewText ? (
+                  <p className="mt-2 text-sm text-white/68">
+                    “{item.previewText}”
+                  </p>
+                ) : null}
+                {item.targetHref && item.targetLabel ? (
+                  <div className="mt-3">
+                    <Link
+                      href={item.targetHref}
+                      className="inline-flex rounded-full border border-white/[0.08] px-3 py-1.5 text-[10px] uppercase tracking-[0.22em] text-white/72 transition hover:border-white/[0.18] hover:text-white"
+                    >
+                      {item.targetLabel}
+                    </Link>
+                  </div>
+                ) : null}
                 <p className="mt-1 text-[11px] uppercase tracking-[0.22em] text-white/45">
                   {formatDate(item.createdAt)}
                 </p>
