@@ -63,6 +63,12 @@ export interface FollowListResult {
   hasMore: boolean;
 }
 
+function isUuid(value: string) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+    value
+  );
+}
+
 function toPublicProfile(row: ProfileRow): PublicProfile | null {
   if (!row.handle || !row.display_name) {
     return null;
@@ -161,6 +167,23 @@ export async function getPublicProfileByUserId(
   return toPublicProfile(data as ProfileRow);
 }
 
+export async function getPublicProfileByIdentifier(
+  identifier: string,
+  client?: SupabaseClient
+): Promise<PublicProfile | null> {
+  const trimmedIdentifier = identifier.trim();
+
+  if (!trimmedIdentifier) {
+    return null;
+  }
+
+  if (isUuid(trimmedIdentifier)) {
+    return getPublicProfileByUserId(trimmedIdentifier, client);
+  }
+
+  return getPublicProfileByHandle(trimmedIdentifier, client);
+}
+
 export async function getFollowStats(
   userId: string,
   client?: SupabaseClient
@@ -251,6 +274,26 @@ export async function getPublicLoadoutsByOwner(
     coverImageUrl: row.cover_image_url,
     coverImageSourceUrl: null,
   }));
+}
+
+export async function getPublicLoadoutCountByOwner(
+  ownerId: string,
+  client?: SupabaseClient
+): Promise<number> {
+  const supabase = client ?? (await createSupabaseServerClient());
+
+  const { count, error } = await supabase
+    .from("collections")
+    .select("id", { count: "exact", head: true })
+    .eq("owner_id", ownerId)
+    .eq("kind", "loadout")
+    .eq("is_public", true);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return count ?? 0;
 }
 
 function getListedUserId(row: FollowRow, direction: FollowDirection) {
