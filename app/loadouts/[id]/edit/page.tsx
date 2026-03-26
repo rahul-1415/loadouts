@@ -56,9 +56,32 @@ export default async function EditLoadoutPage({ params }: EditLoadoutPageProps) 
           title: loadout.title,
           description: loadout.description ?? "",
           categoryId: loadout.category_id ?? "",
-          isPublic: loadout.is_public,
+          coverImageUrl: loadout.cover_image_url ?? "",
+          status: loadoutDetail.status,
         }}
       />
+
+      {loadoutDetail.publishChecklist ? (
+        <section className="rounded-3xl border border-white/[0.05] bg-[#171717] p-6">
+          <p className="text-[11px] uppercase tracking-[0.35em] text-white/50">
+            Publish Checklist
+          </p>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            {loadoutDetail.publishChecklist.items.map((item) => (
+              <div
+                key={item.key}
+                className={`rounded-2xl border px-4 py-3 text-sm ${
+                  item.complete
+                    ? "border-[#d4dd7f]/20 bg-[#10120d] text-white/80"
+                    : "border-white/[0.06] bg-[#111111] text-white/62"
+                }`}
+              >
+                {item.label}
+              </div>
+            ))}
+          </div>
+        </section>
+      ) : null}
 
       <LoadoutProductsManager
         collectionIdentifier={loadout.slug}

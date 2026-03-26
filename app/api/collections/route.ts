@@ -10,9 +10,17 @@ import {
   isFixedCategorySlug,
 } from "../../../lib/data/fixedCategories";
 import {
+  buildPublishValidation,
+  normalizeRequestedStatus,
+} from "../../../lib/loadoutPublishing";
+import {
   captureOperationalEvent,
   trackMilestoneEvent,
 } from "../../../lib/data/analytics";
+import {
+  enforceRateLimit,
+  getRequestIdentity,
+} from "../../../lib/server/rateLimit";
 import { createSupabaseServerClient } from "../../../lib/supabase/server";
 
 function parseKind(kind: string | null): CollectionKind | undefined {
@@ -87,7 +95,24 @@ export async function POST(request: Request) {
     typeof body?.categoryId === "string" ? body.categoryId.trim() : "";
   const requestedCategorySlug =
     typeof body?.categorySlug === "string" ? body.categorySlug.trim() : "";
-  const isPublic = body?.isPublic !== false;
+  const coverImageUrl =
+    typeof body?.coverImageUrl === "string" ? body.coverImageUrl.trim() : "";
+  const requestedStatus = normalizeRequestedStatus(
+    body?.status,
+    body?.isPublic === false ? "draft" : "published"
+  );
+
+  const rateLimitResponse = enforceRateLimit({
+    scope: "collections:create",
+    identity: getRequestIdentity(request, user.id),
+    limit: 12,
+    windowMs: 60_000,
+    message: "Loadout creation limit reached. Try again in a minute.",
+  });
+
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
 
   if (kind !== "loadout") {
     return NextResponse.json(
@@ -203,8 +228,31 @@ export async function POST(request: Request) {
     }
   }
 
+  if (requestedStatus === "published") {
+    const validation = buildPublishValidation({
+      title,
+      categoryId,
+      productCount: 0,
+    });
+
+    if (!validation.canPublish) {
+      return NextResponse.json(
+        {
+          error: {
+            code: "PUBLISH_REQUIREMENTS_NOT_MET",
+            message: `Complete the publish checklist: ${validation.missing.join(
+              ", "
+            )}.`,
+          },
+        },
+        { status: 400 }
+      );
+    }
+  }
+
   const slugBase = slugify(title) || kind;
   const slug = `${slugBase}-${Date.now().toString(36).slice(-6)}`;
+  const now = new Date().toISOString();
   const { data, error } = await supabase
     .from("collections")
     .insert({
@@ -214,9 +262,15 @@ export async function POST(request: Request) {
       slug,
       title,
       description: description || null,
-      is_public: isPublic,
+      cover_image_url: coverImageUrl || null,
+      is_public: requestedStatus === "published",
+      status: requestedStatus,
+      published_at: requestedStatus === "published" ? now : null,
+      archived_at: requestedStatus === "archived" ? now : null,
     })
-    .select("id,slug,kind,title,description,category_id,is_public,owner_id")
+    .select(
+      "id,slug,kind,title,description,category_id,is_public,owner_id,status,cover_image_url,published_at,archived_at"
+    )
     .single();
 
   if (error) {

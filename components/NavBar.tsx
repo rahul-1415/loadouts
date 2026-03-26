@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import type { User } from "@supabase/supabase-js";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { ButtonLink } from "./Button";
 import { createSupabaseBrowserClient } from "../lib/supabase/browser";
 import BrandLogo from "./BrandLogo";
@@ -24,11 +24,13 @@ interface NavProfile {
 
 export default function NavBar() {
   const router = useRouter();
+  const pathname = usePathname();
   const supabase = useMemo(() => createSupabaseBrowserClient(), []);
 
   const [query, setQuery] = useState("");
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<NavProfile | null>(null);
+  const [unreadCount, setUnreadCount] = useState(0);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
   const [isSigningOut, setIsSigningOut] = useState(false);
 
@@ -77,6 +79,25 @@ export default function NavBar() {
   useEffect(() => {
     let isMounted = true;
 
+    const loadUnreadCount = async (userId: string) => {
+      const { count, error } = await supabase
+        .from("notifications")
+        .select("*", { count: "exact", head: true })
+        .eq("recipient_id", userId)
+        .eq("is_read", false);
+
+      if (!isMounted) {
+        return;
+      }
+
+      if (error && error.code !== "42P01" && error.code !== "PGRST205") {
+        setUnreadCount(0);
+        return;
+      }
+
+      setUnreadCount(count ?? 0);
+    };
+
     const loadProfile = async (userId: string) => {
       const { data } = await supabase
         .from("profiles")
@@ -99,8 +120,10 @@ export default function NavBar() {
         setUser(currentUser ?? null);
         if (currentUser) {
           void loadProfile(currentUser.id);
+          void loadUnreadCount(currentUser.id);
         } else {
           setProfile(null);
+          setUnreadCount(0);
         }
         setIsAuthLoading(false);
       }
@@ -114,8 +137,10 @@ export default function NavBar() {
       setUser(session?.user ?? null);
       if (session?.user) {
         void loadProfile(session.user.id);
+        void loadUnreadCount(session.user.id);
       } else {
         setProfile(null);
+        setUnreadCount(0);
       }
       setIsAuthLoading(false);
     });
@@ -126,12 +151,57 @@ export default function NavBar() {
     };
   }, [supabase, supabase.auth]);
 
+  useEffect(() => {
+    if (pathname === "/notifications") {
+      setUnreadCount(0);
+    }
+  }, [pathname]);
+
+  useEffect(() => {
+    if (!user) {
+      return;
+    }
+
+    const refreshUnreadCount = async () => {
+      const { count, error } = await supabase
+        .from("notifications")
+        .select("*", { count: "exact", head: true })
+        .eq("recipient_id", user.id)
+        .eq("is_read", false);
+
+      if (!error || error.code === "42P01" || error.code === "PGRST205") {
+        setUnreadCount(count ?? 0);
+      }
+    };
+
+    const channel = supabase
+      .channel(`nav-notifications-${user.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "notifications",
+          filter: `recipient_id=eq.${user.id}`,
+        },
+        () => {
+          void refreshUnreadCount();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      void supabase.removeChannel(channel);
+    };
+  }, [supabase, user]);
+
   const handleSignOut = async () => {
     setIsSigningOut(true);
 
     await supabase.auth.signOut();
     setUser(null);
     setProfile(null);
+    setUnreadCount(0);
     router.push("/login");
     router.refresh();
 
@@ -205,7 +275,14 @@ export default function NavBar() {
                   variant="secondary"
                   className="px-4 py-2 text-[10px]"
                 >
-                  Alerts
+                  <span className="relative inline-flex items-center gap-2">
+                    Alerts
+                    {unreadCount > 0 ? (
+                      <span className="inline-flex min-w-[1.25rem] items-center justify-center rounded-full border border-[#d4dd7f]/45 bg-[#e6ef92] px-1.5 py-0.5 text-[9px] font-semibold text-[#111111]">
+                        {Math.min(unreadCount, 99)}
+                      </span>
+                    ) : null}
+                  </span>
                 </ButtonLink>
                 <ButtonLink href={profileHref} variant="secondary" className="px-4 py-2 text-[10px]">
                   <span className="inline-flex items-center gap-2">

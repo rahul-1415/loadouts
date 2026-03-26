@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { ButtonLink } from "../../components/Button";
+import NotificationsLiveRefresh from "../../components/NotificationsLiveRefresh";
 import { getQueryParam } from "../../lib/auth/redirect";
 import { createSupabaseServerClient } from "../../lib/supabase/server";
 import { trackMilestoneEvent } from "../../lib/data/analytics";
@@ -105,6 +106,7 @@ export default async function NotificationsPage({
 
   return (
     <div className="space-y-8 text-[#f4f5f7]">
+      <NotificationsLiveRefresh userId={user.id} />
       <header className="space-y-3">
         <p className="text-[11px] uppercase tracking-[0.45em] text-white/50">
           Notifications

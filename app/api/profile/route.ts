@@ -1,5 +1,9 @@
 import { NextResponse } from "next/server";
 import { requireCompleteUser } from "../../../lib/auth/api";
+import {
+  enforceRateLimit,
+  getRequestIdentity,
+} from "../../../lib/server/rateLimit";
 import { createSupabaseServerClient } from "../../../lib/supabase/server";
 
 function sanitizeInterests(value: unknown) {
@@ -31,6 +35,18 @@ export async function PUT(request: Request) {
 
   if ("response" in auth) {
     return auth.response;
+  }
+
+  const rateLimitResponse = enforceRateLimit({
+    scope: "profile:update",
+    identity: getRequestIdentity(request, auth.user.id),
+    limit: 20,
+    windowMs: 60_000,
+    message: "Profile update limit reached. Try again in a minute.",
+  });
+
+  if (rateLimitResponse) {
+    return rateLimitResponse;
   }
 
   const body = await request.json().catch(() => null);

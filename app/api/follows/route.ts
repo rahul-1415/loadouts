@@ -7,6 +7,10 @@ import {
   trackMilestoneEvent,
 } from "../../../lib/data/analytics";
 import { createNotification } from "../../../lib/data/notifications";
+import {
+  enforceRateLimit,
+  getRequestIdentity,
+} from "../../../lib/server/rateLimit";
 import { createSupabaseServerClient } from "../../../lib/supabase/server";
 
 export async function POST(request: Request) {
@@ -14,6 +18,18 @@ export async function POST(request: Request) {
 
   if ("response" in auth) {
     return auth.response;
+  }
+
+  const rateLimitResponse = enforceRateLimit({
+    scope: "follows:create",
+    identity: getRequestIdentity(request, auth.user.id),
+    limit: 30,
+    windowMs: 60_000,
+    message: "Follow limit reached. Try again in a minute.",
+  });
+
+  if (rateLimitResponse) {
+    return rateLimitResponse;
   }
 
   const body = await request.json().catch(() => null);

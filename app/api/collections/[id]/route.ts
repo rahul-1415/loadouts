@@ -6,6 +6,14 @@ import {
   FIXED_CATEGORY_MIN_SLUG,
   isFixedCategorySlug,
 } from "../../../../lib/data/fixedCategories";
+import {
+  buildPublishValidation,
+  normalizeRequestedStatus,
+} from "../../../../lib/loadoutPublishing";
+import {
+  enforceRateLimit,
+  getRequestIdentity,
+} from "../../../../lib/server/rateLimit";
 import { createSupabaseServerClient } from "../../../../lib/supabase/server";
 
 interface RouteContext {
@@ -66,7 +74,9 @@ export async function PUT(request: Request, { params }: RouteContext) {
   const supabase = await createSupabaseServerClient();
   let collectionQuery = supabase
     .from("collections")
-    .select("id,slug,owner_id,kind,category_id,is_public")
+    .select(
+      "id,slug,owner_id,kind,category_id,is_public,cover_image_url,status,published_at,archived_at"
+    )
     .limit(1);
 
   collectionQuery = isUuid(params.id)
@@ -127,6 +137,30 @@ export async function PUT(request: Request, { params }: RouteContext) {
     typeof body?.categorySlug === "string" ? body.categorySlug.trim() : "";
   const requestedIsPublic =
     typeof body?.isPublic === "boolean" ? body.isPublic : null;
+  const coverImageUrl =
+    typeof body?.coverImageUrl === "string" ? body.coverImageUrl.trim() : null;
+  const requestedStatus = normalizeRequestedStatus(
+    body?.status,
+    requestedIsPublic === null
+      ? existingCollection.is_public
+        ? "published"
+        : "draft"
+      : requestedIsPublic
+        ? "published"
+        : "draft"
+  );
+
+  const rateLimitResponse = enforceRateLimit({
+    scope: "collections:update",
+    identity: getRequestIdentity(request, user.id),
+    limit: 30,
+    windowMs: 60_000,
+    message: "Loadout update limit reached. Try again shortly.",
+  });
+
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
 
   if (!title) {
     return NextResponse.json(
@@ -226,21 +260,79 @@ export async function PUT(request: Request, { params }: RouteContext) {
     );
   }
 
+  const nextCoverImageUrl =
+    coverImageUrl === null ? existingCollection.cover_image_url : coverImageUrl;
+
+  if (requestedStatus === "published") {
+    const { count: productCount, error: productCountError } = await supabase
+      .from("collection_products")
+      .select("*", { count: "exact", head: true })
+      .eq("collection_id", existingCollection.id);
+
+    if (productCountError) {
+      return NextResponse.json(
+        {
+          error: {
+            code: "FETCH_FAILED",
+            message: productCountError.message,
+          },
+        },
+        { status: 500 }
+      );
+    }
+
+    const validation = buildPublishValidation({
+      title,
+      categoryId: category.id,
+      productCount: productCount ?? 0,
+    });
+
+    if (!validation.canPublish) {
+      return NextResponse.json(
+        {
+          error: {
+            code: "PUBLISH_REQUIREMENTS_NOT_MET",
+            message: `Complete the publish checklist: ${validation.missing.join(
+              ", "
+            )}.`,
+          },
+        },
+        { status: 400 }
+      );
+    }
+  }
+
+  const now = new Date().toISOString();
+  let nextPublishedAt = existingCollection.published_at;
+  let nextArchivedAt = existingCollection.archived_at;
+
+  if (requestedStatus === "published") {
+    nextPublishedAt = existingCollection.published_at ?? now;
+    nextArchivedAt = null;
+  } else if (requestedStatus === "archived") {
+    nextArchivedAt = now;
+  } else {
+    nextArchivedAt = null;
+  }
+
   const { data: updatedCollection, error: updateError } = await supabase
     .from("collections")
     .update({
       title,
       description: description || null,
       category_id: category.id,
-      is_public:
-        requestedIsPublic === null
-          ? existingCollection.is_public
-          : requestedIsPublic,
+      cover_image_url: nextCoverImageUrl || null,
+      is_public: requestedStatus === "published",
+      status: requestedStatus,
+      published_at: nextPublishedAt,
+      archived_at: nextArchivedAt,
       updated_at: new Date().toISOString(),
     })
     .eq("id", existingCollection.id)
     .eq("owner_id", user.id)
-    .select("id,slug,kind,title,description,category_id,is_public,owner_id")
+    .select(
+      "id,slug,kind,title,description,category_id,is_public,owner_id,status,cover_image_url,published_at,archived_at"
+    )
     .single();
 
   if (updateError) {

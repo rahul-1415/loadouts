@@ -16,11 +16,16 @@ Loadouts is a Next.js + Supabase app for sharing creator/product loadouts, organ
 - Follow/unfollow APIs and profile lists (cursor pagination)
 - Fixed 100 category model (`cat-001` to `cat-100`)
 - Loadout create/edit/delete with category assignment
+- Draft / published / archived loadout states with a publish checklist
+- Cover-image and avatar uploads via Supabase Storage
 - Inline product management during loadout creation and editing
 - Save/bookmark system with a dedicated saved-items page
 - Studio workspace for creator-owned loadouts and operational insights
 - Likes and comments persisted in Supabase
-- Notification center + unread state + pagination
+- Notification center + unread state + pagination + live refresh
+- Related loadout recommendations on detail pages
+- Profile and loadout share/report actions
+- Admin moderation dashboard for reports, missing covers, and failures
 - Following feed with pagination
 - Search across content types
 - Vitest integration coverage for auth, onboarding, saves, notifications, and interaction validation
@@ -48,6 +53,7 @@ NEXT_PUBLIC_SITE_URL=http://localhost:3000
 Optional (needed for admin seed script only):
 ```bash
 SUPABASE_SERVICE_ROLE_KEY=<service-role-key>
+LOADOUTS_ADMIN_EMAILS=you@example.com,other-admin@example.com
 ```
 
 3. Start dev server:
@@ -73,15 +79,17 @@ Run these in Supabase SQL editor, in this order:
 3. Notifications table/policies: `supabase/add-notifications.sql`
 4. Notification dedupe + analytics milestones: `supabase/add-notification-guards-and-analytics.sql`
 5. Operational visibility events: `supabase/add-operational-visibility.sql`
-6. Fixed categories: `supabase/seed-100-categories.sql`
-7. Category images (optional starter): `supabase/seed-100-category-images.sql`
-8. Seed content/products/loadouts: `supabase/seed-content.sql`
+6. Publishing + uploads + reports: `supabase/add-publishing-storage-and-reports.sql`
+7. Fixed categories: `supabase/seed-100-categories.sql`
+8. Category images (optional starter): `supabase/seed-100-category-images.sql`
+9. Seed content/products/loadouts: `supabase/seed-content.sql`
 
 Verification helpers:
 - `supabase/verify-profile-onboarding-and-follows.sql`
 - `supabase/verify-category-images.sql`
 - `supabase/verify-notifications-and-analytics.sql`
 - `supabase/verify-operational-visibility.sql`
+- `supabase/verify-publishing-storage-and-reports.sql`
 
 ## Auth Provider Configuration (Supabase Dashboard)
 Enable providers you need and add redirect URLs:
@@ -112,5 +120,6 @@ More details: `supabase/test-social-flow.md`
 ## Important Notes
 - Like/comment writes require an authenticated user with a complete profile.
 - Save writes require an authenticated user with a complete profile.
+- Uploads require `SUPABASE_SERVICE_ROLE_KEY` on the server and the `media` bucket/policies from `supabase/add-publishing-storage-and-reports.sql`.
 - `/saved` is the bookmark page; `/studio` is the creator workspace. `/my-loadouts` now redirects to `/studio` for backward compatibility.
 - Categories are intentionally fixed to the 100 seeded slugs.

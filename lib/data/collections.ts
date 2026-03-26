@@ -6,6 +6,7 @@ import {
 } from "./fixedCategories";
 
 export type CollectionKind = "category" | "loadout";
+export type LoadoutStatus = "draft" | "published" | "archived";
 
 interface CollectionRow {
   id: string;
@@ -15,6 +16,10 @@ interface CollectionRow {
   title: string;
   description: string | null;
   cover_image_url: string | null;
+  is_public?: boolean | null;
+  status: LoadoutStatus | null;
+  published_at: string | null;
+  archived_at: string | null;
   created_at: string;
 }
 
@@ -73,6 +78,9 @@ interface SavedCollectionRow {
   title: string;
   description: string | null;
   cover_image_url: string | null;
+  status: LoadoutStatus | null;
+  published_at: string | null;
+  archived_at: string | null;
   created_at: string;
   is_public: boolean;
 }
@@ -103,6 +111,9 @@ export interface CollectionListItem {
   author: string;
   coverImageUrl: string | null;
   coverImageSourceUrl: string | null;
+  status: LoadoutStatus;
+  publishedAt: string | null;
+  archivedAt: string | null;
 }
 
 export interface OwnedLoadoutListItem extends CollectionListItem {
@@ -134,11 +145,13 @@ export interface CollectionCommentItem {
 
 export interface CollectionDetail extends CollectionListItem {
   isPublic: boolean;
+  categoryId: string | null;
   viewerHasLiked: boolean;
   viewerHasSaved: boolean;
   likeCount: number;
   products: CollectionProductItem[];
   comments: CollectionCommentItem[];
+  publishChecklist: PublishChecklist | null;
 }
 
 export interface SavedCollectionListItem extends CollectionListItem {
@@ -171,6 +184,15 @@ export interface CategoryCardFields {
   coverImageSourceUrl: string | null;
 }
 
+export interface PublishChecklist {
+  items: Array<{
+    key: "title" | "description" | "category" | "cover" | "products";
+    label: string;
+    complete: boolean;
+  }>;
+  canPublish: boolean;
+}
+
 function formatAuthor(profile: ProfileRow | undefined) {
   if (profile?.handle) {
     return `@${profile.handle}`;
@@ -181,6 +203,64 @@ function formatAuthor(profile: ProfileRow | undefined) {
   }
 
   return "@unknown";
+}
+
+function normalizeLoadoutStatus(
+  status: string | null | undefined,
+  isPublic?: boolean
+): LoadoutStatus {
+  if (status === "draft" || status === "published" || status === "archived") {
+    return status;
+  }
+
+  return isPublic ? "published" : "draft";
+}
+
+function buildPublishChecklist({
+  title,
+  description,
+  categoryId,
+  coverImageUrl,
+  productCount,
+}: {
+  title: string;
+  description: string | null;
+  categoryId?: string | null;
+  coverImageUrl?: string | null;
+  productCount: number;
+}): PublishChecklist {
+  const items: PublishChecklist["items"] = [
+    {
+      key: "title",
+      label: "Add a title",
+      complete: title.trim().length > 0,
+    },
+    {
+      key: "description",
+      label: "Write a description",
+      complete: Boolean(description?.trim()),
+    },
+    {
+      key: "category",
+      label: "Choose a category",
+      complete: Boolean(categoryId),
+    },
+    {
+      key: "cover",
+      label: "Upload a cover image",
+      complete: Boolean(coverImageUrl),
+    },
+    {
+      key: "products",
+      label: "Add at least one product",
+      complete: productCount > 0,
+    },
+  ];
+
+  return {
+    items,
+    canPublish: items.every((item) => item.complete),
+  };
 }
 
 function isUuid(value: string) {
@@ -220,6 +300,9 @@ function toListItem(
     author: formatAuthor(profile),
     coverImageUrl: row.cover_image_url,
     coverImageSourceUrl: null,
+    status: normalizeLoadoutStatus(row.status, row.is_public ?? undefined),
+    publishedAt: row.published_at,
+    archivedAt: row.archived_at,
   };
 }
 
@@ -277,9 +360,11 @@ export async function getPublicCollections({
   let query = supabase
     .from("collections")
     .select(
-      "id,slug,kind,owner_id,title,description,cover_image_url,created_at"
+      "id,slug,kind,owner_id,title,description,cover_image_url,is_public,status,published_at,archived_at,created_at"
     )
     .eq("is_public", true)
+    .or("status.eq.published,status.is.null")
+    .order("published_at", { ascending: false, nullsFirst: false })
     .order("created_at", { ascending: false })
     .limit(limit);
 
@@ -310,7 +395,7 @@ export async function getPublicCollectionByIdentifier(
   let query = supabase
     .from("collections")
     .select(
-      "id,slug,kind,owner_id,title,description,cover_image_url,created_at,is_public"
+      "id,slug,kind,owner_id,title,description,cover_image_url,is_public,status,published_at,archived_at,created_at,category_id"
     )
     .limit(1);
 
@@ -339,7 +424,10 @@ export async function getPublicCollectionByIdentifier(
     return null;
   }
 
-  const collection = collectionData as CollectionRow;
+  const collection = collectionData as CollectionRow & {
+    is_public: boolean;
+    category_id: string | null;
+  };
   const ownerProfiles = await loadProfilesByIds([collection.owner_id]);
   const listItem = toListItem(collection, ownerProfiles);
 
@@ -447,11 +535,22 @@ export async function getPublicCollectionByIdentifier(
   return {
     ...listItem,
     isPublic: collectionData.is_public,
+    categoryId: collection.category_id,
     viewerHasLiked,
     viewerHasSaved,
     likeCount: likeCount ?? 0,
     products,
     comments,
+    publishChecklist:
+      collection.kind === "loadout"
+        ? buildPublishChecklist({
+            title: collection.title,
+            description: collection.description,
+            categoryId: collection.category_id,
+            coverImageUrl: collection.cover_image_url,
+            productCount: products.length,
+          })
+        : null,
   };
 }
 
@@ -460,7 +559,7 @@ export async function getOwnedLoadoutsByUserId(userId: string, limit = 100) {
   const { data, error } = await supabase
     .from("collections")
     .select(
-      "id,slug,kind,owner_id,title,description,cover_image_url,created_at,is_public,category_id"
+      "id,slug,kind,owner_id,title,description,cover_image_url,status,published_at,archived_at,created_at,is_public,category_id"
     )
     .eq("owner_id", userId)
     .eq("kind", "loadout")
@@ -485,7 +584,7 @@ export async function getOwnedLoadoutByIdentifier(
   let query = supabase
     .from("collections")
     .select(
-      "id,slug,kind,owner_id,title,description,cover_image_url,created_at,is_public,category_id"
+      "id,slug,kind,owner_id,title,description,cover_image_url,status,published_at,archived_at,created_at,is_public,category_id"
     )
     .eq("owner_id", ownerId)
     .eq("kind", "loadout")
@@ -509,7 +608,7 @@ export async function getSavedCollectionsByUserId(userId: string, limit = 120) {
   const { data, error } = await supabase
     .from("saved_items")
     .select(
-      "created_at,collections:collection_id(id,slug,kind,owner_id,title,description,cover_image_url,created_at,is_public)"
+      "created_at,collections:collection_id(id,slug,kind,owner_id,title,description,cover_image_url,status,published_at,archived_at,created_at,is_public)"
     )
     .eq("user_id", userId)
     .order("created_at", { ascending: false })
@@ -689,11 +788,13 @@ export async function getCategoryWithLoadouts(
   const { data: loadoutData, error: loadoutError } = await supabase
     .from("collections")
     .select(
-      "id,slug,kind,owner_id,title,description,cover_image_url,created_at"
+      "id,slug,kind,owner_id,title,description,cover_image_url,is_public,status,published_at,archived_at,created_at"
     )
     .eq("is_public", true)
+    .or("status.eq.published,status.is.null")
     .eq("kind", "loadout")
     .eq("category_id", category.id)
+    .order("published_at", { ascending: false, nullsFirst: false })
     .order("created_at", { ascending: false })
     .limit(loadoutLimit);
 
@@ -710,4 +811,55 @@ export async function getCategoryWithLoadouts(
     category: toCategoryDetail(category),
     loadouts,
   };
+}
+
+export async function getRecommendedLoadoutsForCollection({
+  collectionId,
+  categoryId,
+  ownerId,
+  viewerUserId,
+  limit = 3,
+}: {
+  collectionId: string;
+  categoryId: string | null;
+  ownerId: string;
+  viewerUserId?: string | null;
+  limit?: number;
+}) {
+  const supabase = await createSupabaseServerClient();
+
+  let query = supabase
+    .from("collections")
+    .select(
+      "id,slug,kind,owner_id,title,description,cover_image_url,is_public,status,published_at,archived_at,created_at"
+    )
+    .eq("is_public", true)
+    .or("status.eq.published,status.is.null")
+    .eq("kind", "loadout")
+    .neq("id", collectionId)
+    .limit(limit);
+
+  if (categoryId) {
+    query = query.eq("category_id", categoryId);
+  } else {
+    query = query.neq("owner_id", ownerId);
+  }
+
+  if (viewerUserId) {
+    query = query.or(`is_public.eq.true,owner_id.eq.${viewerUserId}`);
+  }
+
+  const { data, error } = await query
+    .order("published_at", { ascending: false, nullsFirst: false })
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  const rows = (data ?? []) as CollectionRow[];
+  const ownerIds = Array.from(new Set(rows.map((row) => row.owner_id)));
+  const profileById = await loadProfilesByIds(ownerIds);
+
+  return rows.map((row) => toListItem(row, profileById));
 }

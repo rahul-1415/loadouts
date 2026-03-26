@@ -1,7 +1,9 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import { useRouter } from "next/navigation";
 import Button from "./Button";
+import ImageUploadField from "./ImageUploadField";
 
 interface ProfileEditFormProps {
   initialDisplayName: string;
@@ -32,6 +34,7 @@ export default function ProfileEditForm({
   initialAvatarUrl,
   initialInterests,
 }: ProfileEditFormProps) {
+  const router = useRouter();
   const [displayName, setDisplayName] = useState(initialDisplayName);
   const [bio, setBio] = useState(initialBio);
   const [avatarUrl, setAvatarUrl] = useState(initialAvatarUrl);
@@ -71,6 +74,7 @@ export default function ProfileEditForm({
 
     setMessage("Profile updated.");
     setIsSubmitting(false);
+    router.refresh();
   }
 
   return (
@@ -107,17 +111,13 @@ export default function ProfileEditForm({
         />
       </div>
 
-      <div>
-        <label className="text-[11px] uppercase tracking-[0.25em] text-white/55">
-          Avatar URL
-        </label>
-        <input
-          value={avatarUrl}
-          onChange={(event) => setAvatarUrl(event.target.value)}
-          className="mt-2 w-full rounded-xl border border-white/[0.08] bg-[#181818] px-3 py-2 text-sm text-white placeholder:text-white/40"
-          placeholder="https://..."
-        />
-      </div>
+      <ImageUploadField
+        label="Avatar"
+        kind="avatar"
+        value={avatarUrl}
+        onChange={setAvatarUrl}
+        helpText="Upload a profile image for your public creator page."
+      />
 
       <div>
         <label className="text-[11px] uppercase tracking-[0.25em] text-white/55">

@@ -2,6 +2,10 @@ import { NextResponse } from "next/server";
 import { requireCompleteUser, requireUser } from "../../../lib/auth/api";
 import { captureOperationalEvent } from "../../../lib/data/analytics";
 import { getSavedCollectionsByUserId } from "../../../lib/data/collections";
+import {
+  enforceRateLimit,
+  getRequestIdentity,
+} from "../../../lib/server/rateLimit";
 import { createSupabaseServerClient } from "../../../lib/supabase/server";
 
 function isUuid(value: string) {
@@ -61,6 +65,18 @@ export async function POST(request: Request) {
 
   if ("response" in auth) {
     return auth.response;
+  }
+
+  const rateLimitResponse = enforceRateLimit({
+    scope: "saved:toggle",
+    identity: getRequestIdentity(request, auth.user.id),
+    limit: 40,
+    windowMs: 60_000,
+    message: "Save limit reached. Try again in a minute.",
+  });
+
+  if (rateLimitResponse) {
+    return rateLimitResponse;
   }
 
   const body = await request.json().catch(() => null);

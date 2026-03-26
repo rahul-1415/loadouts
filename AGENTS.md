@@ -33,6 +33,7 @@ Required in `.env.local`:
 
 Optional (admin-only seed scripts):
 - `SUPABASE_SERVICE_ROLE_KEY`
+- `LOADOUTS_ADMIN_EMAILS`
 
 ## Important Paths
 - App routes: `app/*`
@@ -56,15 +57,17 @@ When bootstrapping a new environment, apply in order:
 3. `supabase/add-notifications.sql`
 4. `supabase/add-notification-guards-and-analytics.sql`
 5. `supabase/add-operational-visibility.sql`
-6. `supabase/seed-100-categories.sql`
-7. `supabase/seed-100-category-images.sql` (optional starter)
-8. `supabase/seed-content.sql`
+6. `supabase/add-publishing-storage-and-reports.sql`
+7. `supabase/seed-100-categories.sql`
+8. `supabase/seed-100-category-images.sql` (optional starter)
+9. `supabase/seed-content.sql`
 
 Validation helpers:
 - `supabase/verify-profile-onboarding-and-follows.sql`
 - `supabase/verify-category-images.sql`
 - `supabase/verify-notifications-and-analytics.sql`
 - `supabase/verify-operational-visibility.sql`
+- `supabase/verify-publishing-storage-and-reports.sql`
 
 ## Coding Rules
 1. Keep changes TypeScript-safe and App Router compatible.
@@ -101,6 +104,10 @@ Implemented:
 - Search across entities
 - Studio workspace for owned loadouts + operational visibility
 - Loadout create/edit/delete + inline product management
+- Draft / published / archived loadout workflow
+- Media uploads (avatar, loadout cover, product image)
+- Share/report actions for public profiles and loadouts
+- Admin moderation dashboard
 - Vitest integration coverage for auth, onboarding, saves, notifications, and interaction validation
 
 ## Quality Gates Before Handoff

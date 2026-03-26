@@ -286,7 +286,6 @@ export default function CollectionEngagement({
           initialSaved={initialViewerHasSaved}
           viewerUserId={viewerUserId}
         />
-        <Button variant="secondary">Share</Button>
       </section>
 
       <section className="space-y-4">

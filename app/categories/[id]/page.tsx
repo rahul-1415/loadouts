@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import ContentCard from "../../../components/ContentCard";
 import { getCategoryWithLoadouts } from "../../../lib/data/collections";
@@ -5,6 +6,42 @@ import { getCategoryWithLoadouts } from "../../../lib/data/collections";
 interface CategoryDetailPageProps {
   params: {
     id: string;
+  };
+}
+
+export async function generateMetadata({
+  params,
+}: CategoryDetailPageProps): Promise<Metadata> {
+  const result = await getCategoryWithLoadouts(params.id);
+
+  if (!result) {
+    return {
+      title: "Category Not Found | Loadouts",
+    };
+  }
+
+  const description =
+    result.category.description ||
+    `Explore creator loadouts in ${result.category.title}.`;
+
+  return {
+    title: `${result.category.title} | Loadouts`,
+    description,
+    openGraph: {
+      title: result.category.title,
+      description,
+      images: result.category.coverImageUrl
+        ? [{ url: result.category.coverImageUrl }]
+        : undefined,
+    },
+    twitter: {
+      card: result.category.coverImageUrl ? "summary_large_image" : "summary",
+      title: result.category.title,
+      description,
+      images: result.category.coverImageUrl
+        ? [result.category.coverImageUrl]
+        : undefined,
+    },
   };
 }
 

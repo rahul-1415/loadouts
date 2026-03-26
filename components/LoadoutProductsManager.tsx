@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Button from "./Button";
+import ImageUploadField from "./ImageUploadField";
 
 interface LoadoutProductItem {
   productId: string;
@@ -100,6 +101,37 @@ export default function LoadoutProductsManager({
       active = false;
     };
   }, []);
+
+  useEffect(() => {
+    let active = true;
+
+    const loadExistingItems = async () => {
+      const response = await fetch(
+        `/api/collections/${encodeURIComponent(collectionIdentifier)}/products`,
+        {
+          cache: "no-store",
+        }
+      );
+
+      if (!response.ok) {
+        return;
+      }
+
+      const payload = (await response.json().catch(() => null)) as
+        | { data?: { items?: LoadoutProductItem[] } }
+        | null;
+
+      if (active && payload?.data?.items) {
+        setItems(normalizeSort(payload.data.items));
+      }
+    };
+
+    void loadExistingItems();
+
+    return () => {
+      active = false;
+    };
+  }, [collectionIdentifier]);
 
   const selectedProduct = useMemo(
     () => availableProducts.find((item) => item.id === selectedProductId) ?? null,
@@ -372,6 +404,13 @@ export default function LoadoutProductsManager({
             onChange={(event) => setNewProductImageUrl(event.target.value)}
             placeholder="Image URL (optional)"
             className="w-full rounded-xl border border-white/[0.08] bg-[#181818] px-3 py-2 text-sm text-white placeholder:text-white/40"
+          />
+          <ImageUploadField
+            label="Product Image"
+            kind="product-image"
+            value={newProductImageUrl}
+            onChange={setNewProductImageUrl}
+            helpText="Upload a custom image if the product does not already exist."
           />
           <textarea
             value={newProductDescription}

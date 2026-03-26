@@ -21,8 +21,9 @@ export default async function MyLoadoutsDashboard({
 }) {
   const myLoadouts = await getOwnedLoadoutsByUserId(userId, 120);
   const totalCount = myLoadouts.length;
-  const publicCount = myLoadouts.filter((item) => item.isPublic).length;
-  const draftCount = totalCount - publicCount;
+  const publishedCount = myLoadouts.filter((item) => item.status === "published").length;
+  const draftCount = myLoadouts.filter((item) => item.status === "draft").length;
+  const archivedCount = myLoadouts.filter((item) => item.status === "archived").length;
 
   return (
     <div className="space-y-8">
@@ -54,10 +55,13 @@ export default async function MyLoadoutsDashboard({
               Total loadouts: {totalCount}
             </div>
             <div className="rounded-2xl border border-ink/10 px-3 py-2">
-              Public: {publicCount}
+              Published: {publishedCount}
             </div>
             <div className="rounded-2xl border border-ink/10 px-3 py-2">
               Drafts: {draftCount}
+            </div>
+            <div className="rounded-2xl border border-ink/10 px-3 py-2">
+              Archived: {archivedCount}
             </div>
           </div>
           <div className="space-y-2 pt-1">
@@ -126,7 +130,7 @@ export default async function MyLoadoutsDashboard({
                     <div className="space-y-2">
                       <div className="flex flex-wrap items-center gap-2">
                         <span className="rounded-full border border-white/[0.08] px-2.5 py-1 text-[10px] uppercase tracking-[0.23em] text-white/75">
-                          {loadout.isPublic ? "Public" : "Draft"}
+                          {loadout.status}
                         </span>
                         <span className="text-[10px] uppercase tracking-[0.2em] text-white/45">
                           {formatDate(loadout.createdAt)}

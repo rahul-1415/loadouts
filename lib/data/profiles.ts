@@ -19,6 +19,9 @@ interface CollectionRow {
   title: string;
   description: string | null;
   cover_image_url: string | null;
+  status?: "draft" | "published" | "archived" | null;
+  published_at?: string | null;
+  archived_at?: string | null;
 }
 
 interface FollowRow {
@@ -250,7 +253,7 @@ export async function getPublicLoadoutsByOwner(
 
   const { data, error } = await supabase
     .from("collections")
-    .select("id,slug,kind,title,description,cover_image_url")
+    .select("id,slug,kind,title,description,cover_image_url,status,published_at,archived_at")
     .eq("owner_id", ownerId)
     .eq("kind", "loadout")
     .eq("is_public", true)
@@ -273,6 +276,9 @@ export async function getPublicLoadoutsByOwner(
     author: getAuthorLabel(authorProfile),
     coverImageUrl: row.cover_image_url,
     coverImageSourceUrl: null,
+    status: row.status ?? "published",
+    publishedAt: row.published_at ?? null,
+    archivedAt: row.archived_at ?? null,
   }));
 }
 

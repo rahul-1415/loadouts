@@ -1,8 +1,11 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import ContentCard from "../../../components/ContentCard";
+import CopyLinkButton from "../../../components/CopyLinkButton";
 import FollowButton from "../../../components/FollowButton";
 import ProfileEditForm from "../../../components/ProfileEditForm";
+import ReportButton from "../../../components/ReportButton";
 import {
   getFollowStats,
   getPublicLoadoutsByOwner,
@@ -14,6 +17,35 @@ import { createSupabaseServerClient } from "../../../lib/supabase/server";
 interface ProfilePageProps {
   params: {
     userHandle: string;
+  };
+}
+
+export async function generateMetadata({ params }: ProfilePageProps): Promise<Metadata> {
+  const supabase = await createSupabaseServerClient();
+  const profile = await getPublicProfileByHandle(params.userHandle, supabase);
+
+  if (!profile) {
+    return {
+      title: "Profile Not Found | Loadouts",
+    };
+  }
+
+  const description = profile.bio || `Explore ${profile.displayName}'s creator profile on Loadouts.`;
+
+  return {
+    title: `${profile.displayName} (@${profile.handle}) | Loadouts`,
+    description,
+    openGraph: {
+      title: `${profile.displayName} on Loadouts`,
+      description,
+      images: profile.avatarUrl ? [{ url: profile.avatarUrl }] : undefined,
+    },
+    twitter: {
+      card: profile.avatarUrl ? "summary_large_image" : "summary",
+      title: `${profile.displayName} on Loadouts`,
+      description,
+      images: profile.avatarUrl ? [profile.avatarUrl] : undefined,
+    },
   };
 }
 
@@ -69,12 +101,16 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
             </div>
           </div>
 
-          <FollowButton
-            targetHandle={profile.handle}
-            initialFollowing={viewerIsFollowing}
-            canFollow={Boolean(viewerUserId && !isOwner)}
-            refreshOnChange
-          />
+          <div className="flex flex-wrap items-center gap-3">
+            <FollowButton
+              targetHandle={profile.handle}
+              initialFollowing={viewerIsFollowing}
+              canFollow={Boolean(viewerUserId && !isOwner)}
+              refreshOnChange
+            />
+            <CopyLinkButton path={`/profile/${profile.handle}`} />
+            {!isOwner ? <ReportButton entityType="profile" entityId={profile.id} /> : null}
+          </div>
         </div>
 
         {profile.bio ? <p className="max-w-3xl text-sm text-white/72">{profile.bio}</p> : null}

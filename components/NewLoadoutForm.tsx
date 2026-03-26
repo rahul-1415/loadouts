@@ -2,8 +2,10 @@
 
 import { useMemo, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import Button, { ButtonLink } from "./Button";
+import Button from "./Button";
+import ImageUploadField from "./ImageUploadField";
 import LoadoutProductsManager from "./LoadoutProductsManager";
+import type { LoadoutStatus } from "../lib/data/collections";
 
 interface CategoryOption {
   id: string;
@@ -19,7 +21,8 @@ interface NewLoadoutFormProps {
     title: string;
     description: string;
     categoryId: string;
-    isPublic: boolean;
+    coverImageUrl: string;
+    status: LoadoutStatus;
   };
 }
 
@@ -43,6 +46,12 @@ interface CreatedLoadoutState {
   title: string;
 }
 
+const publishChecklist = [
+  "Add a title",
+  "Choose a category",
+  "Add at least one product",
+];
+
 export default function NewLoadoutForm({
   categories,
   mode = "create",
@@ -59,11 +68,14 @@ export default function NewLoadoutForm({
     initialValues?.description ?? ""
   );
   const [categoryId, setCategoryId] = useState(initialValues?.categoryId ?? "");
-  const [isPublic, setIsPublic] = useState(initialValues?.isPublic ?? true);
-  const [addProductsNow, setAddProductsNow] = useState(true);
+  const [coverImageUrl, setCoverImageUrl] = useState(
+    initialValues?.coverImageUrl ?? ""
+  );
+  const [status] = useState<LoadoutStatus>(initialValues?.status ?? "draft");
   const [createdLoadout, setCreatedLoadout] =
     useState<CreatedLoadoutState | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [finalizingStatus, setFinalizingStatus] = useState<LoadoutStatus | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const totalSteps = isEditMode ? 2 : 3;
@@ -83,33 +95,32 @@ export default function NewLoadoutForm({
     setStep(2);
   }
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
+  async function saveLoadout(nextStatus: LoadoutStatus) {
     if (!categoryId) {
       setErrorMessage("Select a category before saving.");
       setStep(1);
-      return;
+      return null;
     }
 
     if (!title.trim()) {
       setErrorMessage("Title is required.");
       setStep(2);
-      return;
+      return null;
     }
 
-    if (isEditMode && !identifier) {
+    const activeIdentifier = isEditMode
+      ? identifier
+      : createdLoadout?.slug ?? null;
+
+    if (isEditMode && !activeIdentifier) {
       setErrorMessage("Missing loadout identifier.");
-      return;
+      return null;
     }
 
-    setSubmitting(true);
-    setErrorMessage(null);
-
-    const endpoint = isEditMode
-      ? `/api/collections/${encodeURIComponent(identifier ?? "")}`
+    const endpoint = activeIdentifier
+      ? `/api/collections/${encodeURIComponent(activeIdentifier)}`
       : "/api/collections";
-    const method = isEditMode ? "PUT" : "POST";
+    const method = activeIdentifier ? "PUT" : "POST";
 
     const response = await fetch(endpoint, {
       method,
@@ -121,7 +132,8 @@ export default function NewLoadoutForm({
         title: title.trim(),
         description: description.trim(),
         categoryId,
-        isPublic,
+        coverImageUrl: coverImageUrl.trim(),
+        status: nextStatus,
       }),
     });
 
@@ -130,31 +142,69 @@ export default function NewLoadoutForm({
         | ApiErrorResponse
         | null;
       setErrorMessage(payload?.error?.message ?? "Unable to save loadout.");
-      setSubmitting(false);
-      return;
+      return null;
     }
 
     const payload = (await response.json().catch(() => null)) as
       | ApiLoadoutResponse
       | null;
-    const updatedSlug = payload?.data?.slug;
-    const updatedId = payload?.data?.id;
 
-    if (!isEditMode && addProductsNow && updatedSlug && updatedId) {
-      setCreatedLoadout({
-        id: updatedId,
-        slug: updatedSlug,
-        title: title.trim(),
-      });
+    return payload?.data ?? null;
+  }
+
+  async function handleStepTwoSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setSubmitting(true);
+    setErrorMessage(null);
+
+    if (isEditMode) {
+      const savedLoadout = await saveLoadout(status);
       setSubmitting(false);
-      setErrorMessage(null);
-      setStep(3);
+
+      if (!savedLoadout?.slug) {
+        return;
+      }
+
+      router.push(`/loadouts/${savedLoadout.slug}`);
       router.refresh();
       return;
     }
 
-    if (updatedSlug) {
-      router.push(`/loadouts/${updatedSlug}`);
+    const savedDraft = await saveLoadout("draft");
+    setSubmitting(false);
+
+    if (!savedDraft?.slug || !savedDraft.id) {
+      return;
+    }
+
+    setCreatedLoadout({
+      id: savedDraft.id,
+      slug: savedDraft.slug,
+      title: title.trim(),
+    });
+    setStep(3);
+    router.refresh();
+  }
+
+  async function finalizeCreate(nextStatus: LoadoutStatus) {
+    if (!createdLoadout?.slug) {
+      setErrorMessage("Complete step 2 before finishing the loadout.");
+      setStep(2);
+      return;
+    }
+
+    setFinalizingStatus(nextStatus);
+    setErrorMessage(null);
+
+    const savedLoadout = await saveLoadout(nextStatus);
+    setFinalizingStatus(null);
+
+    if (!savedLoadout?.slug) {
+      return;
+    }
+
+    if (nextStatus === "published") {
+      router.push(`/loadouts/${savedLoadout.slug}`);
     } else {
       router.push("/studio");
     }
@@ -247,7 +297,7 @@ export default function NewLoadoutForm({
       ) : null}
 
       {step === 2 ? (
-        <form className="space-y-4" onSubmit={handleSubmit}>
+        <form className="space-y-4" onSubmit={handleStepTwoSubmit}>
           <div className="rounded-2xl border border-white/[0.04] bg-white/[0.03] px-4 py-3 text-xs uppercase tracking-[0.25em] text-white/60">
             Category: <span className="text-white">{selectedCategoryLabel || "None"}</span>
           </div>
@@ -274,46 +324,19 @@ export default function NewLoadoutForm({
               id="description"
               value={description}
               onChange={(event) => setDescription(event.target.value)}
-              placeholder="Add a short description"
+              placeholder="Optional description"
               className="mt-2 w-full rounded-xl border border-white/[0.08] bg-[#181818] px-3 py-2 text-sm text-white placeholder:text-white/40"
               rows={4}
             />
           </div>
 
-          <div>
-            <label className="text-sm font-medium text-white" htmlFor="visibility">
-              Visibility
-            </label>
-            <select
-              id="visibility"
-              value={isPublic ? "public" : "draft"}
-              onChange={(event) => setIsPublic(event.target.value === "public")}
-              className="mt-2 w-full rounded-xl border border-white/[0.08] bg-[#181818] px-3 py-2 text-sm text-white"
-            >
-              <option value="public">Public (visible to everyone)</option>
-              <option value="draft">Draft (only you can access)</option>
-            </select>
-          </div>
-
-          {!isEditMode ? (
-            <label className="flex items-start gap-3 rounded-2xl border border-white/[0.04] bg-white/[0.03] px-4 py-3">
-              <input
-                type="checkbox"
-                checked={addProductsNow}
-                onChange={(event) => setAddProductsNow(event.target.checked)}
-                className="mt-0.5 h-4 w-4 rounded border border-white/[0.16] bg-[#181818] accent-[#e6ef92]"
-              />
-              <span className="space-y-1">
-                <span className="block text-sm font-medium text-white">
-                  Add products right after creating
-                </span>
-                <span className="block text-xs text-white/60">
-                  Stay on this page for one more step so you can attach products
-                  to the loadout immediately.
-                </span>
-              </span>
-            </label>
-          ) : null}
+          <ImageUploadField
+            label="Cover Image"
+            kind="loadout-cover"
+            value={coverImageUrl}
+            onChange={setCoverImageUrl}
+            helpText="Optional. You can add a cover image now or later."
+          />
 
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-3">
@@ -324,10 +347,10 @@ export default function NewLoadoutForm({
                 {submitting
                   ? isEditMode
                     ? "Saving..."
-                    : "Creating..."
+                    : "Continuing..."
                   : isEditMode
                     ? "Save Changes"
-                    : "Create Loadout"}
+                    : "Continue"}
               </Button>
             </div>
 
@@ -353,13 +376,22 @@ export default function NewLoadoutForm({
               Step 3
             </p>
             <h2 className="mt-2 text-2xl font-semibold text-white">
-              Add products to your loadout
+              Add products and finish your loadout
             </h2>
             <p className="mt-2 text-sm text-white/70">
-              <span className="text-white">{createdLoadout.title}</span> has been
-              created. Add products now or finish and manage them later from the
-              loadout editor.
+              Add the products first, then choose whether to save this loadout as a draft or publish it.
             </p>
+          </div>
+
+          <div className="rounded-2xl border border-[#d4dd7f]/20 bg-[#10120d] px-4 py-4 text-sm text-white/78">
+            <p className="text-[11px] uppercase tracking-[0.25em] text-[#e6ef92]">
+              Required Before Publish
+            </p>
+            <ul className="mt-2 space-y-1 text-sm text-white/68">
+              {publishChecklist.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
           </div>
 
           <LoadoutProductsManager
@@ -367,16 +399,25 @@ export default function NewLoadoutForm({
             initialItems={[]}
           />
 
-          <div className="flex flex-wrap gap-3">
-            <ButtonLink href={`/loadouts/${createdLoadout.slug}`}>
-              View Loadout
-            </ButtonLink>
-            <ButtonLink
-              href={`/loadouts/${createdLoadout.slug}/edit`}
+          <div className="flex flex-wrap items-center gap-3">
+            <Button type="button" variant="secondary" onClick={() => setStep(2)}>
+              Back
+            </Button>
+            <Button
+              type="button"
               variant="secondary"
+              onClick={() => finalizeCreate("draft")}
+              disabled={finalizingStatus !== null}
             >
-              Open Editor
-            </ButtonLink>
+              {finalizingStatus === "draft" ? "Saving Draft..." : "Draft"}
+            </Button>
+            <Button
+              type="button"
+              onClick={() => finalizeCreate("published")}
+              disabled={finalizingStatus !== null}
+            >
+              {finalizingStatus === "published" ? "Creating..." : "Create Loadout"}
+            </Button>
           </div>
         </div>
       ) : null}
