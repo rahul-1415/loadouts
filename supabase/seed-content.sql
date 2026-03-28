@@ -41,7 +41,10 @@ insert into public.collections (
   title,
   description,
   cover_image_url,
-  is_public
+  cover_image_source_url,
+  is_public,
+  status,
+  published_at
 )
 select
   owner.id,
@@ -51,12 +54,15 @@ select
   v.title,
   v.description,
   v.cover_image_url,
-  true
+  v.cover_image_source_url,
+  true,
+  'published'::public.loadout_status,
+  now()
 from (
   values
-    ('cat-013', 'loadout', 'creator-desk-kit', 'Creator Desk Kit', 'My daily setup for coding and content', 'https://images.unsplash.com/photo-1498050108023-c5249f4df085'),
-    ('cat-009', 'loadout', 'video-starter-kit', 'Video Starter Kit', 'Simple kit for recording and editing', 'https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f')
-) as v(category_slug, kind, slug, title, description, cover_image_url)
+    ('cat-013', 'loadout', 'creator-desk-kit', 'Creator Desk Kit', 'A focused desk setup for writing, design reviews, planning, and shipping content without clutter.', 'https://images.pexels.com/photos/9469520/pexels-photo-9469520.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200', 'https://www.pexels.com/photo/desk-computer-setup-inside-a-room-9469520/'),
+    ('cat-009', 'loadout', 'video-starter-kit', 'Video Starter Kit', 'A practical starter video setup built around one camera, clean audio, and simple lighting for fast production.', 'https://images.pexels.com/photos/1787220/pexels-photo-1787220.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200', 'https://www.pexels.com/photo/close-up-photo-of-dslr-camera-1787220/')
+) as v(category_slug, kind, slug, title, description, cover_image_url, cover_image_source_url)
 join public.categories c on c.slug = v.category_slug
 cross join owner
 on conflict (slug) do update
@@ -65,7 +71,10 @@ set
   title = excluded.title,
   description = excluded.description,
   cover_image_url = excluded.cover_image_url,
-  is_public = excluded.is_public;
+  cover_image_source_url = excluded.cover_image_source_url,
+  is_public = excluded.is_public,
+  status = excluded.status,
+  published_at = excluded.published_at;
 
 -- 4) Products
 with owner as (

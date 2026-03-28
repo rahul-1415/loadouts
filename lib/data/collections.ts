@@ -146,6 +146,7 @@ export interface CollectionCommentItem {
 export interface CollectionDetail extends CollectionListItem {
   isPublic: boolean;
   categoryId: string | null;
+  category: CategoryDetailItem | null;
   viewerHasLiked: boolean;
   viewerHasSaved: boolean;
   likeCount: number;
@@ -430,6 +431,25 @@ export async function getPublicCollectionByIdentifier(
   };
   const ownerProfiles = await loadProfilesByIds([collection.owner_id]);
   const listItem = toListItem(collection, ownerProfiles);
+  let category: CategoryDetailItem | null = null;
+
+  if (collection.category_id) {
+    const { data: categoryData, error: categoryError } = await supabase
+      .from("categories")
+      .select("id,slug,title,description,cover_image_url")
+      .eq("id", collection.category_id)
+      .eq("is_active", true)
+      .limit(1)
+      .maybeSingle();
+
+    if (categoryError) {
+      throw new Error(categoryError.message);
+    }
+
+    if (categoryData) {
+      category = toCategoryDetail(categoryData as CategoryRow);
+    }
+  }
 
   const { data: joinedProducts, error: productsError } = await supabase
     .from("collection_products")
@@ -536,6 +556,7 @@ export async function getPublicCollectionByIdentifier(
     ...listItem,
     isPublic: collectionData.is_public,
     categoryId: collection.category_id,
+    category,
     viewerHasLiked,
     viewerHasSaved,
     likeCount: likeCount ?? 0,

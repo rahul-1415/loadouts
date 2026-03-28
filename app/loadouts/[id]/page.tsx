@@ -80,6 +80,14 @@ export default async function LoadoutPage({ params }: LoadoutPageProps) {
             <p className="text-[11px] uppercase tracking-[0.45em] text-white/50">
               Loadout #{loadout.slug}
             </p>
+            {loadout.category ? (
+              <a
+                href={`/categories/${loadout.category.slug}`}
+                className="inline-flex items-center rounded-full border border-[#d4dd7f]/20 bg-[#10120d] px-3 py-1 text-[11px] font-medium uppercase tracking-[0.22em] text-[#e6ef92] transition hover:border-[#d4dd7f]/40 hover:bg-[#15190f]"
+              >
+                {loadout.category.title}
+              </a>
+            ) : null}
             <h1 className="text-[clamp(2.1rem,4vw,3.2rem)] font-semibold text-white">
               {loadout.title}
             </h1>
@@ -187,7 +195,7 @@ export default async function LoadoutPage({ params }: LoadoutPageProps) {
               Related Loadouts
             </p>
             <span className="text-[11px] uppercase tracking-[0.3em] text-white/40">
-              More in discovery
+              {loadout.category ? `More in ${loadout.category.title}` : "More in discovery"}
             </span>
           </div>
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
