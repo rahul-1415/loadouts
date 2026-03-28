@@ -130,5 +130,8 @@ npm run build && npx tsc --noEmit
 
 ## Change Management
 - Keep commits focused and atomic.
+- Commit at the end of each completed change set by default, even if the user did not explicitly ask for a commit.
+- Do not bundle unrelated work into the same commit; split into separate commits when there are distinct changes.
+- Use clear conventional-style commit messages when possible (for example: `feat: ...`, `fix: ...`, `docs: ...`, `chore: ...`).
 - Document schema-impacting changes in `supabase/` with matching verify SQL where useful.
 - Update `README.md` when setup steps, env vars, or architecture assumptions change.
