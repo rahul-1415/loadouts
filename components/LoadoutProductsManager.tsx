@@ -26,6 +26,14 @@ interface ProductOption {
   description: string;
   imageUrl: string | null;
   productUrl: string | null;
+  categorySlug: string | null;
+  categoryLabel: string | null;
+}
+
+interface ProductCategoryOption {
+  slug: string;
+  label: string;
+  count: number;
 }
 
 interface ApiErrorResponse {
@@ -58,7 +66,14 @@ export default function LoadoutProductsManager({
   const [availableProducts, setAvailableProducts] = useState<ProductOption[]>(
     []
   );
+  const [availableBrands, setAvailableBrands] = useState<string[]>([]);
+  const [availableCategories, setAvailableCategories] = useState<
+    ProductCategoryOption[]
+  >([]);
   const [selectedProductId, setSelectedProductId] = useState("");
+  const [productQuery, setProductQuery] = useState("");
+  const [selectedBrandFilter, setSelectedBrandFilter] = useState("");
+  const [selectedCategoryFilter, setSelectedCategoryFilter] = useState("");
   const [addNote, setAddNote] = useState("");
   const [newProductName, setNewProductName] = useState("");
   const [newProductBrand, setNewProductBrand] = useState("");
@@ -76,7 +91,7 @@ export default function LoadoutProductsManager({
 
     const loadProducts = async () => {
       setBusyAction("load");
-      const response = await fetch("/api/products?limit=120", {
+      const response = await fetch("/api/products?limit=240", {
         cache: "no-store",
       });
 
@@ -86,11 +101,19 @@ export default function LoadoutProductsManager({
       }
 
       const payload = (await response.json().catch(() => null)) as
-        | { data?: ProductOption[] }
+        | {
+            data?: ProductOption[];
+            meta?: {
+              brands?: string[];
+              categories?: ProductCategoryOption[];
+            };
+          }
         | null;
 
       if (active) {
         setAvailableProducts(payload?.data ?? []);
+        setAvailableBrands(payload?.meta?.brands ?? []);
+        setAvailableCategories(payload?.meta?.categories ?? []);
         setBusyAction(null);
       }
     };
@@ -132,6 +155,40 @@ export default function LoadoutProductsManager({
       active = false;
     };
   }, [collectionIdentifier]);
+
+  const filteredProducts = useMemo(() => {
+    const normalizedQuery = productQuery.trim().toLowerCase();
+    const normalizedBrand = selectedBrandFilter.trim().toLowerCase();
+    const normalizedCategory = selectedCategoryFilter.trim().toLowerCase();
+
+    return availableProducts.filter((item) => {
+      if (
+        normalizedBrand &&
+        item.brand?.trim().toLowerCase() !== normalizedBrand
+      ) {
+        return false;
+      }
+
+      if (normalizedCategory && item.categorySlug !== normalizedCategory) {
+        return false;
+      }
+
+      if (!normalizedQuery) {
+        return true;
+      }
+
+      const haystack = [
+        item.name,
+        item.brand ?? "",
+        item.description,
+        item.categoryLabel ?? "",
+      ]
+        .join(" ")
+        .toLowerCase();
+
+      return haystack.includes(normalizedQuery);
+    });
+  }, [availableProducts, productQuery, selectedBrandFilter, selectedCategoryFilter]);
 
   const selectedProduct = useMemo(
     () => availableProducts.find((item) => item.id === selectedProductId) ?? null,
@@ -350,23 +407,63 @@ export default function LoadoutProductsManager({
           <p className="text-[11px] uppercase tracking-[0.25em] text-white/55">
             Add Existing Product
           </p>
+          <div className="grid gap-3">
+            <input
+              value={productQuery}
+              onChange={(event) => setProductQuery(event.target.value)}
+              placeholder="Search products"
+              className="w-full rounded-xl border border-white/[0.08] bg-[#181818] px-3 py-2 text-sm text-white placeholder:text-white/40"
+            />
+            <div className="grid gap-3 sm:grid-cols-2">
+              <select
+                value={selectedBrandFilter}
+                onChange={(event) => setSelectedBrandFilter(event.target.value)}
+                className="w-full rounded-xl border border-white/[0.08] bg-[#181818] px-3 py-2 text-sm text-white"
+              >
+                <option value="">All brands</option>
+                {availableBrands.map((brand) => (
+                  <option key={brand} value={brand}>
+                    {brand}
+                  </option>
+                ))}
+              </select>
+              <select
+                value={selectedCategoryFilter}
+                onChange={(event) => setSelectedCategoryFilter(event.target.value)}
+                className="w-full rounded-xl border border-white/[0.08] bg-[#181818] px-3 py-2 text-sm text-white"
+              >
+                <option value="">All product categories</option>
+                {availableCategories.map((category) => (
+                  <option key={category.slug} value={category.slug}>
+                    {category.label} ({category.count})
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
           <select
             value={selectedProductId}
             onChange={(event) => setSelectedProductId(event.target.value)}
             className="w-full rounded-xl border border-white/[0.08] bg-[#181818] px-3 py-2 text-sm text-white"
           >
             <option value="">Select product</option>
-            {availableProducts.map((product) => (
+            {filteredProducts.map((product) => (
               <option key={product.id} value={product.id}>
                 {product.name}
                 {product.brand ? ` — ${product.brand}` : ""}
+                {product.categoryLabel ? ` — ${product.categoryLabel}` : ""}
               </option>
             ))}
           </select>
           {selectedProduct ? (
-            <p className="text-xs text-white/60">
-              {selectedProduct.description || "No description"}
-            </p>
+            <div className="space-y-1 text-xs text-white/60">
+              <p>{selectedProduct.description || "No description"}</p>
+              {selectedProduct.categoryLabel ? (
+                <p className="uppercase tracking-[0.2em] text-white/45">
+                  {selectedProduct.categoryLabel}
+                </p>
+              ) : null}
+            </div>
           ) : null}
           <Button
             type="button"

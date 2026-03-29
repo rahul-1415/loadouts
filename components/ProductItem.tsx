@@ -5,6 +5,7 @@ interface ProductItemProps {
   productUrl?: string | null;
   sourceUrl?: string | null;
   description?: string;
+  categoryLabel?: string | null;
 }
 
 export default function ProductItem({
@@ -14,6 +15,7 @@ export default function ProductItem({
   productUrl,
   sourceUrl,
   description,
+  categoryLabel,
 }: ProductItemProps) {
   const imageClassName = imageUrl
     ? "h-16 w-16 shrink-0 overflow-hidden rounded-2xl bg-[linear-gradient(180deg,rgba(230,239,146,0.12),transparent_58%),linear-gradient(135deg,#2b2e1c,#171915)]"
@@ -32,11 +34,18 @@ export default function ProductItem({
         ) : null}
       </div>
       <div className="min-w-0 space-y-1">
-        {brand ? (
-          <p className="text-[11px] uppercase tracking-[0.3em] text-white/55">
-            {brand}
-          </p>
-        ) : null}
+        <div className="flex flex-wrap items-center gap-2">
+          {brand ? (
+            <p className="text-[11px] uppercase tracking-[0.3em] text-white/55">
+              {brand}
+            </p>
+          ) : null}
+          {categoryLabel ? (
+            <span className="rounded-full border border-white/[0.08] bg-[#111111] px-2 py-0.5 text-[10px] uppercase tracking-[0.2em] text-white/48">
+              {categoryLabel}
+            </span>
+          ) : null}
+        </div>
         {productUrl ? (
           <a
             href={productUrl}

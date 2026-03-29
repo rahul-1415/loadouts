@@ -19,6 +19,7 @@ Loadouts is a Next.js + Supabase app for sharing creator/product loadouts, organ
 - Draft / published / archived loadout states with a publish checklist
 - Cover-image and avatar uploads via Supabase Storage
 - Inline product management during loadout creation and editing
+- Product catalog page with brand and product-category filters
 - Save/bookmark system with a dedicated saved-items page
 - Studio workspace for creator-owned loadouts and operational insights
 - Likes and comments persisted in Supabase
@@ -34,8 +35,9 @@ Loadouts is a Next.js + Supabase app for sharing creator/product loadouts, organ
 - `app/` routes and API handlers
 - `components/` reusable UI
 - `lib/` data/auth/supabase helpers
+- `data/` curated product catalog manifest used for taxonomy and imports
 - `supabase/` SQL schema, migrations, and seed docs
-- `scripts/` utility scripts (image fetch + social seed)
+- `scripts/` utility scripts (image fetch + social seed + product catalog import)
 
 ## Local Setup
 1. Install dependencies:
@@ -113,6 +115,11 @@ node scripts/fetch-pexels-category-images.mjs
 - Seed social test flow (requires service role key):
 ```bash
 node scripts/seed-test-social-flow.mjs --seed=demo1
+```
+
+- Import the curated product catalog from official product pages:
+```bash
+set -a && source .env.local && set +a && node scripts/import-curated-product-catalog.mjs
 ```
 
 More details: `supabase/test-social-flow.md`

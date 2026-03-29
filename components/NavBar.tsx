@@ -12,6 +12,7 @@ const navLinks = [
   { label: "Home", href: "/" },
   { label: "Feed", href: "/feed" },
   { label: "Categories", href: "/categories" },
+  { label: "Products", href: "/products" },
   { label: "Saved", href: "/saved" },
   { label: "Studio", href: "/studio" },
 ];
