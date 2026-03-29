@@ -55,6 +55,31 @@ function normalizeSort(items: LoadoutProductItem[]) {
   }));
 }
 
+function ProductThumb({
+  imageUrl,
+  name,
+  className = "h-16 w-16",
+}: {
+  imageUrl: string | null;
+  name: string;
+  className?: string;
+}) {
+  return (
+    <div
+      className={`${className} shrink-0 overflow-hidden rounded-2xl border border-white/[0.06] bg-[#111111]`}
+    >
+      {imageUrl ? (
+        <img
+          src={imageUrl}
+          alt={name}
+          className="h-full w-full object-cover"
+          loading="lazy"
+        />
+      ) : null}
+    </div>
+  );
+}
+
 export default function LoadoutProductsManager({
   collectionIdentifier,
   initialItems,
@@ -441,28 +466,79 @@ export default function LoadoutProductsManager({
               </select>
             </div>
           </div>
-          <select
-            value={selectedProductId}
-            onChange={(event) => setSelectedProductId(event.target.value)}
-            className="w-full rounded-xl border border-white/[0.08] bg-[#181818] px-3 py-2 text-sm text-white"
-          >
-            <option value="">Select product</option>
-            {filteredProducts.map((product) => (
-              <option key={product.id} value={product.id}>
-                {product.name}
-                {product.brand ? ` — ${product.brand}` : ""}
-                {product.categoryLabel ? ` — ${product.categoryLabel}` : ""}
-              </option>
-            ))}
-          </select>
-          {selectedProduct ? (
-            <div className="space-y-1 text-xs text-white/60">
-              <p>{selectedProduct.description || "No description"}</p>
-              {selectedProduct.categoryLabel ? (
-                <p className="uppercase tracking-[0.2em] text-white/45">
-                  {selectedProduct.categoryLabel}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-[11px] uppercase tracking-[0.25em] text-white/55">
+                Pick from {filteredProducts.length} products
+              </p>
+              {selectedProduct ? (
+                <p className="text-[11px] uppercase tracking-[0.2em] text-[#e6ef92]">
+                  Selected
                 </p>
               ) : null}
+            </div>
+            <div className="max-h-[320px] space-y-2 overflow-y-auto rounded-2xl border border-white/[0.06] bg-[#111111] p-2">
+              {filteredProducts.length === 0 ? (
+                <p className="px-3 py-4 text-sm text-white/55">
+                  No products match this search yet.
+                </p>
+              ) : (
+                filteredProducts.map((product) => {
+                  const isSelected = product.id === selectedProductId;
+
+                  return (
+                    <button
+                      key={product.id}
+                      type="button"
+                      onClick={() => setSelectedProductId(product.id)}
+                      className={`flex w-full items-start gap-3 rounded-2xl border px-3 py-3 text-left transition ${
+                        isSelected
+                          ? "border-[#d4dd7f]/55 bg-[#1f2117]"
+                          : "border-white/[0.05] bg-[#171717] hover:border-white/[0.14]"
+                      }`}
+                    >
+                      <ProductThumb imageUrl={product.imageUrl} name={product.name} />
+                      <div className="min-w-0 space-y-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                          {product.brand ? (
+                            <span className="text-[10px] uppercase tracking-[0.22em] text-white/50">
+                              {product.brand}
+                            </span>
+                          ) : null}
+                          {product.categoryLabel ? (
+                            <span className="rounded-full border border-white/[0.08] bg-[#111111] px-2 py-0.5 text-[10px] uppercase tracking-[0.2em] text-white/45">
+                              {product.categoryLabel}
+                            </span>
+                          ) : null}
+                        </div>
+                        <p className="text-sm font-semibold text-white">
+                          {product.name}
+                        </p>
+                        <p className="line-clamp-2 text-xs text-white/62">
+                          {product.description || "No description"}
+                        </p>
+                      </div>
+                    </button>
+                  );
+                })
+              )}
+            </div>
+          </div>
+          {selectedProduct ? (
+            <div className="flex gap-3 rounded-2xl border border-white/[0.05] bg-[#111111] p-3">
+              <ProductThumb imageUrl={selectedProduct.imageUrl} name={selectedProduct.name} />
+              <div className="space-y-1 text-xs text-white/60">
+                <p className="text-sm font-semibold text-white">
+                  {selectedProduct.name}
+                  {selectedProduct.brand ? ` — ${selectedProduct.brand}` : ""}
+                </p>
+                <p>{selectedProduct.description || "No description"}</p>
+                {selectedProduct.categoryLabel ? (
+                  <p className="uppercase tracking-[0.2em] text-white/45">
+                    {selectedProduct.categoryLabel}
+                  </p>
+                ) : null}
+              </div>
             </div>
           ) : null}
           <Button
@@ -509,6 +585,17 @@ export default function LoadoutProductsManager({
             onChange={setNewProductImageUrl}
             helpText="Upload a custom image if the product does not already exist."
           />
+          {newProductImageUrl ? (
+            <div className="flex items-center gap-3 rounded-2xl border border-white/[0.05] bg-[#111111] p-3">
+              <ProductThumb
+                imageUrl={newProductImageUrl}
+                name={newProductName || "Custom product preview"}
+              />
+              <p className="text-xs text-white/60">
+                Custom product image preview
+              </p>
+            </div>
+          ) : null}
           <textarea
             value={newProductDescription}
             onChange={(event) => setNewProductDescription(event.target.value)}
@@ -545,15 +632,18 @@ export default function LoadoutProductsManager({
             className="space-y-3 rounded-2xl border border-white/[0.04] bg-white/[0.03] p-4"
           >
             <div className="flex flex-wrap items-start justify-between gap-3">
-              <div>
-                <p className="text-[11px] uppercase tracking-[0.25em] text-white/55">
-                  #{index + 1}
-                </p>
-                <p className="text-sm font-semibold text-white">
-                  {item.name}
-                  {item.brand ? ` — ${item.brand}` : ""}
-                </p>
-                <p className="text-xs text-white/65">{item.description}</p>
+              <div className="flex min-w-0 gap-3">
+                <ProductThumb imageUrl={item.imageUrl} name={item.name} />
+                <div className="min-w-0">
+                  <p className="text-[11px] uppercase tracking-[0.25em] text-white/55">
+                    #{index + 1}
+                  </p>
+                  <p className="text-sm font-semibold text-white">
+                    {item.name}
+                    {item.brand ? ` — ${item.brand}` : ""}
+                  </p>
+                  <p className="text-xs text-white/65">{item.description}</p>
+                </div>
               </div>
               <div className="flex items-center gap-2">
                 <Button
