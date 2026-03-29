@@ -1,116 +1,138 @@
-import { redirect } from "next/navigation";
 import Link from "next/link";
-import { createSupabaseServerClient } from "../../lib/supabase/server";
-import { decodeFeedCursor, getFollowingFeedByUserId } from "../../lib/data/feed";
+import { ButtonLink } from "../../components/Button";
+import FeedLoadoutGrid from "../../components/FeedLoadoutGrid";
 import { getQueryParam } from "../../lib/auth/redirect";
-
-function formatDate(iso: string) {
-  const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) {
-    return "";
-  }
-
-  return new Intl.DateTimeFormat("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  }).format(date);
-}
+import { getPublicFeed, parseFeedSort, type FeedSort } from "../../lib/data/feed";
 
 interface FeedPageProps {
   searchParams?: {
-    cursor?: string | string[];
+    page?: string | string[];
+    sort?: string | string[];
   };
 }
 
-export default async function FeedPage({ searchParams }: FeedPageProps) {
-  const supabase = await createSupabaseServerClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+const sortOptions: Array<{ label: string; value: FeedSort }> = [
+  { label: "Recent", value: "recent" },
+  { label: "Most Liked", value: "likes" },
+  { label: "Most Commented", value: "comments" },
+];
 
-  if (!user) {
-    redirect("/login?next=/feed");
+function getPageNumber(value: string | null) {
+  const parsed = Number(value);
+
+  if (!Number.isFinite(parsed) || parsed < 1) {
+    return 1;
   }
 
-  const cursor = decodeFeedCursor(getQueryParam(searchParams?.cursor));
-  const feed = await getFollowingFeedByUserId({
-    userId: user.id,
+  return Math.floor(parsed);
+}
+
+function buildFeedHref({
+  page,
+  sort,
+}: {
+  page?: number;
+  sort: FeedSort;
+}) {
+  const params = new URLSearchParams();
+
+  if (sort !== "recent") {
+    params.set("sort", sort);
+  }
+
+  if (page && page > 1) {
+    params.set("page", String(page));
+  }
+
+  const query = params.toString();
+  return query ? `/feed?${query}` : "/feed";
+}
+
+export default async function FeedPage({ searchParams }: FeedPageProps) {
+  const sort = parseFeedSort(getQueryParam(searchParams?.sort));
+  const page = getPageNumber(getQueryParam(searchParams?.page));
+  const feed = await getPublicFeed({
     limit: 24,
-    cursor,
+    page,
+    sort,
   });
-  const items = feed.items;
 
   return (
     <div className="space-y-8 text-[#f4f5f7]">
-      <header className="space-y-3">
-        <p className="text-[11px] uppercase tracking-[0.45em] text-white/50">
-          Following Feed
-        </p>
-        <h1 className="text-[clamp(2.1rem,4vw,3.2rem)] font-semibold text-white">
-          Latest from people you follow
-        </h1>
-        <p className="text-sm text-white/70">
-          New public loadouts published by creators in your network.
-        </p>
+      <header className="space-y-4">
+        <div className="space-y-3">
+          <p className="text-[11px] uppercase tracking-[0.45em] text-white/50">
+            Feed
+          </p>
+          <h1 className="text-[clamp(2.1rem,4vw,3.2rem)] font-semibold text-white">
+            Browse every public loadout
+          </h1>
+          <p className="text-sm text-white/70">
+            Discover creator setups across every category, then switch to
+            Following when you want updates only from your network.
+          </p>
+        </div>
+
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-wrap gap-3">
+            <ButtonLink href="/feed" variant="primary">
+              All Posts
+            </ButtonLink>
+            <ButtonLink href="/feed/following" variant="secondary">
+              Following
+            </ButtonLink>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            {sortOptions.map((option) => {
+              const isActive = option.value === sort;
+
+              return (
+                <Link
+                  key={option.value}
+                  href={buildFeedHref({ sort: option.value })}
+                  className={`rounded-full border px-4 py-2 text-[10px] font-semibold uppercase tracking-[0.3em] transition ${
+                    isActive
+                      ? "border-[#d4dd7f]/70 bg-[#e6ef92] text-[#111111]"
+                      : "border-white/[0.08] bg-[#171717] text-white/70 hover:border-white/[0.16] hover:text-white"
+                  }`}
+                >
+                  {option.label}
+                </Link>
+              );
+            })}
+          </div>
+        </div>
       </header>
 
-      {items.length === 0 ? (
+      {feed.items.length === 0 ? (
         <div className="rounded-3xl border border-white/[0.05] bg-[#171717] p-7">
           <p className="text-sm text-white/70">
-            Your feed is empty. Follow creators to see their latest loadouts
-            here.
+            No public loadouts are available yet. Publish a loadout from Studio
+            or come back once creators start sharing more setups.
           </p>
         </div>
       ) : (
         <div className="space-y-5">
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {items.map((item) => (
-              <Link
-                key={item.id}
-                href={`/loadouts/${item.slug}`}
-                className="overflow-hidden rounded-3xl border border-white/[0.04] bg-[#171717] shadow-[inset_0_1px_0_rgba(255,255,255,0.03),0_18px_36px_rgba(0,0,0,0.16)] transition hover:border-white/[0.14]"
-              >
-                <div
-                  className={
-                    item.coverImageUrl
-                      ? "h-40 w-full bg-[linear-gradient(180deg,rgba(230,239,146,0.12),transparent_58%),linear-gradient(135deg,#2d301d,#171915_62%,#101010)]"
-                      : "h-40 w-full bg-[#111111]"
-                  }
-                >
-                  {item.coverImageUrl ? (
-                    <img
-                      src={item.coverImageUrl}
-                      alt={item.title}
-                      className="h-full w-full object-cover"
-                      loading="lazy"
-                    />
-                  ) : null}
-                </div>
-                <div className="space-y-3 p-5">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="text-[10px] uppercase tracking-[0.25em] text-white/55">
-                      {item.author}
-                    </span>
-                    <span className="text-[10px] uppercase tracking-[0.2em] text-white/40">
-                      {formatDate(item.createdAt)}
-                    </span>
-                  </div>
-                  <h2 className="text-lg font-semibold text-white">{item.title}</h2>
-                  <p className="text-sm text-white/70">{item.description}</p>
-                </div>
-              </Link>
-            ))}
+          <div className="flex items-center justify-between gap-3">
+            <p className="text-[11px] uppercase tracking-[0.35em] text-white/48">
+              {feed.totalCount} public posts
+            </p>
+            <p className="text-[11px] uppercase tracking-[0.35em] text-white/40">
+              Sorted by {sort === "recent" ? "recent" : sort}
+            </p>
           </div>
 
-          {feed.hasMore && feed.nextCursor ? (
+          <FeedLoadoutGrid items={feed.items} />
+
+          {feed.hasMore ? (
             <div className="flex justify-center">
-              <Link
-                href={`/feed?cursor=${encodeURIComponent(feed.nextCursor)}`}
-                className="rounded-full border border-white/[0.08] px-5 py-2 text-xs uppercase tracking-[0.25em] text-white/75 transition hover:border-white/[0.22] hover:text-white"
+              <ButtonLink
+                href={buildFeedHref({ page: feed.page + 1, sort })}
+                variant="secondary"
               >
                 Load more
-              </Link>
+              </ButtonLink>
             </div>
           ) : null}
         </div>
