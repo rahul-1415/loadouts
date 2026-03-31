@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createSupabaseServerClient } from "../supabase/server";
+import { getPublicLoadoutPath } from "./collections";
 import { getPublicProfileByUserId } from "./profiles";
 
 interface FeedLoadoutRow {
@@ -27,6 +28,8 @@ export interface FeedItem {
   description: string;
   coverImageUrl: string | null;
   author: string;
+  authorHandle: string | null;
+  path: string;
   createdAt: string;
   publishedAt: string | null;
   likeCount: number;
@@ -149,11 +152,17 @@ async function buildFeedItems(rows: FeedLoadoutRow[]) {
   const ownerProfiles = await Promise.all(
     owners.map((ownerId) => getPublicProfileByUserId(ownerId, supabase))
   );
-  const ownerLabelById = new Map<string, string>();
+  const ownerProfileById = new Map<
+    string,
+    { author: string; handle: string | null }
+  >();
 
   ownerProfiles.forEach((profile) => {
     if (profile) {
-      ownerLabelById.set(profile.id, `@${profile.handle}`);
+      ownerProfileById.set(profile.id, {
+        author: `@${profile.handle}`,
+        handle: profile.handle,
+      });
     }
   });
 
@@ -163,18 +172,24 @@ async function buildFeedItems(rows: FeedLoadoutRow[]) {
     countByCollectionIds("comments", collectionIds, supabase),
   ]);
 
-  return rows.map((row) => ({
-    id: row.id,
-    slug: row.slug,
-    title: row.title,
-    description: row.description ?? "",
-    coverImageUrl: row.cover_image_url,
-    author: ownerLabelById.get(row.owner_id) ?? "@unknown",
-    createdAt: row.created_at,
-    publishedAt: row.published_at,
-    likeCount: likeCountById.get(row.id) ?? 0,
-    commentCount: commentCountById.get(row.id) ?? 0,
-  }));
+  return rows.map((row) => {
+    const ownerProfile = ownerProfileById.get(row.owner_id);
+
+    return {
+      id: row.id,
+      slug: row.slug,
+      title: row.title,
+      description: row.description ?? "",
+      coverImageUrl: row.cover_image_url,
+      author: ownerProfile?.author ?? "@unknown",
+      authorHandle: ownerProfile?.handle ?? null,
+      path: getPublicLoadoutPath(ownerProfile?.handle ?? null, row.slug),
+      createdAt: row.created_at,
+      publishedAt: row.published_at,
+      likeCount: likeCountById.get(row.id) ?? 0,
+      commentCount: commentCountById.get(row.id) ?? 0,
+    };
+  });
 }
 
 export function parseFeedSort(value: string | null | undefined): FeedSort {

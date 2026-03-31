@@ -89,7 +89,7 @@ export default async function CategoryDetailPage({
               description={loadout.description}
               coverImageUrl={loadout.coverImageUrl}
               coverImageSourceUrl={loadout.coverImageSourceUrl}
-              href={`/loadouts/${loadout.slug}`}
+              href={loadout.path}
             />
           ))}
         </div>

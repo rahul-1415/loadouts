@@ -1,20 +1,26 @@
 import type { Metadata } from "next";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import LoadoutDetailView from "../../../components/LoadoutDetailView";
 import {
-  getPublicCollectionByIdentifier,
+  getPublicLoadoutByHandleAndSlug,
   getRecommendedLoadoutsForCollection,
 } from "../../../lib/data/collections";
 import { createSupabaseServerClient } from "../../../lib/supabase/server";
 
-interface LoadoutPageProps {
+interface UserLoadoutPageProps {
   params: {
-    id: string;
+    userHandle: string;
+    postSlug: string;
   };
 }
 
-export async function generateMetadata({ params }: LoadoutPageProps): Promise<Metadata> {
-  const loadout = await getPublicCollectionByIdentifier(params.id, "loadout");
+export async function generateMetadata({
+  params,
+}: UserLoadoutPageProps): Promise<Metadata> {
+  const loadout = await getPublicLoadoutByHandleAndSlug(
+    params.userHandle,
+    params.postSlug
+  );
 
   if (!loadout) {
     return {
@@ -42,23 +48,20 @@ export async function generateMetadata({ params }: LoadoutPageProps): Promise<Me
   };
 }
 
-export default async function LoadoutPage({ params }: LoadoutPageProps) {
+export default async function UserLoadoutPage({ params }: UserLoadoutPageProps) {
   const supabase = await createSupabaseServerClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  const loadout = await getPublicCollectionByIdentifier(
-    params.id,
-    "loadout",
+
+  const loadout = await getPublicLoadoutByHandleAndSlug(
+    params.userHandle,
+    params.postSlug,
     user?.id ?? null
   );
 
   if (!loadout) {
     notFound();
-  }
-
-  if (loadout.status === "published" && loadout.authorHandle) {
-    redirect(loadout.path);
   }
 
   const isOwner = user?.id === loadout.ownerId;

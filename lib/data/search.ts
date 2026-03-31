@@ -1,4 +1,5 @@
 import { createSupabaseServerClient } from "../supabase/server";
+import { getPublicLoadoutPath } from "./collections";
 import { getPublicProfileByUserId } from "./profiles";
 
 type SearchType = "loadouts" | "categories" | "products" | "profiles";
@@ -45,6 +46,8 @@ export interface SearchLoadoutItem {
   description: string;
   coverImageUrl: string | null;
   author: string;
+  authorHandle: string | null;
+  path: string;
 }
 
 export interface SearchCategoryItem {
@@ -175,21 +178,33 @@ export async function searchSiteContent({
     const ownerProfiles = await Promise.all(
       ownerIds.map((ownerId) => getPublicProfileByUserId(ownerId, supabase))
     );
-    const handleByOwner = new Map<string, string>();
+    const profileByOwner = new Map<
+      string,
+      { author: string; handle: string | null }
+    >();
     ownerProfiles.forEach((profile) => {
       if (profile) {
-        handleByOwner.set(profile.id, `@${profile.handle}`);
+        profileByOwner.set(profile.id, {
+          author: `@${profile.handle}`,
+          handle: profile.handle,
+        });
       }
     });
 
-    loadouts = rows.map((row) => ({
-      id: row.id,
-      slug: row.slug,
-      title: row.title,
-      description: row.description ?? "",
-      coverImageUrl: row.cover_image_url,
-      author: handleByOwner.get(row.owner_id) ?? "@unknown",
-    }));
+    loadouts = rows.map((row) => {
+      const ownerProfile = profileByOwner.get(row.owner_id);
+
+      return {
+        id: row.id,
+        slug: row.slug,
+        title: row.title,
+        description: row.description ?? "",
+        coverImageUrl: row.cover_image_url,
+        author: ownerProfile?.author ?? "@unknown",
+        authorHandle: ownerProfile?.handle ?? null,
+        path: getPublicLoadoutPath(ownerProfile?.handle ?? null, row.slug),
+      };
+    });
   }
 
   if (types.includes("categories")) {

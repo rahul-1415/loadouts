@@ -151,7 +151,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
           {results.loadouts.map((item) => (
             <Link
               key={item.id}
-              href={`/loadouts/${item.slug}`}
+              href={item.path}
               className="rounded-2xl border border-white/[0.05] bg-[#171717] p-4 transition hover:border-white/[0.14]"
             >
               <p className="text-[11px] uppercase tracking-[0.25em] text-white/55">

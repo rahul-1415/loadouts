@@ -145,7 +145,7 @@ export default async function MyLoadoutsDashboard({
                     </div>
                     <div className="flex flex-wrap gap-2">
                       <ButtonLink
-                        href={`/loadouts/${loadout.slug}`}
+                        href={loadout.path}
                         variant="secondary"
                         className="px-4 py-2 text-[10px]"
                       >

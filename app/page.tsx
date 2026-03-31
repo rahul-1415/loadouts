@@ -154,7 +154,7 @@ export default async function HomePage() {
                 description={loadout.description}
                 coverImageUrl={loadout.coverImageUrl}
                 coverImageSourceUrl={loadout.coverImageSourceUrl}
-                href={`/loadouts/${loadout.slug}`}
+                href={loadout.path}
               />
             ))}
           </div>

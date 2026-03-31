@@ -1,7 +1,10 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createSupabaseServerClient } from "../supabase/server";
 import { normalizeUsername } from "../auth/username";
-import type { CollectionListItem } from "./collections";
+import {
+  getPublicLoadoutPath,
+  type CollectionListItem,
+} from "./collections";
 
 interface ProfileRow {
   id: string;
@@ -274,8 +277,10 @@ export async function getPublicLoadoutsByOwner(
     title: row.title,
     description: row.description ?? "",
     author: getAuthorLabel(authorProfile),
+    authorHandle: authorProfile.handle,
     coverImageUrl: row.cover_image_url,
     coverImageSourceUrl: null,
+    path: getPublicLoadoutPath(authorProfile.handle, row.slug),
     status: row.status ?? "published",
     publishedAt: row.published_at ?? null,
     archivedAt: row.archived_at ?? null,

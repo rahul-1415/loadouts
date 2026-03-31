@@ -68,7 +68,7 @@ export async function GET(request: Request, { params }: RouteContext) {
         },
         loadouts: loadouts.map((loadout) => ({
           ...loadout,
-          path: `/loadouts/${loadout.slug}`,
+          path: loadout.path,
         })),
         meta: {
           limit,

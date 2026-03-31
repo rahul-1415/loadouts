@@ -24,7 +24,7 @@ export default function FeedLoadoutGrid({ items }: FeedLoadoutGridProps) {
       {items.map((item) => (
         <Link
           key={item.id}
-          href={`/loadouts/${item.slug}`}
+          href={item.path}
           className="overflow-hidden rounded-3xl border border-white/[0.04] bg-[#171717] shadow-[inset_0_1px_0_rgba(255,255,255,0.03),0_18px_36px_rgba(0,0,0,0.16)] transition hover:border-white/[0.14]"
         >
           <div className={item.coverImageUrl ? "h-40 w-full" : "h-40 w-full bg-[#111111]"}>

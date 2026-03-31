@@ -58,7 +58,7 @@ export default function SavedCollectionsGrid({
   return (
     <div className="grid gap-6 sm:grid-cols-2">
       {items.map((item) => {
-        const href = `/${item.kind === "loadout" ? "loadouts" : "categories"}/${item.slug}`;
+        const href = item.path;
 
         return (
           <article

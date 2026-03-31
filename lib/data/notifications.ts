@@ -1,4 +1,5 @@
 import { createSupabaseServerClient } from "../supabase/server";
+import { getCollectionPath } from "./collections";
 
 export type NotificationType =
   | "follow"
@@ -30,6 +31,7 @@ interface NotificationCollectionRow {
   slug: string;
   kind: "category" | "loadout";
   title: string;
+  owner_id: string;
 }
 
 export interface NotificationItem {
@@ -102,8 +104,15 @@ function getCollectionIdForNotification(row: NotificationRow) {
   return null;
 }
 
-function getCollectionHref(collection: NotificationCollectionRow) {
-  return `/${collection.kind === "loadout" ? "loadouts" : "categories"}/${collection.slug}`;
+function getCollectionHref(
+  collection: NotificationCollectionRow,
+  authorHandle: string | null
+) {
+  return getCollectionPath({
+    kind: collection.kind,
+    slug: collection.slug,
+    authorHandle,
+  });
 }
 
 export function decodeNotificationCursor(
@@ -232,6 +241,7 @@ export async function getNotificationsByRecipient({
 
   let actorById = new Map<string, ActorProfileRow>();
   let collectionById = new Map<string, NotificationCollectionRow>();
+  let collectionOwnerHandleById = new Map<string, string | null>();
 
   if (actorIds.length > 0) {
     const { data: actorData, error: actorError } = await supabase
@@ -251,7 +261,7 @@ export async function getNotificationsByRecipient({
   if (collectionIds.length > 0) {
     const { data: collectionData, error: collectionError } = await supabase
       .from("collections")
-      .select("id,slug,kind,title")
+      .select("id,slug,kind,title,owner_id")
       .in("id", collectionIds);
 
     if (collectionError) {
@@ -264,6 +274,33 @@ export async function getNotificationsByRecipient({
         row,
       ])
     );
+
+    const ownerIds = Array.from(
+      new Set(
+        ((collectionData ?? []) as NotificationCollectionRow[]).map(
+          (row) => row.owner_id
+        )
+      )
+    );
+
+    if (ownerIds.length > 0) {
+      const { data: ownerData, error: ownerError } = await supabase
+        .from("profiles")
+        .select("id,handle")
+        .in("id", ownerIds);
+
+      if (ownerError) {
+        throw new Error(ownerError.message);
+      }
+
+      const ownerHandleById = new Map<string, string | null>(
+        ((ownerData ?? []) as Array<{ id: string; handle: string | null }>).map(
+          (row) => [row.id, row.handle]
+        )
+      );
+
+      collectionOwnerHandleById = ownerHandleById;
+    }
   }
 
   const items = pageRows.map((row) => {
@@ -271,7 +308,12 @@ export async function getNotificationsByRecipient({
     const previewText = getMetadataString(row.metadata, "preview");
     const collectionId = getCollectionIdForNotification(row);
     const collection = collectionId ? collectionById.get(collectionId) : null;
-    const collectionHref = collection ? getCollectionHref(collection) : null;
+    const collectionHref = collection
+      ? getCollectionHref(
+          collection,
+          collectionOwnerHandleById.get(collection.owner_id) ?? null
+        )
+      : null;
     let targetHref: string | null = null;
     let targetLabel: string | null = null;
     let contextText: string | null = null;

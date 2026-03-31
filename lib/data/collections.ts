@@ -1,4 +1,5 @@
 import { createSupabaseServerClient } from "../supabase/server";
+import { normalizeUsername } from "../auth/username";
 import {
   FIXED_CATEGORY_MAX_SLUG,
   FIXED_CATEGORY_MIN_SLUG,
@@ -109,8 +110,10 @@ export interface CollectionListItem {
   title: string;
   description: string;
   author: string;
+  authorHandle: string | null;
   coverImageUrl: string | null;
   coverImageSourceUrl: string | null;
+  path: string;
   status: LoadoutStatus;
   publishedAt: string | null;
   archivedAt: string | null;
@@ -194,6 +197,11 @@ export interface PublishChecklist {
   canPublish: boolean;
 }
 
+interface CollectionDetailRow extends CollectionRow {
+  is_public: boolean;
+  category_id: string | null;
+}
+
 function formatAuthor(profile: ProfileRow | undefined) {
   if (profile?.handle) {
     return `@${profile.handle}`;
@@ -204,6 +212,29 @@ function formatAuthor(profile: ProfileRow | undefined) {
   }
 
   return "@unknown";
+}
+
+export function getPublicLoadoutPath(
+  authorHandle: string | null | undefined,
+  slug: string
+) {
+  return authorHandle ? `/${authorHandle}/${slug}` : `/loadouts/${slug}`;
+}
+
+export function getCollectionPath({
+  kind,
+  slug,
+  authorHandle,
+}: {
+  kind: CollectionKind;
+  slug: string;
+  authorHandle?: string | null;
+}) {
+  if (kind === "loadout") {
+    return getPublicLoadoutPath(authorHandle, slug);
+  }
+
+  return `/categories/${slug}`;
 }
 
 function normalizeLoadoutStatus(
@@ -290,6 +321,7 @@ function toListItem(
   profileById: Map<string, ProfileRow>
 ): CollectionListItem {
   const profile = profileById.get(row.owner_id);
+  const authorHandle = profile?.handle ?? null;
 
   return {
     id: row.id,
@@ -299,8 +331,14 @@ function toListItem(
     title: row.title,
     description: row.description ?? "",
     author: formatAuthor(profile),
+    authorHandle,
     coverImageUrl: row.cover_image_url,
     coverImageSourceUrl: null,
+    path: getCollectionPath({
+      kind: row.kind,
+      slug: row.slug,
+      authorHandle,
+    }),
     status: normalizeLoadoutStatus(row.status, row.is_public ?? undefined),
     publishedAt: row.published_at,
     archivedAt: row.archived_at,
@@ -349,86 +387,11 @@ function normalizeSavedCollection(
   return Array.isArray(collection) ? collection[0] ?? null : collection;
 }
 
-export async function getPublicCollections({
-  limit = 24,
-  kind,
-}: {
-  limit?: number;
-  kind?: CollectionKind;
-} = {}) {
-  const supabase = await createSupabaseServerClient();
-
-  let query = supabase
-    .from("collections")
-    .select(
-      "id,slug,kind,owner_id,title,description,cover_image_url,is_public,status,published_at,archived_at,created_at"
-    )
-    .eq("is_public", true)
-    .or("status.eq.published,status.is.null")
-    .order("published_at", { ascending: false, nullsFirst: false })
-    .order("created_at", { ascending: false })
-    .limit(limit);
-
-  if (kind) {
-    query = query.eq("kind", kind);
-  }
-
-  const { data, error } = await query;
-
-  if (error) {
-    throw new Error(error.message);
-  }
-
-  const rows = (data ?? []) as CollectionRow[];
-  const ownerIds = Array.from(new Set(rows.map((row) => row.owner_id)));
-  const profileById = await loadProfilesByIds(ownerIds);
-
-  return rows.map((row) => toListItem(row, profileById));
-}
-
-export async function getPublicCollectionByIdentifier(
-  identifier: string,
-  kind?: CollectionKind,
+async function hydrateCollectionDetail(
+  supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>,
+  collection: CollectionDetailRow,
   viewerUserId?: string | null
-): Promise<CollectionDetail | null> {
-  const supabase = await createSupabaseServerClient();
-
-  let query = supabase
-    .from("collections")
-    .select(
-      "id,slug,kind,owner_id,title,description,cover_image_url,is_public,status,published_at,archived_at,created_at,category_id"
-    )
-    .limit(1);
-
-  if (kind) {
-    query = query.eq("kind", kind);
-  }
-
-  if (viewerUserId) {
-    query = query.or(`is_public.eq.true,owner_id.eq.${viewerUserId}`);
-  } else {
-    query = query.eq("is_public", true);
-  }
-
-  query = isUuid(identifier)
-    ? query.eq("id", identifier)
-    : query.eq("slug", identifier);
-
-  const { data: collectionData, error: collectionError } =
-    await query.maybeSingle();
-
-  if (collectionError) {
-    throw new Error(collectionError.message);
-  }
-
-  if (!collectionData) {
-    return null;
-  }
-
-  const collection = collectionData as CollectionRow & {
-    is_public: boolean;
-    category_id: string | null;
-  };
+): Promise<CollectionDetail> {
   const ownerProfiles = await loadProfilesByIds([collection.owner_id]);
   const listItem = toListItem(collection, ownerProfiles);
   let category: CategoryDetailItem | null = null;
@@ -554,7 +517,7 @@ export async function getPublicCollectionByIdentifier(
 
   return {
     ...listItem,
-    isPublic: collectionData.is_public,
+    isPublic: collection.is_public,
     categoryId: collection.category_id,
     category,
     viewerHasLiked,
@@ -573,6 +536,151 @@ export async function getPublicCollectionByIdentifier(
           })
         : null,
   };
+}
+
+export async function getPublicCollections({
+  limit = 24,
+  kind,
+}: {
+  limit?: number;
+  kind?: CollectionKind;
+} = {}) {
+  const supabase = await createSupabaseServerClient();
+
+  let query = supabase
+    .from("collections")
+    .select(
+      "id,slug,kind,owner_id,title,description,cover_image_url,is_public,status,published_at,archived_at,created_at"
+    )
+    .eq("is_public", true)
+    .or("status.eq.published,status.is.null")
+    .order("published_at", { ascending: false, nullsFirst: false })
+    .order("created_at", { ascending: false })
+    .limit(limit);
+
+  if (kind) {
+    query = query.eq("kind", kind);
+  }
+
+  const { data, error } = await query;
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  const rows = (data ?? []) as CollectionRow[];
+  const ownerIds = Array.from(new Set(rows.map((row) => row.owner_id)));
+  const profileById = await loadProfilesByIds(ownerIds);
+
+  return rows.map((row) => toListItem(row, profileById));
+}
+
+export async function getPublicCollectionByIdentifier(
+  identifier: string,
+  kind?: CollectionKind,
+  viewerUserId?: string | null
+): Promise<CollectionDetail | null> {
+  const supabase = await createSupabaseServerClient();
+
+  let query = supabase
+    .from("collections")
+    .select(
+      "id,slug,kind,owner_id,title,description,cover_image_url,is_public,status,published_at,archived_at,created_at,category_id"
+    )
+    .limit(1);
+
+  if (kind) {
+    query = query.eq("kind", kind);
+  }
+
+  if (viewerUserId) {
+    query = query.or(`is_public.eq.true,owner_id.eq.${viewerUserId}`);
+  } else {
+    query = query.eq("is_public", true);
+  }
+
+  query = isUuid(identifier)
+    ? query.eq("id", identifier)
+    : query.eq("slug", identifier);
+
+  const { data: collectionData, error: collectionError } =
+    await query.maybeSingle();
+
+  if (collectionError) {
+    throw new Error(collectionError.message);
+  }
+
+  if (!collectionData) {
+    return null;
+  }
+
+  return hydrateCollectionDetail(
+    supabase,
+    collectionData as CollectionDetailRow,
+    viewerUserId ?? null
+  );
+}
+
+export async function getPublicLoadoutByHandleAndSlug(
+  userHandle: string,
+  postSlug: string,
+  viewerUserId?: string | null
+): Promise<CollectionDetail | null> {
+  const normalizedHandle = normalizeUsername(userHandle);
+  const normalizedSlug = postSlug.trim().toLowerCase();
+
+  if (!normalizedHandle || !normalizedSlug) {
+    return null;
+  }
+
+  const supabase = await createSupabaseServerClient();
+  const { data: ownerProfile, error: ownerError } = await supabase
+    .from("profiles")
+    .select("id")
+    .eq("handle", normalizedHandle)
+    .limit(1)
+    .maybeSingle();
+
+  if (ownerError) {
+    throw new Error(ownerError.message);
+  }
+
+  if (!ownerProfile?.id) {
+    return null;
+  }
+
+  let query = supabase
+    .from("collections")
+    .select(
+      "id,slug,kind,owner_id,title,description,cover_image_url,is_public,status,published_at,archived_at,created_at,category_id"
+    )
+    .eq("owner_id", ownerProfile.id)
+    .eq("kind", "loadout")
+    .eq("slug", normalizedSlug)
+    .limit(1);
+
+  if (viewerUserId) {
+    query = query.or(`is_public.eq.true,owner_id.eq.${viewerUserId}`);
+  } else {
+    query = query.eq("is_public", true);
+  }
+
+  const { data: collectionData, error: collectionError } =
+    await query.maybeSingle();
+
+  if (collectionError) {
+    throw new Error(collectionError.message);
+  }
+
+  if (!collectionData) {
+    return null;
+  }
+
+  return hydrateCollectionDetail(
+    supabase,
+    collectionData as CollectionDetailRow,
+    viewerUserId ?? null
+  );
 }
 
 export async function getOwnedLoadoutsByUserId(userId: string, limit = 100) {
