@@ -49,12 +49,6 @@ interface CreatedLoadoutState {
   title: string;
 }
 
-const publishChecklist = [
-  "Add a title",
-  "Choose a category",
-  "Add at least one product",
-];
-
 export default function NewLoadoutForm({
   categories,
   mode = "create",
@@ -414,17 +408,6 @@ export default function NewLoadoutForm({
             <p className="mt-2 text-sm text-white/70">
               Add the products first, then choose whether to save this loadout as a draft or publish it.
             </p>
-          </div>
-
-          <div className="rounded-2xl border border-[#d4dd7f]/20 bg-[#10120d] px-4 py-4 text-sm text-white/78">
-            <p className="text-[11px] uppercase tracking-[0.25em] text-[#e6ef92]">
-              Required Before Publish
-            </p>
-            <ul className="mt-2 space-y-1 text-sm text-white/68">
-              {publishChecklist.map((item) => (
-                <li key={item}>{item}</li>
-              ))}
-            </ul>
           </div>
 
           <LoadoutProductsManager
