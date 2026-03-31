@@ -22,10 +22,10 @@ export default async function AdminPage() {
       <header className="space-y-3">
         <p className="text-[11px] uppercase tracking-[0.45em] text-white/50">Admin</p>
         <h1 className="text-[clamp(2rem,3.8vw,3rem)] font-semibold text-white">Moderation and operational review</h1>
-        <p className="text-sm text-white/70">Review creator reports, find loadouts with missing cover images, and inspect recent failures.</p>
+        <p className="text-sm text-white/70">Review creator reports, inspect pending custom product submissions, find loadouts with missing cover images, and inspect recent failures.</p>
       </header>
 
-      <section className="grid gap-6 lg:grid-cols-3">
+      <section className="grid gap-6 lg:grid-cols-4">
         <div className="rounded-3xl border border-white/[0.05] bg-[#171717] p-5">
           <p className="text-[11px] uppercase tracking-[0.3em] text-white/50">Open Reports</p>
           <p className="mt-2 text-3xl font-semibold text-white">{dashboard.reports.length}</p>
@@ -37,6 +37,10 @@ export default async function AdminPage() {
         <div className="rounded-3xl border border-white/[0.05] bg-[#171717] p-5">
           <p className="text-[11px] uppercase tracking-[0.3em] text-white/50">Recent Failures</p>
           <p className="mt-2 text-3xl font-semibold text-white">{dashboard.recentFailures.length}</p>
+        </div>
+        <div className="rounded-3xl border border-white/[0.05] bg-[#171717] p-5">
+          <p className="text-[11px] uppercase tracking-[0.3em] text-white/50">Pending Product Submissions</p>
+          <p className="mt-2 text-3xl font-semibold text-white">{dashboard.pendingProductSubmissions.length}</p>
         </div>
       </section>
 
@@ -59,6 +63,39 @@ export default async function AdminPage() {
         </div>
 
         <div className="space-y-6">
+          <section className="rounded-3xl border border-white/[0.05] bg-[#171717] p-6">
+            <p className="text-[11px] uppercase tracking-[0.35em] text-white/50">Pending Product Submissions</p>
+            <div className="mt-4 space-y-3">
+              {dashboard.pendingProductSubmissions.length === 0 ? (
+                <p className="text-sm text-white/70">No pending custom product submissions.</p>
+              ) : null}
+              {dashboard.pendingProductSubmissions.map((submission) => (
+                <article
+                  key={submission.id}
+                  className="rounded-2xl border border-white/[0.06] bg-[#111111] px-4 py-3"
+                >
+                  <p className="text-sm font-medium text-white">
+                    {submission.name}
+                    {submission.brand ? ` — ${submission.brand}` : ""}
+                  </p>
+                  <p className="mt-1 text-[10px] uppercase tracking-[0.22em] text-white/45">
+                    Pending review
+                  </p>
+                  {submission.product_url ? (
+                    <a
+                      href={submission.product_url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="mt-3 inline-flex text-sm text-[#e6ef92] transition hover:text-white"
+                    >
+                      Open source link
+                    </a>
+                  ) : null}
+                </article>
+              ))}
+            </div>
+          </section>
+
           <section className="rounded-3xl border border-white/[0.05] bg-[#171717] p-6">
             <p className="text-[11px] uppercase tracking-[0.35em] text-white/50">Missing Cover Images</p>
             <div className="mt-4 space-y-3">

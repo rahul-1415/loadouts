@@ -25,10 +25,24 @@ interface OperationalFailureRow {
   created_at: string;
 }
 
+interface ProductSubmissionRow {
+  id: string;
+  name: string;
+  brand: string | null;
+  product_url: string | null;
+  review_status: string;
+  created_at: string;
+}
+
 export async function getAdminDashboardData() {
   const supabase = await createSupabaseServerClient();
 
-  const [reportsResult, missingLoadoutImagesResult, failuresResult] = await Promise.all([
+  const [
+    reportsResult,
+    missingLoadoutImagesResult,
+    failuresResult,
+    productSubmissionsResult,
+  ] = await Promise.all([
     supabase
       .from("reports")
       .select("id,entity_type,entity_id,reason,status,created_at,reporter_id")
@@ -46,6 +60,12 @@ export async function getAdminDashboardData() {
       .from("operational_events")
       .select("id,user_id,event_name,context,metadata,created_at")
       .eq("status", "error")
+      .order("created_at", { ascending: false })
+      .limit(25),
+    supabase
+      .from("product_submissions")
+      .select("id,name,brand,product_url,review_status,created_at")
+      .eq("review_status", "pending")
       .order("created_at", { ascending: false })
       .limit(25),
   ]);
@@ -66,9 +86,18 @@ export async function getAdminDashboardData() {
     throw new Error(failuresResult.error.message);
   }
 
+  if (
+    productSubmissionsResult.error &&
+    productSubmissionsResult.error.code !== "42P01" &&
+    productSubmissionsResult.error.code !== "PGRST205"
+  ) {
+    throw new Error(productSubmissionsResult.error.message);
+  }
+
   return {
     reports: (reportsResult.data ?? []) as ReportRow[],
     missingLoadoutImages: (missingLoadoutImagesResult.data ?? []) as BrokenImageRow[],
     recentFailures: (failuresResult.data ?? []) as OperationalFailureRow[],
+    pendingProductSubmissions: (productSubmissionsResult.data ?? []) as ProductSubmissionRow[],
   };
 }

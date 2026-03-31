@@ -19,6 +19,7 @@ Loadouts is a Next.js + Supabase app for sharing creator/product loadouts, organ
 - Draft / published / archived loadout states with a publish checklist
 - Cover-image and avatar uploads via Supabase Storage
 - Inline product management during loadout creation and editing
+- Custom product submissions stored outside the shared catalog until manually reviewed
 - Product catalog page with brand and product-category filters
 - Save/bookmark system with a dedicated saved-items page
 - Studio workspace for creator-owned loadouts and operational insights
@@ -82,10 +83,11 @@ Run these in Supabase SQL editor, in this order:
 4. Notification dedupe + analytics milestones: `supabase/add-notification-guards-and-analytics.sql`
 5. Operational visibility events: `supabase/add-operational-visibility.sql`
 6. Publishing + uploads + reports: `supabase/add-publishing-storage-and-reports.sql`
-7. Owner-scoped loadout slugs: `supabase/add-owner-scoped-loadout-slugs.sql`
-8. Fixed categories: `supabase/seed-100-categories.sql`
-9. Category images (optional starter): `supabase/seed-100-category-images.sql`
-10. Seed content/products/loadouts: `supabase/seed-content.sql`
+7. Custom product submission review queue: `supabase/add-product-submissions.sql`
+8. Owner-scoped loadout slugs: `supabase/add-owner-scoped-loadout-slugs.sql`
+9. Fixed categories: `supabase/seed-100-categories.sql`
+10. Category images (optional starter): `supabase/seed-100-category-images.sql`
+11. Seed content/products/loadouts: `supabase/seed-content.sql`
 
 Verification helpers:
 - `supabase/verify-profile-onboarding-and-follows.sql`
@@ -93,6 +95,7 @@ Verification helpers:
 - `supabase/verify-notifications-and-analytics.sql`
 - `supabase/verify-operational-visibility.sql`
 - `supabase/verify-publishing-storage-and-reports.sql`
+- `supabase/verify-product-submissions.sql`
 - `supabase/verify-owner-scoped-loadout-slugs.sql`
 
 ## Auth Provider Configuration (Supabase Dashboard)
@@ -130,5 +133,6 @@ More details: `supabase/test-social-flow.md`
 - Like/comment writes require an authenticated user with a complete profile.
 - Save writes require an authenticated user with a complete profile.
 - Uploads require `SUPABASE_SERVICE_ROLE_KEY` on the server and the `media` bucket/policies from `supabase/add-publishing-storage-and-reports.sql`.
+- User-submitted custom products are stored in a separate review queue and do not appear in the shared preset catalog until manually promoted.
 - `/saved` is the bookmark page; `/studio` is the creator workspace. `/my-loadouts` now redirects to `/studio` for backward compatibility.
 - Categories are intentionally fixed to the 100 seeded slugs.

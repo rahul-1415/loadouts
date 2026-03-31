@@ -71,6 +71,15 @@ interface CollectionProductJoinRow {
   products: ProductRow | ProductRow[] | null;
 }
 
+interface CollectionProductSubmissionJoinRow {
+  sort_order: number | null;
+  note: string | null;
+  product_submissions:
+    | ProductSubmissionRow
+    | ProductSubmissionRow[]
+    | null;
+}
+
 interface SavedCollectionRow {
   id: string;
   slug: string;
@@ -100,6 +109,20 @@ interface ProductRow {
   image_url: string | null;
   product_url: string | null;
   source_url: string | null;
+}
+
+interface ProductSubmissionRow {
+  id: string;
+  name: string;
+  brand: string | null;
+  description: string | null;
+  image_url: string | null;
+  product_url: string | null;
+  source_url: string | null;
+}
+
+function isDefined<T>(value: T | null): value is T {
+  return value !== null;
 }
 
 export interface CollectionListItem {
@@ -377,6 +400,16 @@ function normalizeProduct(product: ProductRow | ProductRow[] | null) {
   return Array.isArray(product) ? product[0] ?? null : product;
 }
 
+function normalizeProductSubmission(
+  product: ProductSubmissionRow | ProductSubmissionRow[] | null
+) {
+  if (!product) {
+    return null;
+  }
+
+  return Array.isArray(product) ? product[0] ?? null : product;
+}
+
 function normalizeSavedCollection(
   collection: SavedCollectionRow | SavedCollectionRow[] | null
 ) {
@@ -414,19 +447,32 @@ async function hydrateCollectionDetail(
     }
   }
 
-  const { data: joinedProducts, error: productsError } = await supabase
-    .from("collection_products")
-    .select(
-      "sort_order,note,products:product_id(id,slug,name,brand,description,image_url,product_url,source_url)"
-    )
-    .eq("collection_id", collection.id)
-    .order("sort_order", { ascending: true });
+  const [joinedProductsResult, joinedSubmissionsResult] = await Promise.all([
+    supabase
+      .from("collection_products")
+      .select(
+        "sort_order,note,products:product_id(id,slug,name,brand,description,image_url,product_url,source_url)"
+      )
+      .eq("collection_id", collection.id)
+      .order("sort_order", { ascending: true }),
+    supabase
+      .from("collection_product_submissions")
+      .select(
+        "sort_order,note,product_submissions:product_submission_id(id,name,brand,description,image_url,product_url,source_url)"
+      )
+      .eq("collection_id", collection.id)
+      .order("sort_order", { ascending: true }),
+  ]);
 
-  if (productsError) {
-    throw new Error(productsError.message);
+  if (joinedProductsResult.error) {
+    throw new Error(joinedProductsResult.error.message);
   }
 
-  const products = ((joinedProducts ?? []) as CollectionProductJoinRow[])
+  if (joinedSubmissionsResult.error) {
+    throw new Error(joinedSubmissionsResult.error.message);
+  }
+
+  const approvedProducts = ((joinedProductsResult.data ?? []) as CollectionProductJoinRow[])
     .map((row) => {
       const product = normalizeProduct(row.products);
 
@@ -447,7 +493,36 @@ async function hydrateCollectionDetail(
         sortOrder: row.sort_order ?? 0,
       } as CollectionProductItem;
     })
-    .filter((row): row is CollectionProductItem => row !== null);
+    .filter(isDefined);
+
+  const submittedProducts = (
+    (joinedSubmissionsResult.data ?? []) as CollectionProductSubmissionJoinRow[]
+  )
+    .map((row) => {
+      const product = normalizeProductSubmission(row.product_submissions);
+
+      if (!product) {
+        return null;
+      }
+
+      return {
+        id: product.id,
+        slug: null,
+        name: product.name,
+        brand: product.brand ?? "",
+        description: product.description ?? "",
+        imageUrl: product.image_url,
+        productUrl: product.product_url,
+        sourceUrl: product.source_url,
+        note: row.note,
+        sortOrder: row.sort_order ?? 0,
+      } as CollectionProductItem;
+    })
+    .filter(isDefined);
+
+  const products = [...approvedProducts, ...submittedProducts].sort(
+    (left, right) => left.sortOrder - right.sortOrder
+  );
 
   const { data: commentsData, error: commentsError } = await supabase
     .from("comments")

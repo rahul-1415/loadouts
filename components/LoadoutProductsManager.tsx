@@ -5,8 +5,14 @@ import { useRouter } from "next/navigation";
 import Button from "./Button";
 import ImageUploadField from "./ImageUploadField";
 
+type AttachmentType = "product" | "submission";
+type ComposerMode = "existing" | "custom";
+
 interface LoadoutProductItem {
-  productId: string;
+  attachmentType: AttachmentType;
+  attachmentId: string;
+  productId: string | null;
+  submissionId: string | null;
   slug: string | null;
   name: string;
   brand: string | null;
@@ -16,6 +22,7 @@ interface LoadoutProductItem {
   sourceUrl: string | null;
   note: string | null;
   sortOrder: number;
+  reviewStatus: "pending" | "approved" | "rejected" | null;
 }
 
 interface ProductOption {
@@ -49,10 +56,12 @@ interface LoadoutProductsManagerProps {
 }
 
 function normalizeSort(items: LoadoutProductItem[]) {
-  return items.map((item, index) => ({
-    ...item,
-    sortOrder: index + 1,
-  }));
+  return [...items]
+    .sort((left, right) => left.sortOrder - right.sortOrder)
+    .map((item, index) => ({
+      ...item,
+      sortOrder: index + 1,
+    }));
 }
 
 function ProductThumb({
@@ -88,9 +97,7 @@ export default function LoadoutProductsManager({
   const [items, setItems] = useState<LoadoutProductItem[]>(
     normalizeSort(initialItems)
   );
-  const [availableProducts, setAvailableProducts] = useState<ProductOption[]>(
-    []
-  );
+  const [availableProducts, setAvailableProducts] = useState<ProductOption[]>([]);
   const [availableBrands, setAvailableBrands] = useState<string[]>([]);
   const [availableCategories, setAvailableCategories] = useState<
     ProductCategoryOption[]
@@ -105,6 +112,8 @@ export default function LoadoutProductsManager({
   const [newProductUrl, setNewProductUrl] = useState("");
   const [newProductImageUrl, setNewProductImageUrl] = useState("");
   const [newProductDescription, setNewProductDescription] = useState("");
+  const [composerOpen, setComposerOpen] = useState(false);
+  const [composerMode, setComposerMode] = useState<ComposerMode>("existing");
   const [message, setMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [busyAction, setBusyAction] = useState<
@@ -187,10 +196,7 @@ export default function LoadoutProductsManager({
     const normalizedCategory = selectedCategoryFilter.trim().toLowerCase();
 
     return availableProducts.filter((item) => {
-      if (
-        normalizedBrand &&
-        item.brand?.trim().toLowerCase() !== normalizedBrand
-      ) {
+      if (normalizedBrand && item.brand?.trim().toLowerCase() !== normalizedBrand) {
         return false;
       }
 
@@ -219,6 +225,20 @@ export default function LoadoutProductsManager({
     () => availableProducts.find((item) => item.id === selectedProductId) ?? null,
     [availableProducts, selectedProductId]
   );
+
+  const resetComposer = () => {
+    setComposerOpen(false);
+    setSelectedProductId("");
+    setProductQuery("");
+    setSelectedBrandFilter("");
+    setSelectedCategoryFilter("");
+    setAddNote("");
+    setNewProductName("");
+    setNewProductBrand("");
+    setNewProductUrl("");
+    setNewProductImageUrl("");
+    setNewProductDescription("");
+  };
 
   const addExistingProduct = async () => {
     if (!selectedProductId) {
@@ -255,10 +275,9 @@ export default function LoadoutProductsManager({
       | { data?: { items?: LoadoutProductItem[] } }
       | null;
     setItems(normalizeSort(payload?.data?.items ?? []));
-    setSelectedProductId("");
-    setAddNote("");
     setMessage("Product added.");
     setBusyAction(null);
+    resetComposer();
     router.refresh();
   };
 
@@ -301,18 +320,13 @@ export default function LoadoutProductsManager({
       | { data?: { items?: LoadoutProductItem[] } }
       | null;
     setItems(normalizeSort(payload?.data?.items ?? []));
-    setNewProductName("");
-    setNewProductBrand("");
-    setNewProductUrl("");
-    setNewProductImageUrl("");
-    setNewProductDescription("");
-    setAddNote("");
-    setMessage("Custom product created and added.");
+    setMessage("Custom product submitted for review and added to this loadout.");
     setBusyAction(null);
+    resetComposer();
     router.refresh();
   };
 
-  const removeProduct = async (productId: string) => {
+  const removeProduct = async (item: LoadoutProductItem) => {
     setErrorMessage(null);
     setMessage(null);
     setBusyAction("delete");
@@ -322,7 +336,10 @@ export default function LoadoutProductsManager({
       {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ productId }),
+        body: JSON.stringify({
+          attachmentId: item.attachmentId,
+          attachmentType: item.attachmentType,
+        }),
       }
     );
 
@@ -388,7 +405,8 @@ export default function LoadoutProductsManager({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           items: items.map((item) => ({
-            productId: item.productId,
+            attachmentId: item.attachmentId,
+            attachmentType: item.attachmentType,
             note: item.note ?? "",
           })),
         }),
@@ -423,221 +441,280 @@ export default function LoadoutProductsManager({
           Manage loadout products
         </h2>
         <p className="text-sm text-white/70">
-          Add existing or custom products, then reorder and save notes.
+          Add approved catalog products or submit a custom product for review, then reorder and save notes.
         </p>
       </header>
 
-      <div className="grid gap-4 md:grid-cols-2">
-        <div className="space-y-3 rounded-2xl border border-white/[0.04] bg-white/[0.03] p-4">
-          <p className="text-[11px] uppercase tracking-[0.25em] text-white/55">
-            Add Existing Product
-          </p>
-          <div className="grid gap-3">
-            <input
-              value={productQuery}
-              onChange={(event) => setProductQuery(event.target.value)}
-              placeholder="Search products"
-              className="w-full rounded-xl border border-white/[0.08] bg-[#181818] px-3 py-2 text-sm text-white placeholder:text-white/40"
-            />
-            <div className="grid gap-3 sm:grid-cols-2">
-              <select
-                value={selectedBrandFilter}
-                onChange={(event) => setSelectedBrandFilter(event.target.value)}
-                className="w-full rounded-xl border border-white/[0.08] bg-[#181818] px-3 py-2 text-sm text-white"
+      {composerOpen ? (
+        <div className="space-y-4 rounded-2xl border border-white/[0.04] bg-white/[0.03] p-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex flex-wrap gap-2">
+              <Button
+                type="button"
+                variant={composerMode === "existing" ? "primary" : "secondary"}
+                className="px-4 py-2 text-[10px]"
+                onClick={() => setComposerMode("existing")}
               >
-                <option value="">All brands</option>
-                {availableBrands.map((brand) => (
-                  <option key={brand} value={brand}>
-                    {brand}
-                  </option>
-                ))}
-              </select>
-              <select
-                value={selectedCategoryFilter}
-                onChange={(event) => setSelectedCategoryFilter(event.target.value)}
-                className="w-full rounded-xl border border-white/[0.08] bg-[#181818] px-3 py-2 text-sm text-white"
+                Use Existing Product
+              </Button>
+              <Button
+                type="button"
+                variant={composerMode === "custom" ? "primary" : "secondary"}
+                className="px-4 py-2 text-[10px]"
+                onClick={() => setComposerMode("custom")}
               >
-                <option value="">All product categories</option>
-                {availableCategories.map((category) => (
-                  <option key={category.slug} value={category.slug}>
-                    {category.label} ({category.count})
-                  </option>
-                ))}
-              </select>
+                Submit Custom Product
+              </Button>
             </div>
+            <Button
+              type="button"
+              variant="secondary"
+              className="px-4 py-2 text-[10px]"
+              onClick={resetComposer}
+            >
+              Cancel
+            </Button>
           </div>
-          <div className="space-y-2">
-            <div className="flex items-center justify-between gap-3">
+
+          {composerMode === "existing" ? (
+            <div className="space-y-3">
               <p className="text-[11px] uppercase tracking-[0.25em] text-white/55">
-                Pick from {filteredProducts.length} products
+                Add Existing Product
               </p>
+              <div className="grid gap-3">
+                <input
+                  value={productQuery}
+                  onChange={(event) => setProductQuery(event.target.value)}
+                  placeholder="Search products"
+                  className="w-full rounded-xl border border-white/[0.08] bg-[#181818] px-3 py-2 text-sm text-white placeholder:text-white/40"
+                />
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <select
+                    value={selectedBrandFilter}
+                    onChange={(event) => setSelectedBrandFilter(event.target.value)}
+                    className="w-full rounded-xl border border-white/[0.08] bg-[#181818] px-3 py-2 text-sm text-white"
+                  >
+                    <option value="">All brands</option>
+                    {availableBrands.map((brand) => (
+                      <option key={brand} value={brand}>
+                        {brand}
+                      </option>
+                    ))}
+                  </select>
+                  <select
+                    value={selectedCategoryFilter}
+                    onChange={(event) => setSelectedCategoryFilter(event.target.value)}
+                    className="w-full rounded-xl border border-white/[0.08] bg-[#181818] px-3 py-2 text-sm text-white"
+                  >
+                    <option value="">All product categories</option>
+                    {availableCategories.map((category) => (
+                      <option key={category.slug} value={category.slug}>
+                        {category.label} ({category.count})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between gap-3">
+                  <p className="text-[11px] uppercase tracking-[0.25em] text-white/55">
+                    Pick from {filteredProducts.length} products
+                  </p>
+                  {selectedProduct ? (
+                    <p className="text-[11px] uppercase tracking-[0.2em] text-[#e6ef92]">
+                      Selected
+                    </p>
+                  ) : null}
+                </div>
+                <div className="max-h-[320px] space-y-2 overflow-y-auto rounded-2xl border border-white/[0.06] bg-[#111111] p-2">
+                  {filteredProducts.length === 0 ? (
+                    <p className="px-3 py-4 text-sm text-white/55">
+                      No products match this search yet.
+                    </p>
+                  ) : (
+                    filteredProducts.map((product) => {
+                      const isSelected = product.id === selectedProductId;
+
+                      return (
+                        <button
+                          key={product.id}
+                          type="button"
+                          onClick={() => setSelectedProductId(product.id)}
+                          className={`flex w-full items-start gap-3 rounded-2xl border px-3 py-3 text-left transition ${
+                            isSelected
+                              ? "border-[#d4dd7f]/55 bg-[#1f2117]"
+                              : "border-white/[0.05] bg-[#171717] hover:border-white/[0.14]"
+                          }`}
+                        >
+                          <ProductThumb imageUrl={product.imageUrl} name={product.name} />
+                          <div className="min-w-0 space-y-1">
+                            <div className="flex flex-wrap items-center gap-2">
+                              {product.brand ? (
+                                <span className="text-[10px] uppercase tracking-[0.22em] text-white/50">
+                                  {product.brand}
+                                </span>
+                              ) : null}
+                              {product.categoryLabel ? (
+                                <span className="rounded-full border border-white/[0.08] bg-[#111111] px-2 py-0.5 text-[10px] uppercase tracking-[0.2em] text-white/45">
+                                  {product.categoryLabel}
+                                </span>
+                              ) : null}
+                            </div>
+                            <p className="text-sm font-semibold text-white">
+                              {product.name}
+                            </p>
+                            <p className="line-clamp-2 text-xs text-white/62">
+                              {product.description || "No description"}
+                            </p>
+                          </div>
+                        </button>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
               {selectedProduct ? (
-                <p className="text-[11px] uppercase tracking-[0.2em] text-[#e6ef92]">
-                  Selected
-                </p>
+                <div className="flex gap-3 rounded-2xl border border-white/[0.05] bg-[#111111] p-3">
+                  <ProductThumb imageUrl={selectedProduct.imageUrl} name={selectedProduct.name} />
+                  <div className="space-y-1 text-xs text-white/60">
+                    <p className="text-sm font-semibold text-white">
+                      {selectedProduct.name}
+                      {selectedProduct.brand ? ` — ${selectedProduct.brand}` : ""}
+                    </p>
+                    <p>{selectedProduct.description || "No description"}</p>
+                    {selectedProduct.categoryLabel ? (
+                      <p className="uppercase tracking-[0.2em] text-white/45">
+                        {selectedProduct.categoryLabel}
+                      </p>
+                    ) : null}
+                  </div>
+                </div>
               ) : null}
             </div>
-            <div className="max-h-[320px] space-y-2 overflow-y-auto rounded-2xl border border-white/[0.06] bg-[#111111] p-2">
-              {filteredProducts.length === 0 ? (
-                <p className="px-3 py-4 text-sm text-white/55">
-                  No products match this search yet.
-                </p>
-              ) : (
-                filteredProducts.map((product) => {
-                  const isSelected = product.id === selectedProductId;
-
-                  return (
-                    <button
-                      key={product.id}
-                      type="button"
-                      onClick={() => setSelectedProductId(product.id)}
-                      className={`flex w-full items-start gap-3 rounded-2xl border px-3 py-3 text-left transition ${
-                        isSelected
-                          ? "border-[#d4dd7f]/55 bg-[#1f2117]"
-                          : "border-white/[0.05] bg-[#171717] hover:border-white/[0.14]"
-                      }`}
-                    >
-                      <ProductThumb imageUrl={product.imageUrl} name={product.name} />
-                      <div className="min-w-0 space-y-1">
-                        <div className="flex flex-wrap items-center gap-2">
-                          {product.brand ? (
-                            <span className="text-[10px] uppercase tracking-[0.22em] text-white/50">
-                              {product.brand}
-                            </span>
-                          ) : null}
-                          {product.categoryLabel ? (
-                            <span className="rounded-full border border-white/[0.08] bg-[#111111] px-2 py-0.5 text-[10px] uppercase tracking-[0.2em] text-white/45">
-                              {product.categoryLabel}
-                            </span>
-                          ) : null}
-                        </div>
-                        <p className="text-sm font-semibold text-white">
-                          {product.name}
-                        </p>
-                        <p className="line-clamp-2 text-xs text-white/62">
-                          {product.description || "No description"}
-                        </p>
-                      </div>
-                    </button>
-                  );
-                })
-              )}
-            </div>
-          </div>
-          {selectedProduct ? (
-            <div className="flex gap-3 rounded-2xl border border-white/[0.05] bg-[#111111] p-3">
-              <ProductThumb imageUrl={selectedProduct.imageUrl} name={selectedProduct.name} />
-              <div className="space-y-1 text-xs text-white/60">
-                <p className="text-sm font-semibold text-white">
-                  {selectedProduct.name}
-                  {selectedProduct.brand ? ` — ${selectedProduct.brand}` : ""}
-                </p>
-                <p>{selectedProduct.description || "No description"}</p>
-                {selectedProduct.categoryLabel ? (
-                  <p className="uppercase tracking-[0.2em] text-white/45">
-                    {selectedProduct.categoryLabel}
-                  </p>
-                ) : null}
-              </div>
-            </div>
-          ) : null}
-          <Button
-            type="button"
-            onClick={addExistingProduct}
-            disabled={busyAction !== null}
-          >
-            Add Existing
-          </Button>
-        </div>
-
-        <div className="space-y-3 rounded-2xl border border-white/[0.04] bg-white/[0.03] p-4">
-          <p className="text-[11px] uppercase tracking-[0.25em] text-white/55">
-            Add New Product
-          </p>
-          <input
-            value={newProductName}
-            onChange={(event) => setNewProductName(event.target.value)}
-            placeholder="Product name"
-            className="w-full rounded-xl border border-white/[0.08] bg-[#181818] px-3 py-2 text-sm text-white placeholder:text-white/40"
-          />
-          <input
-            value={newProductBrand}
-            onChange={(event) => setNewProductBrand(event.target.value)}
-            placeholder="Brand (optional)"
-            className="w-full rounded-xl border border-white/[0.08] bg-[#181818] px-3 py-2 text-sm text-white placeholder:text-white/40"
-          />
-          <input
-            value={newProductUrl}
-            onChange={(event) => setNewProductUrl(event.target.value)}
-            placeholder="Product URL (optional)"
-            className="w-full rounded-xl border border-white/[0.08] bg-[#181818] px-3 py-2 text-sm text-white placeholder:text-white/40"
-          />
-          <input
-            value={newProductImageUrl}
-            onChange={(event) => setNewProductImageUrl(event.target.value)}
-            placeholder="Image URL (optional)"
-            className="w-full rounded-xl border border-white/[0.08] bg-[#181818] px-3 py-2 text-sm text-white placeholder:text-white/40"
-          />
-          <ImageUploadField
-            label="Product Image"
-            kind="product-image"
-            value={newProductImageUrl}
-            onChange={setNewProductImageUrl}
-            helpText="Upload a custom image if the product does not already exist."
-          />
-          {newProductImageUrl ? (
-            <div className="flex items-center gap-3 rounded-2xl border border-white/[0.05] bg-[#111111] p-3">
-              <ProductThumb
-                imageUrl={newProductImageUrl}
-                name={newProductName || "Custom product preview"}
+          ) : (
+            <div className="space-y-3">
+              <p className="text-[11px] uppercase tracking-[0.25em] text-white/55">
+                Submit Custom Product
+              </p>
+              <input
+                value={newProductName}
+                onChange={(event) => setNewProductName(event.target.value)}
+                placeholder="Product name"
+                className="w-full rounded-xl border border-white/[0.08] bg-[#181818] px-3 py-2 text-sm text-white placeholder:text-white/40"
               />
-              <p className="text-xs text-white/60">
-                Custom product image preview
+              <input
+                value={newProductBrand}
+                onChange={(event) => setNewProductBrand(event.target.value)}
+                placeholder="Brand (optional)"
+                className="w-full rounded-xl border border-white/[0.08] bg-[#181818] px-3 py-2 text-sm text-white placeholder:text-white/40"
+              />
+              <input
+                value={newProductUrl}
+                onChange={(event) => setNewProductUrl(event.target.value)}
+                placeholder="Product URL (optional)"
+                className="w-full rounded-xl border border-white/[0.08] bg-[#181818] px-3 py-2 text-sm text-white placeholder:text-white/40"
+              />
+              <ImageUploadField
+                label="Product Image"
+                kind="product-image"
+                value={newProductImageUrl}
+                onChange={setNewProductImageUrl}
+                helpText="Upload a custom image if the product is not in the approved catalog yet."
+              />
+              {newProductImageUrl ? (
+                <div className="flex items-center gap-3 rounded-2xl border border-white/[0.05] bg-[#111111] p-3">
+                  <ProductThumb
+                    imageUrl={newProductImageUrl}
+                    name={newProductName || "Custom product preview"}
+                  />
+                  <p className="text-xs text-white/60">
+                    Custom product image preview
+                  </p>
+                </div>
+              ) : null}
+              <textarea
+                value={newProductDescription}
+                onChange={(event) => setNewProductDescription(event.target.value)}
+                placeholder="Description (optional)"
+                rows={3}
+                className="w-full rounded-xl border border-white/[0.08] bg-[#181818] px-3 py-2 text-sm text-white placeholder:text-white/40"
+              />
+              <p className="text-xs text-white/55">
+                Custom products stay in the review queue and will not appear in the shared preset product catalog until approved.
               </p>
             </div>
-          ) : null}
-          <textarea
-            value={newProductDescription}
-            onChange={(event) => setNewProductDescription(event.target.value)}
-            placeholder="Description (optional)"
-            rows={3}
-            className="w-full rounded-xl border border-white/[0.08] bg-[#181818] px-3 py-2 text-sm text-white placeholder:text-white/40"
-          />
-          <Button
-            type="button"
-            onClick={addCustomProduct}
-            disabled={busyAction !== null}
-          >
-            Add Custom
-          </Button>
-        </div>
-      </div>
+          )}
 
-      <div className="rounded-2xl border border-white/[0.04] bg-white/[0.03] p-4">
-        <label className="text-[11px] uppercase tracking-[0.25em] text-white/55">
-          Note for next add
-        </label>
-        <input
-          value={addNote}
-          onChange={(event) => setAddNote(event.target.value)}
-          placeholder="Optional note for added product"
-          className="mt-2 w-full rounded-xl border border-white/[0.08] bg-[#181818] px-3 py-2 text-sm text-white placeholder:text-white/40"
-        />
-      </div>
+          <div className="rounded-2xl border border-white/[0.04] bg-[#111111] p-4">
+            <label className="text-[11px] uppercase tracking-[0.25em] text-white/55">
+              Note for next add
+            </label>
+            <input
+              value={addNote}
+              onChange={(event) => setAddNote(event.target.value)}
+              placeholder="Optional note for added product"
+              className="mt-2 w-full rounded-xl border border-white/[0.08] bg-[#181818] px-3 py-2 text-sm text-white placeholder:text-white/40"
+            />
+          </div>
+
+          <div className="flex flex-wrap gap-3">
+            {composerMode === "existing" ? (
+              <Button
+                type="button"
+                onClick={addExistingProduct}
+                disabled={busyAction !== null}
+              >
+                Add Existing Product
+              </Button>
+            ) : (
+              <Button
+                type="button"
+                onClick={addCustomProduct}
+                disabled={busyAction !== null}
+              >
+                Submit Custom Product
+              </Button>
+            )}
+          </div>
+        </div>
+      ) : (
+        <Button
+          type="button"
+          onClick={() => {
+            setComposerOpen(true);
+            setComposerMode("existing");
+            setErrorMessage(null);
+            setMessage(null);
+          }}
+        >
+          Add a new Product
+        </Button>
+      )}
 
       <div className="space-y-3">
         {items.map((item, index) => (
           <div
-            key={item.productId}
+            key={`${item.attachmentType}:${item.attachmentId}`}
             className="space-y-3 rounded-2xl border border-white/[0.04] bg-white/[0.03] p-4"
           >
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div className="flex min-w-0 gap-3">
                 <ProductThumb imageUrl={item.imageUrl} name={item.name} />
                 <div className="min-w-0">
-                  <p className="text-[11px] uppercase tracking-[0.25em] text-white/55">
-                    #{index + 1}
-                  </p>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className="text-[11px] uppercase tracking-[0.25em] text-white/55">
+                      #{index + 1}
+                    </p>
+                    {item.attachmentType === "submission" ? (
+                      <span className="rounded-full border border-[#d4dd7f]/25 bg-[#10120d] px-2 py-0.5 text-[10px] uppercase tracking-[0.2em] text-[#e6ef92]">
+                        {item.reviewStatus === "rejected"
+                          ? "Rejected"
+                          : item.reviewStatus === "approved"
+                            ? "Approved"
+                            : "Pending review"}
+                      </span>
+                    ) : null}
+                  </div>
                   <p className="text-sm font-semibold text-white">
                     {item.name}
                     {item.brand ? ` — ${item.brand}` : ""}
@@ -668,7 +745,7 @@ export default function LoadoutProductsManager({
                   type="button"
                   variant="secondary"
                   className="px-3 py-1.5 text-[10px] border-[#fda4a4]/45 text-[#fda4a4]"
-                  onClick={() => removeProduct(item.productId)}
+                  onClick={() => removeProduct(item)}
                   disabled={busyAction !== null}
                 >
                   Remove

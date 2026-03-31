@@ -58,10 +58,11 @@ When bootstrapping a new environment, apply in order:
 4. `supabase/add-notification-guards-and-analytics.sql`
 5. `supabase/add-operational-visibility.sql`
 6. `supabase/add-publishing-storage-and-reports.sql`
-7. `supabase/add-owner-scoped-loadout-slugs.sql`
-8. `supabase/seed-100-categories.sql`
-9. `supabase/seed-100-category-images.sql` (optional starter)
-10. `supabase/seed-content.sql`
+7. `supabase/add-product-submissions.sql`
+8. `supabase/add-owner-scoped-loadout-slugs.sql`
+9. `supabase/seed-100-categories.sql`
+10. `supabase/seed-100-category-images.sql` (optional starter)
+11. `supabase/seed-content.sql`
 
 Validation helpers:
 - `supabase/verify-profile-onboarding-and-follows.sql`
@@ -69,6 +70,7 @@ Validation helpers:
 - `supabase/verify-notifications-and-analytics.sql`
 - `supabase/verify-operational-visibility.sql`
 - `supabase/verify-publishing-storage-and-reports.sql`
+- `supabase/verify-product-submissions.sql`
 - `supabase/verify-owner-scoped-loadout-slugs.sql`
 
 ## Coding Rules
@@ -106,6 +108,7 @@ Implemented:
 - Search across entities
 - Studio workspace for owned loadouts + operational visibility
 - Loadout create/edit/delete + inline product management
+- Custom product submissions kept outside the approved product catalog until manually reviewed
 - Draft / published / archived loadout workflow
 - Media uploads (avatar, loadout cover, product image)
 - Share/report actions for public profiles and loadouts
