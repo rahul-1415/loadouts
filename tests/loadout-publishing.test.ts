@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   buildPublishValidation,
   normalizeRequestedStatus,
+  slugifyLoadoutTitle,
 } from "../lib/loadoutPublishing";
 
 describe("loadout publishing helpers", () => {
@@ -31,5 +32,12 @@ describe("loadout publishing helpers", () => {
 
     expect(result.canPublish).toBe(true);
     expect(result.missing).toEqual([]);
+  });
+
+  it("slugifies loadout titles without adding random suffixes", () => {
+    expect(slugifyLoadoutTitle("  My Creator Desk  ")).toBe("my-creator-desk");
+    expect(slugifyLoadoutTitle("Video / Starter Kit!!!")).toBe(
+      "video-starter-kit"
+    );
   });
 });

@@ -54,14 +54,15 @@ create table if not exists public.collections (
   owner_id uuid not null references auth.users(id) on delete cascade,
   category_id uuid references public.categories(id) on delete set null,
   kind public.collection_kind not null default 'category',
-  slug citext unique not null,
+  slug citext not null,
   title text not null,
   description text,
   cover_image_url text,
   cover_image_source_url text,
   is_public boolean not null default true,
   created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
+  updated_at timestamptz not null default now(),
+  unique (owner_id, slug)
 );
 
 create table if not exists public.products (

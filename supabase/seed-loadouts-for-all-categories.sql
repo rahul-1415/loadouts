@@ -31,7 +31,7 @@ select
   true
 from category_rows
 cross join owner
-on conflict (slug) do update
+on conflict (owner_id, slug) do update
 set
   title = excluded.title,
   description = excluded.description,

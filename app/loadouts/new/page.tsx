@@ -1,8 +1,20 @@
 import NewLoadoutForm from "../../../components/NewLoadoutForm";
-import { getActiveCategoryOptions } from "../../../lib/data/collections";
+import {
+  getActiveCategoryOptions,
+  getOwnedLoadoutsByUserId,
+} from "../../../lib/data/collections";
+import { createSupabaseServerClient } from "../../../lib/supabase/server";
 
 export default async function NewLoadoutPage() {
-  const categories = await getActiveCategoryOptions();
+  const supabase = await createSupabaseServerClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const [categories, existingLoadouts] = await Promise.all([
+    getActiveCategoryOptions(),
+    user ? getOwnedLoadoutsByUserId(user.id, 200) : Promise.resolve([]),
+  ]);
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
@@ -14,12 +26,15 @@ export default async function NewLoadoutPage() {
           Create a new loadout
         </h1>
         <p className="mt-2 text-sm text-white/70">
-          Step 1 selects category. Step 2 adds details and visibility. Step 3
-          can add products immediately.
+          Step 1 selects category. Step 2 adds details. Step 3 adds products,
+          then lets you save a draft or create the loadout.
         </p>
       </header>
 
-      <NewLoadoutForm categories={categories} />
+      <NewLoadoutForm
+        categories={categories}
+        existingLoadoutSlugs={existingLoadouts.map((loadout) => loadout.slug)}
+      />
 
       {categories.length === 0 ? (
         <p className="text-sm text-white/70">

@@ -12,6 +12,7 @@ import {
 import {
   buildPublishValidation,
   normalizeRequestedStatus,
+  slugifyLoadoutTitle,
 } from "../../../lib/loadoutPublishing";
 import {
   captureOperationalEvent,
@@ -37,15 +38,6 @@ function normalizeKind(value: unknown): CollectionKind {
   }
 
   return "loadout";
-}
-
-function slugify(value: string) {
-  return value
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 60);
 }
 
 export async function GET(request: Request) {
@@ -84,7 +76,7 @@ export async function POST(request: Request) {
     return auth.response;
   }
 
-  const { user } = auth;
+  const { user, profile } = auth;
   const body = await request.json().catch(() => null);
 
   const title = typeof body?.title === "string" ? body.title.trim() : "";
@@ -250,8 +242,42 @@ export async function POST(request: Request) {
     }
   }
 
-  const slugBase = slugify(title) || kind;
-  const slug = `${slugBase}-${Date.now().toString(36).slice(-6)}`;
+  const slug = slugifyLoadoutTitle(title) || kind;
+  const { data: conflictingLoadout, error: conflictingLoadoutError } =
+    await supabase
+      .from("collections")
+      .select("id")
+      .eq("owner_id", user.id)
+      .eq("kind", "loadout")
+      .eq("slug", slug)
+      .limit(1)
+      .maybeSingle();
+
+  if (conflictingLoadoutError) {
+    return NextResponse.json(
+      {
+        error: {
+          code: "FETCH_FAILED",
+          message: conflictingLoadoutError.message,
+        },
+      },
+      { status: 500 }
+    );
+  }
+
+  if (conflictingLoadout) {
+    return NextResponse.json(
+      {
+        error: {
+          code: "LOADOUT_TITLE_EXISTS",
+          message:
+            "You already have a loadout with this title. Choose a different title.",
+        },
+      },
+      { status: 409 }
+    );
+  }
+
   const now = new Date().toISOString();
   const { data, error } = await supabase
     .from("collections")
@@ -335,5 +361,13 @@ export async function POST(request: Request) {
     }
   }
 
-  return NextResponse.json({ data }, { status: 201 });
+  return NextResponse.json(
+    {
+      data: {
+        ...data,
+        path: `/${profile.handle}/${data.slug}`,
+      },
+    },
+    { status: 201 }
+  );
 }

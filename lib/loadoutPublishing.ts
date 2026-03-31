@@ -36,3 +36,12 @@ export function buildPublishValidation({
     missing,
   };
 }
+
+export function slugifyLoadoutTitle(value: string) {
+  return value
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 60);
+}

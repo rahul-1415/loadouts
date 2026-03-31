@@ -70,7 +70,7 @@ from (
 ) as v(category_slug, kind, slug, title, description, cover_image_url, cover_image_source_url)
 join public.categories c on c.slug = v.category_slug
 cross join owner
-on conflict (slug) do update
+on conflict (owner_id, slug) do update
 set
   category_id = excluded.category_id,
   title = excluded.title,
@@ -185,11 +185,24 @@ set
   source_url = excluded.source_url;
 
 -- 5) Attach products to collections
+with owner as (
+  select id
+  from auth.users
+  where email = 'you@example.com'
+  limit 1
+)
 delete from public.collection_products cp
-using public.collections c
+using public.collections c, owner
 where cp.collection_id = c.id
+  and c.owner_id = owner.id
   and c.slug in ('creator-desk-kit', 'video-starter-kit', 'broadcast-desk-rig', 'solo-video-studio', 'travel-creator-bag', 'reading-and-research-kit', 'remote-podcast-rig');
 
+with owner as (
+  select id
+  from auth.users
+  where email = 'you@example.com'
+  limit 1
+)
 insert into public.collection_products (collection_id, product_id, sort_order, note)
 select
   c.id,
@@ -234,7 +247,8 @@ from (
     ('remote-podcast-rig', 'rode-podmic-usb', 5, 'Secondary podcast mic'),
     ('remote-podcast-rig', 'descript', 6, 'Remote edit and transcript workflow')
 ) as v(collection_slug, product_slug, sort_order, note)
-join public.collections c on c.slug = v.collection_slug
+cross join owner
+join public.collections c on c.slug = v.collection_slug and c.owner_id = owner.id
 join public.products p on p.slug = v.product_slug
 on conflict (collection_id, product_id) do update
 set

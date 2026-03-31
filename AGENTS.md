@@ -58,9 +58,10 @@ When bootstrapping a new environment, apply in order:
 4. `supabase/add-notification-guards-and-analytics.sql`
 5. `supabase/add-operational-visibility.sql`
 6. `supabase/add-publishing-storage-and-reports.sql`
-7. `supabase/seed-100-categories.sql`
-8. `supabase/seed-100-category-images.sql` (optional starter)
-9. `supabase/seed-content.sql`
+7. `supabase/add-owner-scoped-loadout-slugs.sql`
+8. `supabase/seed-100-categories.sql`
+9. `supabase/seed-100-category-images.sql` (optional starter)
+10. `supabase/seed-content.sql`
 
 Validation helpers:
 - `supabase/verify-profile-onboarding-and-follows.sql`
@@ -68,6 +69,7 @@ Validation helpers:
 - `supabase/verify-notifications-and-analytics.sql`
 - `supabase/verify-operational-visibility.sql`
 - `supabase/verify-publishing-storage-and-reports.sql`
+- `supabase/verify-owner-scoped-loadout-slugs.sql`
 
 ## Coding Rules
 1. Keep changes TypeScript-safe and App Router compatible.

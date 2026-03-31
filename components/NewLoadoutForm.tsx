@@ -6,6 +6,7 @@ import Button from "./Button";
 import ImageUploadField from "./ImageUploadField";
 import LoadoutProductsManager from "./LoadoutProductsManager";
 import type { LoadoutStatus } from "../lib/data/collections";
+import { slugifyLoadoutTitle } from "../lib/loadoutPublishing";
 
 interface CategoryOption {
   id: string;
@@ -17,6 +18,7 @@ interface NewLoadoutFormProps {
   categories: CategoryOption[];
   mode?: "create" | "edit";
   identifier?: string;
+  existingLoadoutSlugs?: string[];
   initialValues?: {
     title: string;
     description: string;
@@ -37,6 +39,7 @@ interface ApiLoadoutResponse {
   data?: {
     id: string;
     slug: string;
+    path?: string;
   };
 }
 
@@ -56,6 +59,7 @@ export default function NewLoadoutForm({
   categories,
   mode = "create",
   identifier,
+  existingLoadoutSlugs = [],
   initialValues,
 }: NewLoadoutFormProps) {
   const router = useRouter();
@@ -84,6 +88,17 @@ export default function NewLoadoutForm({
     () => categories.find((category) => category.id === categoryId)?.title ?? "",
     [categories, categoryId]
   );
+  const normalizedTitleSlug = useMemo(
+    () => slugifyLoadoutTitle(title),
+    [title]
+  );
+  const hasDuplicateTitle = useMemo(() => {
+    if (!normalizedTitleSlug) {
+      return false;
+    }
+
+    return existingLoadoutSlugs.some((slug) => slug === normalizedTitleSlug);
+  }, [existingLoadoutSlugs, normalizedTitleSlug]);
 
   function goToDetailsStep() {
     if (!categoryId) {
@@ -104,6 +119,14 @@ export default function NewLoadoutForm({
 
     if (!title.trim()) {
       setErrorMessage("Title is required.");
+      setStep(2);
+      return null;
+    }
+
+    if (!isEditMode && hasDuplicateTitle) {
+      setErrorMessage(
+        "You already have a loadout with this title. Choose a different title."
+      );
       setStep(2);
       return null;
     }
@@ -165,7 +188,7 @@ export default function NewLoadoutForm({
         return;
       }
 
-      router.push(`/loadouts/${savedLoadout.slug}`);
+      router.push(savedLoadout.path ?? `/loadouts/${savedLoadout.slug}`);
       router.refresh();
       return;
     }
@@ -204,7 +227,7 @@ export default function NewLoadoutForm({
     }
 
     if (nextStatus === "published") {
-      router.push(`/loadouts/${savedLoadout.slug}`);
+      router.push(savedLoadout.path ?? `/loadouts/${savedLoadout.slug}`);
     } else {
       router.push("/studio");
     }
@@ -309,11 +332,21 @@ export default function NewLoadoutForm({
             <input
               id="title"
               value={title}
-              onChange={(event) => setTitle(event.target.value)}
+              onChange={(event) => {
+                setTitle(event.target.value);
+                if (errorMessage) {
+                  setErrorMessage(null);
+                }
+              }}
               placeholder="My Creator Loadout"
               required
               className="mt-2 w-full rounded-xl border border-white/[0.08] bg-[#181818] px-3 py-2 text-sm text-white placeholder:text-white/40"
             />
+            {hasDuplicateTitle && !isEditMode ? (
+              <p className="mt-2 text-xs text-[#fda4a4]">
+                You already used this title on your page. Pick a different one.
+              </p>
+            ) : null}
           </div>
 
           <div>

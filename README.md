@@ -82,9 +82,10 @@ Run these in Supabase SQL editor, in this order:
 4. Notification dedupe + analytics milestones: `supabase/add-notification-guards-and-analytics.sql`
 5. Operational visibility events: `supabase/add-operational-visibility.sql`
 6. Publishing + uploads + reports: `supabase/add-publishing-storage-and-reports.sql`
-7. Fixed categories: `supabase/seed-100-categories.sql`
-8. Category images (optional starter): `supabase/seed-100-category-images.sql`
-9. Seed content/products/loadouts: `supabase/seed-content.sql`
+7. Owner-scoped loadout slugs: `supabase/add-owner-scoped-loadout-slugs.sql`
+8. Fixed categories: `supabase/seed-100-categories.sql`
+9. Category images (optional starter): `supabase/seed-100-category-images.sql`
+10. Seed content/products/loadouts: `supabase/seed-content.sql`
 
 Verification helpers:
 - `supabase/verify-profile-onboarding-and-follows.sql`
@@ -92,6 +93,7 @@ Verification helpers:
 - `supabase/verify-notifications-and-analytics.sql`
 - `supabase/verify-operational-visibility.sql`
 - `supabase/verify-publishing-storage-and-reports.sql`
+- `supabase/verify-owner-scoped-loadout-slugs.sql`
 
 ## Auth Provider Configuration (Supabase Dashboard)
 Enable providers you need and add redirect URLs:

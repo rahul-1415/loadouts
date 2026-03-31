@@ -9,6 +9,7 @@ import {
 import {
   buildPublishValidation,
   normalizeRequestedStatus,
+  slugifyLoadoutTitle,
 } from "../../../../lib/loadoutPublishing";
 import {
   enforceRateLimit,
@@ -68,7 +69,7 @@ export async function PUT(request: Request, { params }: RouteContext) {
     return auth.response;
   }
 
-  const { user } = auth;
+  const { user, profile } = auth;
   const body = await request.json().catch(() => null);
 
   const supabase = await createSupabaseServerClient();
@@ -171,6 +172,43 @@ export async function PUT(request: Request, { params }: RouteContext) {
         },
       },
       { status: 400 }
+    );
+  }
+
+  const nextSlug = slugifyLoadoutTitle(title) || existingCollection.kind;
+  const { data: conflictingLoadout, error: conflictingLoadoutError } =
+    await supabase
+      .from("collections")
+      .select("id")
+      .eq("owner_id", user.id)
+      .eq("kind", "loadout")
+      .eq("slug", nextSlug)
+      .neq("id", existingCollection.id)
+      .limit(1)
+      .maybeSingle();
+
+  if (conflictingLoadoutError) {
+    return NextResponse.json(
+      {
+        error: {
+          code: "FETCH_FAILED",
+          message: conflictingLoadoutError.message,
+        },
+      },
+      { status: 500 }
+    );
+  }
+
+  if (conflictingLoadout) {
+    return NextResponse.json(
+      {
+        error: {
+          code: "LOADOUT_TITLE_EXISTS",
+          message:
+            "You already have a loadout with this title. Choose a different title.",
+        },
+      },
+      { status: 409 }
     );
   }
 
@@ -318,6 +356,7 @@ export async function PUT(request: Request, { params }: RouteContext) {
   const { data: updatedCollection, error: updateError } = await supabase
     .from("collections")
     .update({
+      slug: nextSlug,
       title,
       description: description || null,
       category_id: category.id,
@@ -347,7 +386,12 @@ export async function PUT(request: Request, { params }: RouteContext) {
     );
   }
 
-  return NextResponse.json({ data: updatedCollection });
+  return NextResponse.json({
+    data: {
+      ...updatedCollection,
+      path: `/${profile.handle}/${updatedCollection.slug}`,
+    },
+  });
 }
 
 export async function DELETE(_request: Request, { params }: RouteContext) {

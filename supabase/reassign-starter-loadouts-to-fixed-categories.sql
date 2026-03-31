@@ -1,17 +1,31 @@
 begin;
 
+with owner as (
+  select id
+  from auth.users
+  where email = 'you@example.com'
+  limit 1
+)
 -- Move "Creator Desk Kit" to Desk Setups (cat-013).
 update public.collections as c
 set category_id = desk.id
-from public.categories as desk
-where c.slug = 'creator-desk-kit'
+from public.categories as desk, owner
+where c.owner_id = owner.id
+  and c.slug = 'creator-desk-kit'
   and desk.slug = 'cat-013';
 
+with owner as (
+  select id
+  from auth.users
+  where email = 'you@example.com'
+  limit 1
+)
 -- Move "Video Starter Kit" to Cameras (cat-009).
 update public.collections as c
 set category_id = cameras.id
-from public.categories as cameras
-where c.slug = 'video-starter-kit'
+from public.categories as cameras, owner
+where c.owner_id = owner.id
+  and c.slug = 'video-starter-kit'
   and cameras.slug = 'cat-009';
 
 -- Keep only fixed A-Z categories active.
