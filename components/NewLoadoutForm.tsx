@@ -295,19 +295,7 @@ export default function NewLoadoutForm({
               className="rounded-full border border-white/[0.08] px-3 py-1 text-[11px] text-white/72 transition hover:border-white/[0.16] hover:text-white"
               aria-label="Go back"
             >
-              <svg
-                aria-hidden="true"
-                viewBox="0 0 16 16"
-                className="h-3.5 w-3.5"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.6"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M10.5 3.5 6 8l4.5 4.5" />
-                <path d="M6.5 8h5.5" />
-              </svg>
+              {"<"}
             </button>
           ) : null}
           <span>{isEditMode ? "Edit Loadout" : "Create Loadout"}</span>
