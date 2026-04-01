@@ -114,7 +114,6 @@ export default function LoadoutProductsManager({
   const [productQuery, setProductQuery] = useState("");
   const [selectedBrandFilter, setSelectedBrandFilter] = useState("");
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState("");
-  const [addNote, setAddNote] = useState("");
   const [newProductName, setNewProductName] = useState("");
   const [newProductBrand, setNewProductBrand] = useState("");
   const [newProductUrl, setNewProductUrl] = useState("");
@@ -241,7 +240,6 @@ export default function LoadoutProductsManager({
     setProductQuery("");
     setSelectedBrandFilter("");
     setSelectedCategoryFilter("");
-    setAddNote("");
     setNewProductName("");
     setNewProductBrand("");
     setNewProductUrl("");
@@ -266,7 +264,6 @@ export default function LoadoutProductsManager({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           productId: selectedProductId,
-          note: addNote,
         }),
       }
     );
@@ -311,7 +308,6 @@ export default function LoadoutProductsManager({
           productUrl: newProductUrl,
           imageUrl: newProductImageUrl,
           description: newProductDescription,
-          note: addNote,
         }),
       }
     );
@@ -655,18 +651,6 @@ export default function LoadoutProductsManager({
               </p>
             </div>
           )}
-
-          <div className="rounded-2xl border border-white/[0.04] bg-[#111111] p-4">
-            <label className="text-[11px] uppercase tracking-[0.25em] text-white/55">
-              Note for next add
-            </label>
-            <input
-              value={addNote}
-              onChange={(event) => setAddNote(event.target.value)}
-              placeholder="Optional note for added product"
-              className="mt-2 w-full rounded-xl border border-white/[0.08] bg-[#181818] px-3 py-2 text-sm text-white placeholder:text-white/40"
-            />
-          </div>
 
           <div className="flex flex-wrap gap-3">
             {composerMode === "existing" ? (
