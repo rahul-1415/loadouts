@@ -127,8 +127,6 @@ node scripts/seed-test-social-flow.mjs --seed=demo1
 set -a && source .env.local && set +a && node scripts/import-curated-product-catalog.mjs
 ```
 
-More details: `supabase/test-social-flow.md`
-
 ## Important Notes
 - Like/comment writes require an authenticated user with a complete profile.
 - Save writes require an authenticated user with a complete profile.
