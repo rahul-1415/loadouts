@@ -78,14 +78,15 @@ export default function NewLoadoutForm({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const totalSteps = isEditMode ? 2 : 3;
 
-  function goBackInCreateFlow() {
-    if (isEditMode) {
-      return;
-    }
-
+  function goBackInFlow() {
     if (step === 1) {
       if (typeof window !== "undefined" && window.history.length > 1) {
         router.back();
+        return;
+      }
+
+      if (isEditMode && identifier) {
+        router.push(`/loadouts/${identifier}`);
         return;
       }
 
@@ -288,16 +289,14 @@ export default function NewLoadoutForm({
     <div className="space-y-5 rounded-3xl border border-white/[0.05] bg-[#171717] p-6">
       <div className="flex items-center justify-between text-[11px] uppercase tracking-[0.3em] text-white/55">
         <div className="flex items-center gap-3">
-          {!isEditMode ? (
-            <button
-              type="button"
-              onClick={goBackInCreateFlow}
-              className="rounded-full border border-white/[0.08] px-3 py-1 text-[11px] text-white/72 transition hover:border-white/[0.16] hover:text-white"
-              aria-label="Go back"
-            >
-              {"<"}
-            </button>
-          ) : null}
+          <button
+            type="button"
+            onClick={goBackInFlow}
+            className="rounded-full border border-white/[0.08] px-3 py-1 text-[11px] text-white/72 transition hover:border-white/[0.16] hover:text-white"
+            aria-label="Go back"
+          >
+            {"<"}
+          </button>
           <span>{isEditMode ? "Edit Loadout" : "Create Loadout"}</span>
         </div>
         <span>
@@ -397,26 +396,15 @@ export default function NewLoadoutForm({
           />
 
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="flex items-center gap-3">
-              {isEditMode ? (
-                <Button
-                  type="button"
-                  variant="secondary"
-                  onClick={() => setStep(1)}
-                >
-                  Back
-                </Button>
-              ) : null}
-              <Button type="submit" disabled={submitting}>
-                {submitting
-                  ? isEditMode
-                    ? "Saving..."
-                    : "Continuing..."
-                  : isEditMode
-                    ? "Save Changes"
-                    : "Continue"}
-              </Button>
-            </div>
+            <Button type="submit" disabled={submitting}>
+              {submitting
+                ? isEditMode
+                  ? "Saving..."
+                  : "Continuing..."
+                : isEditMode
+                  ? "Save Changes"
+                  : "Continue"}
+            </Button>
 
             {isEditMode ? (
               <Button

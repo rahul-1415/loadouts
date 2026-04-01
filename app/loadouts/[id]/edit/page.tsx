@@ -64,6 +64,10 @@ export default async function EditLoadoutPage({ params }: EditLoadoutPageProps) 
       <LoadoutProductsManager
         collectionIdentifier={loadout.slug}
         initialItems={[]}
+        defaultComposerOpen
+        defaultComposerMode="existing"
+        showComposerCloseButton={false}
+        stickyComposer
       />
     </div>
   );
