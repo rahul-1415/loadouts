@@ -53,6 +53,10 @@ interface ApiErrorResponse {
 interface LoadoutProductsManagerProps {
   collectionIdentifier: string;
   initialItems: LoadoutProductItem[];
+  defaultComposerOpen?: boolean;
+  defaultComposerMode?: ComposerMode;
+  showComposerCloseButton?: boolean;
+  stickyComposer?: boolean;
 }
 
 function normalizeSort(items: LoadoutProductItem[]) {
@@ -92,6 +96,10 @@ function ProductThumb({
 export default function LoadoutProductsManager({
   collectionIdentifier,
   initialItems,
+  defaultComposerOpen = false,
+  defaultComposerMode = "existing",
+  showComposerCloseButton = true,
+  stickyComposer = false,
 }: LoadoutProductsManagerProps) {
   const router = useRouter();
   const [items, setItems] = useState<LoadoutProductItem[]>(
@@ -112,8 +120,8 @@ export default function LoadoutProductsManager({
   const [newProductUrl, setNewProductUrl] = useState("");
   const [newProductImageUrl, setNewProductImageUrl] = useState("");
   const [newProductDescription, setNewProductDescription] = useState("");
-  const [composerOpen, setComposerOpen] = useState(false);
-  const [composerMode, setComposerMode] = useState<ComposerMode>("existing");
+  const [composerOpen, setComposerOpen] = useState(defaultComposerOpen);
+  const [composerMode, setComposerMode] = useState<ComposerMode>(defaultComposerMode);
   const [message, setMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [busyAction, setBusyAction] = useState<
@@ -227,7 +235,8 @@ export default function LoadoutProductsManager({
   );
 
   const resetComposer = () => {
-    setComposerOpen(false);
+    setComposerOpen(stickyComposer ? true : false);
+    setComposerMode(defaultComposerMode);
     setSelectedProductId("");
     setProductQuery("");
     setSelectedBrandFilter("");
@@ -466,14 +475,16 @@ export default function LoadoutProductsManager({
                 Submit Custom Product
               </Button>
             </div>
-            <Button
-              type="button"
-              variant="secondary"
-              className="px-4 py-2 text-[10px]"
-              onClick={resetComposer}
-            >
-              Cancel
-            </Button>
+            {showComposerCloseButton ? (
+              <Button
+                type="button"
+                variant="secondary"
+                className="px-4 py-2 text-[10px]"
+                onClick={resetComposer}
+              >
+                Cancel
+              </Button>
+            ) : null}
           </div>
 
           {composerMode === "existing" ? (
@@ -682,7 +693,7 @@ export default function LoadoutProductsManager({
           type="button"
           onClick={() => {
             setComposerOpen(true);
-            setComposerMode("existing");
+            setComposerMode(defaultComposerMode);
             setErrorMessage(null);
             setMessage(null);
           }}

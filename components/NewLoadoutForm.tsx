@@ -78,6 +78,25 @@ export default function NewLoadoutForm({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const totalSteps = isEditMode ? 2 : 3;
 
+  function goBackInCreateFlow() {
+    if (isEditMode) {
+      return;
+    }
+
+    if (step === 1) {
+      if (typeof window !== "undefined" && window.history.length > 1) {
+        router.back();
+        return;
+      }
+
+      router.push("/studio");
+      return;
+    }
+
+    setErrorMessage(null);
+    setStep(step === 3 ? 2 : 1);
+  }
+
   const selectedCategoryLabel = useMemo(
     () => categories.find((category) => category.id === categoryId)?.title ?? "",
     [categories, categoryId]
@@ -268,7 +287,19 @@ export default function NewLoadoutForm({
   return (
     <div className="space-y-5 rounded-3xl border border-white/[0.05] bg-[#171717] p-6">
       <div className="flex items-center justify-between text-[11px] uppercase tracking-[0.3em] text-white/55">
-        <span>{isEditMode ? "Edit Loadout" : "Create Loadout"}</span>
+        <div className="flex items-center gap-3">
+          {!isEditMode ? (
+            <button
+              type="button"
+              onClick={goBackInCreateFlow}
+              className="rounded-full border border-white/[0.08] px-3 py-1 text-[11px] text-white/72 transition hover:border-white/[0.16] hover:text-white"
+              aria-label="Go back"
+            >
+              {"<-"}
+            </button>
+          ) : null}
+          <span>{isEditMode ? "Edit Loadout" : "Create Loadout"}</span>
+        </div>
         <span>
           Step {step} / {totalSteps}
         </span>
@@ -367,9 +398,15 @@ export default function NewLoadoutForm({
 
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-3">
-              <Button type="button" variant="secondary" onClick={() => setStep(1)}>
-                Back
-              </Button>
+              {isEditMode ? (
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() => setStep(1)}
+                >
+                  Back
+                </Button>
+              ) : null}
               <Button type="submit" disabled={submitting}>
                 {submitting
                   ? isEditMode
@@ -413,12 +450,13 @@ export default function NewLoadoutForm({
           <LoadoutProductsManager
             collectionIdentifier={createdLoadout.slug}
             initialItems={[]}
+            defaultComposerOpen
+            defaultComposerMode="existing"
+            showComposerCloseButton={false}
+            stickyComposer
           />
 
           <div className="flex flex-wrap items-center gap-3">
-            <Button type="button" variant="secondary" onClick={() => setStep(2)}>
-              Back
-            </Button>
             <Button
               type="button"
               variant="secondary"
