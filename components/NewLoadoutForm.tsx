@@ -151,17 +151,17 @@ export default function NewLoadoutForm({
       return null;
     }
 
-    if (!isEditMode && hasDuplicateTitle) {
+    const activeIdentifier = isEditMode
+      ? identifier
+      : createdLoadout?.slug ?? null;
+
+    if (!isEditMode && !activeIdentifier && hasDuplicateTitle) {
       setErrorMessage(
         "You already have a loadout with this title. Choose a different title."
       );
       setStep(2);
       return null;
     }
-
-    const activeIdentifier = isEditMode
-      ? identifier
-      : createdLoadout?.slug ?? null;
 
     if (isEditMode && !activeIdentifier) {
       setErrorMessage("Missing loadout identifier.");
