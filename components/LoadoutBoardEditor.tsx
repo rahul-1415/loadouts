@@ -96,6 +96,80 @@ function compactMessage(products: LoadoutProductItem[]) {
   return `${products.length} attached product${products.length === 1 ? "" : "s"} available for product widgets.`;
 }
 
+function serializeLayout(layout: LoadoutLayout) {
+  return JSON.stringify(layout);
+}
+
+function parseLayout(serializedLayout: string): LoadoutLayout {
+  return JSON.parse(serializedLayout) as LoadoutLayout;
+}
+
+function describeWidget(
+  widget: LoadoutWidget,
+  products: LoadoutProductItem[]
+) {
+  switch (widget.type) {
+    case "text":
+      return widget.title.trim() || "Text block";
+    case "image":
+      return widget.caption.trim() || "Single image";
+    case "gallery":
+      return `Gallery (${widget.images.length})`;
+    case "product": {
+      const product = products.find(
+        (entry) => entry.attachmentKey === widget.attachmentKey
+      );
+      return product?.name ?? "Product card";
+    }
+    case "divider":
+      return widget.label.trim() || "Divider";
+  }
+}
+
+function duplicateSelectedWidget(
+  layout: LoadoutLayout,
+  widgetId: string
+): { layout: LoadoutLayout; duplicatedId: string | null } {
+  const widgetIndex = layout.widgets.findIndex((widget) => widget.id === widgetId);
+
+  if (widgetIndex < 0) {
+    return { layout, duplicatedId: null };
+  }
+
+  const sourceWidget = layout.widgets[widgetIndex];
+  const duplicatedId = `${sourceWidget.id}-copy-${Date.now().toString(36)}`;
+  const duplicatedWidget = JSON.parse(
+    JSON.stringify(sourceWidget)
+  ) as LoadoutWidget;
+
+  duplicatedWidget.id = duplicatedId;
+  duplicatedWidget.x = clamp(
+    sourceWidget.x + 1,
+    0,
+    LOADOUT_GRID_COLUMNS - sourceWidget.w
+  );
+  duplicatedWidget.y = clamp(sourceWidget.y + 1, 0, MAX_ROWS - sourceWidget.h);
+
+  if (duplicatedWidget.type === "gallery") {
+    duplicatedWidget.images = duplicatedWidget.images.map((image, index) => ({
+      ...image,
+      id: `${duplicatedId}-image-${index + 1}`,
+    }));
+  }
+
+  return {
+    duplicatedId,
+    layout: {
+      ...layout,
+      widgets: [
+        ...layout.widgets.slice(0, widgetIndex + 1),
+        duplicatedWidget,
+        ...layout.widgets.slice(widgetIndex + 1),
+      ],
+    },
+  };
+}
+
 export default function LoadoutBoardEditor({
   collectionIdentifier,
   initialLayout,
@@ -104,6 +178,9 @@ export default function LoadoutBoardEditor({
   const router = useRouter();
   const canvasRef = useRef<HTMLDivElement | null>(null);
   const [layout, setLayout] = useState<LoadoutLayout>(() => ensureLayout(initialLayout));
+  const [savedLayoutSignature, setSavedLayoutSignature] = useState(() =>
+    serializeLayout(ensureLayout(initialLayout))
+  );
   const [selectedWidgetId, setSelectedWidgetId] = useState<string | null>(
     ensureLayout(initialLayout).widgets[0]?.id ?? null
   );
@@ -113,6 +190,22 @@ export default function LoadoutBoardEditor({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [canvasWidth, setCanvasWidth] = useState(0);
   const [interaction, setInteraction] = useState<ActiveInteraction | null>(null);
+
+  useEffect(() => {
+    const nextLayout = ensureLayout(initialLayout);
+    setLayout(nextLayout);
+    setSavedLayoutSignature(serializeLayout(nextLayout));
+    setSelectedWidgetId((currentSelectedWidgetId) => {
+      if (
+        currentSelectedWidgetId &&
+        nextLayout.widgets.some((widget) => widget.id === currentSelectedWidgetId)
+      ) {
+        return currentSelectedWidgetId;
+      }
+
+      return nextLayout.widgets[0]?.id ?? null;
+    });
+  }, [initialLayout]);
 
   useEffect(() => {
     if (!canvasRef.current || typeof ResizeObserver === "undefined") {
@@ -216,6 +309,8 @@ export default function LoadoutBoardEditor({
     () => layout.widgets.find((widget) => widget.id === selectedWidgetId) ?? null,
     [layout.widgets, selectedWidgetId]
   );
+  const layoutSignature = useMemo(() => serializeLayout(layout), [layout]);
+  const hasUnsavedChanges = layoutSignature !== savedLayoutSignature;
 
   const localValidation = useMemo(
     () =>
@@ -227,6 +322,11 @@ export default function LoadoutBoardEditor({
   );
 
   function addWidget(type: LoadoutWidgetType) {
+    if (type === "product" && productOptions.length === 0) {
+      setErrorMessage("Attach at least one product before placing a product widget.");
+      return;
+    }
+
     const widget = createDefaultWidget(type, layout.widgets.length);
 
     if (widget.type === "product" && productOptions[0]) {
@@ -315,11 +415,23 @@ export default function LoadoutBoardEditor({
 
     if (payload?.data?.bodyLayout) {
       setLayout(payload.data.bodyLayout);
+      setSavedLayoutSignature(serializeLayout(payload.data.bodyLayout));
+    } else {
+      setSavedLayoutSignature(serializeLayout(layout));
     }
 
     setMessage("Custom board saved.");
     setSaving(false);
     router.refresh();
+  }
+
+  function resetUnsavedChanges() {
+    const restoredLayout = parseLayout(savedLayoutSignature);
+    setLayout(restoredLayout);
+    setSelectedWidgetId(restoredLayout.widgets[0]?.id ?? null);
+    setMessage("Unsaved board changes discarded.");
+    setErrorMessage(null);
+    setPreviewMode(false);
   }
 
   function updateGalleryImage(
@@ -352,6 +464,9 @@ export default function LoadoutBoardEditor({
               Custom Board
             </p>
             <h2 className="text-2xl font-semibold text-white">Arrange your loadout body</h2>
+            <p className="mt-2 text-xs uppercase tracking-[0.22em] text-white/45">
+              {hasUnsavedChanges ? "Unsaved changes" : "Board saved"}
+            </p>
           </div>
           <div className="flex flex-wrap gap-2">
             <Button
@@ -370,7 +485,20 @@ export default function LoadoutBoardEditor({
             >
               Preview
             </Button>
-            <Button type="button" onClick={saveBoard} disabled={saving}>
+            <Button
+              type="button"
+              variant="secondary"
+              className="px-4 py-2 text-[10px]"
+              onClick={resetUnsavedChanges}
+              disabled={!hasUnsavedChanges || saving}
+            >
+              Discard
+            </Button>
+            <Button
+              type="button"
+              onClick={saveBoard}
+              disabled={saving || !hasUnsavedChanges}
+            >
               {saving ? "Saving..." : "Save Board"}
             </Button>
           </div>
@@ -394,11 +522,57 @@ export default function LoadoutBoardEditor({
               ["product", "Product card"],
               ["divider", "Divider"],
             ] as Array<[LoadoutWidgetType, string]>).map(([type, label]) => (
-              <Button key={type} type="button" variant="secondary" onClick={() => addWidget(type)}>
+              <Button
+                key={type}
+                type="button"
+                variant="secondary"
+                onClick={() => addWidget(type)}
+                disabled={type === "product" && productOptions.length === 0}
+              >
                 {label}
               </Button>
             ))}
           </div>
+          {layout.widgets.length > 0 ? (
+            <div className="space-y-2 rounded-2xl border border-white/[0.05] bg-[#111111] p-3">
+              <p className="text-[11px] uppercase tracking-[0.28em] text-white/45">
+                Widget Outline
+              </p>
+              <div className="space-y-2">
+                {layout.widgets.map((widget, index) => {
+                  const isSelected = widget.id === selectedWidgetId;
+
+                  return (
+                    <button
+                      key={widget.id}
+                      type="button"
+                      onClick={() => {
+                        setSelectedWidgetId(widget.id);
+                        setPreviewMode(false);
+                      }}
+                      className={`flex w-full items-center justify-between rounded-2xl border px-3 py-2 text-left transition ${
+                        isSelected
+                          ? "border-[#d4dd7f]/45 bg-[#1e2113] text-white"
+                          : "border-white/[0.05] bg-[#171717] text-white/68 hover:border-white/[0.12]"
+                      }`}
+                    >
+                      <div>
+                        <p className="text-[11px] uppercase tracking-[0.24em] text-white/42">
+                          {index + 1}. {widget.type}
+                        </p>
+                        <p className="mt-1 text-sm">
+                          {describeWidget(widget, products)}
+                        </p>
+                      </div>
+                      <span className="text-[11px] uppercase tracking-[0.18em] text-white/38">
+                        {widget.w}x{widget.h}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ) : null}
           <div className="rounded-2xl border border-white/[0.05] bg-[#111111] px-4 py-3 text-sm text-white/62">
             Desktop-first editor. Public boards still reflow into a single column on mobile.
           </div>
@@ -511,21 +685,40 @@ export default function LoadoutBoardEditor({
           <div className="flex items-center justify-between gap-3">
             <p className="text-[11px] uppercase tracking-[0.3em] text-white/50">Inspector</p>
             {selectedWidget ? (
-              <Button
-                type="button"
-                variant="secondary"
-                className="px-3 py-1.5 text-[10px] border-[#fda4a4]/40 text-[#fda4a4]"
-                onClick={() => {
-                  setLayout((currentLayout) => removeWidget(currentLayout, selectedWidget.id));
-                  setSelectedWidgetId((current) =>
-                    current === selectedWidget.id
-                      ? layout.widgets.find((widget) => widget.id !== selectedWidget.id)?.id ?? null
-                      : current
-                  );
-                }}
-              >
-                Remove
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  className="px-3 py-1.5 text-[10px]"
+                  onClick={() => {
+                    const result = duplicateSelectedWidget(layout, selectedWidget.id);
+                    setLayout(result.layout);
+                    setSelectedWidgetId(result.duplicatedId);
+                    setPreviewMode(false);
+                    setMessage(null);
+                    setErrorMessage(null);
+                  }}
+                >
+                  Duplicate
+                </Button>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  className="px-3 py-1.5 text-[10px] border-[#fda4a4]/40 text-[#fda4a4]"
+                  onClick={() => {
+                    setLayout((currentLayout) => {
+                      const nextLayout = removeWidget(currentLayout, selectedWidget.id);
+                      setSelectedWidgetId(
+                        nextLayout.widgets.find((widget) => widget.id !== selectedWidget.id)?.id ??
+                          null
+                      );
+                      return nextLayout;
+                    });
+                  }}
+                >
+                  Remove
+                </Button>
+              </div>
             ) : null}
           </div>
 
@@ -796,6 +989,7 @@ export default function LoadoutBoardEditor({
                       )
                     }
                     className="w-full rounded-xl border border-white/[0.08] bg-[#181818] px-3 py-2 text-sm text-white"
+                    disabled={productOptions.length === 0}
                   >
                     <option value="">Select attached product</option>
                     {productOptions.map((product) => (
@@ -804,6 +998,11 @@ export default function LoadoutBoardEditor({
                       </option>
                     ))}
                   </select>
+                  {productOptions.length === 0 ? (
+                    <p className="text-sm text-[#fda4a4]">
+                      Attach products in the loadout product manager before placing a product widget.
+                    </p>
+                  ) : null}
                   <label className="flex items-center gap-3 rounded-2xl border border-white/[0.05] bg-[#111111] px-3 py-3 text-sm text-white/70">
                     <input
                       type="checkbox"
