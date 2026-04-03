@@ -67,6 +67,11 @@ export default async function EditLoadoutPage({ params }: EditLoadoutPageProps) 
         initialProducts={loadoutDetail.products}
         layoutMode={loadoutDetail.layoutMode}
         initialLayout={loadoutDetail.bodyLayout}
+        title={loadout.title}
+        description={loadout.description ?? ""}
+        coverImageUrl={loadout.cover_image_url ?? ""}
+        categoryLabel={loadoutDetail.category?.title ?? ""}
+        statusLabel={loadoutDetail.status}
       />
     </div>
   );

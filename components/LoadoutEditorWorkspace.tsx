@@ -12,6 +12,11 @@ interface LoadoutEditorWorkspaceProps {
   initialProducts: LoadoutProductItem[];
   layoutMode: LoadoutLayoutMode;
   initialLayout: LoadoutLayout | null;
+  title: string;
+  description: string;
+  coverImageUrl: string;
+  categoryLabel: string;
+  statusLabel: string;
 }
 
 export default function LoadoutEditorWorkspace({
@@ -19,6 +24,11 @@ export default function LoadoutEditorWorkspace({
   initialProducts,
   layoutMode,
   initialLayout,
+  title,
+  description,
+  coverImageUrl,
+  categoryLabel,
+  statusLabel,
 }: LoadoutEditorWorkspaceProps) {
   const [attachedProducts, setAttachedProducts] = useState(initialProducts);
 
@@ -39,6 +49,14 @@ export default function LoadoutEditorWorkspace({
           collectionIdentifier={collectionIdentifier}
           initialLayout={initialLayout}
           products={attachedProducts}
+          previewMeta={{
+            title,
+            description,
+            coverImageUrl,
+            categoryLabel,
+            authorLabel: "You",
+            statusLabel,
+          }}
         />
       ) : null}
     </div>

@@ -54,6 +54,8 @@ interface CreatedLoadoutState {
   title: string;
 }
 
+type CreateFlowStep = 1 | 2 | 3 | 4;
+
 export default function NewLoadoutForm({
   categories,
   mode = "create",
@@ -63,7 +65,7 @@ export default function NewLoadoutForm({
 }: NewLoadoutFormProps) {
   const router = useRouter();
   const isEditMode = mode === "edit";
-  const [step, setStep] = useState<1 | 2 | 3>(
+  const [step, setStep] = useState<CreateFlowStep>(
     initialValues?.categoryId ? 2 : 1
   );
   const [title, setTitle] = useState(initialValues?.title ?? "");
@@ -88,7 +90,8 @@ export default function NewLoadoutForm({
   const [deleting, setDeleting] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const totalSteps = isEditMode ? 2 : 3;
+  const isCustomFlow = !isEditMode && layoutMode === "custom";
+  const totalSteps = isEditMode ? 2 : isCustomFlow ? 4 : 3;
 
   function goBackInFlow() {
     if (step === 1) {
@@ -108,6 +111,11 @@ export default function NewLoadoutForm({
 
     setErrorMessage(null);
     setSuccessMessage(null);
+    if (step === 4) {
+      setStep(3);
+      return;
+    }
+
     setStep(step === 3 ? 2 : 1);
   }
 
@@ -136,6 +144,17 @@ export default function NewLoadoutForm({
     setErrorMessage(null);
     setSuccessMessage(null);
     setStep(2);
+  }
+
+  function goToPreviewStep() {
+    if (!createdLoadout?.slug) {
+      setErrorMessage("Save the loadout details first.");
+      return;
+    }
+
+    setErrorMessage(null);
+    setSuccessMessage(null);
+    setStep(4);
   }
 
   async function saveLoadout(nextStatus: LoadoutStatus) {
@@ -492,10 +511,14 @@ export default function NewLoadoutForm({
               Step 3
             </p>
             <h2 className="mt-2 text-2xl font-semibold text-white">
-              Add products and finish your loadout
+              {isCustomFlow
+                ? "Add products before previewing your post"
+                : "Add products and finish your loadout"}
             </h2>
             <p className="mt-2 text-sm text-white/70">
-              Add the products first, then choose whether to save this loadout as a draft or publish it.
+              {isCustomFlow
+                ? "Attach the products that belong in this loadout, then continue to the full post preview to place widgets and finalize it."
+                : "Add the products first, then choose whether to save this loadout as a draft or publish it."}
             </p>
           </div>
 
@@ -509,13 +532,65 @@ export default function NewLoadoutForm({
             onItemsChange={setAttachedProducts}
           />
 
-          {layoutMode === "custom" ? (
-            <LoadoutBoardEditor
-              collectionIdentifier={createdLoadout.slug}
-              initialLayout={null}
-              products={attachedProducts}
-            />
-          ) : null}
+          <div className="flex flex-wrap items-center gap-3">
+            {isCustomFlow ? (
+              <Button
+                type="button"
+                onClick={goToPreviewStep}
+                disabled={finalizingStatus !== null}
+              >
+                Continue to Preview
+              </Button>
+            ) : (
+              <>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() => finalizeCreate("draft")}
+                  disabled={finalizingStatus !== null}
+                >
+                  {finalizingStatus === "draft" ? "Saving Draft..." : "Draft"}
+                </Button>
+                <Button
+                  type="button"
+                  onClick={() => finalizeCreate("published")}
+                  disabled={finalizingStatus !== null}
+                >
+                  {finalizingStatus === "published" ? "Creating..." : "Create Loadout"}
+                </Button>
+              </>
+            )}
+          </div>
+        </div>
+      ) : null}
+
+      {step === 4 && createdLoadout && isCustomFlow ? (
+        <div className="space-y-5">
+          <div className="rounded-2xl border border-white/[0.04] bg-white/[0.03] px-4 py-4">
+            <p className="text-[11px] uppercase tracking-[0.35em] text-white/50">
+              Step 4
+            </p>
+            <h2 className="mt-2 text-2xl font-semibold text-white">
+              Preview and edit your post
+            </h2>
+            <p className="mt-2 text-sm text-white/70">
+              This step mirrors the public loadout page. Adjust the board while previewing how the final post will read.
+            </p>
+          </div>
+
+          <LoadoutBoardEditor
+            collectionIdentifier={createdLoadout.slug}
+            initialLayout={null}
+            products={attachedProducts}
+            previewMeta={{
+              title,
+              description,
+              coverImageUrl,
+              categoryLabel: selectedCategoryLabel,
+              authorLabel: "You",
+              statusLabel: "draft",
+            }}
+          />
 
           <div className="flex flex-wrap items-center gap-3">
             <Button

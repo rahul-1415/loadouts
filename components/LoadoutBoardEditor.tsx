@@ -11,11 +11,13 @@ import { useRouter } from "next/navigation";
 import Button from "./Button";
 import ImageUploadField from "./ImageUploadField";
 import LoadoutBoardRenderer from "./LoadoutBoardRenderer";
+import ProductItem from "./ProductItem";
 import type { LoadoutProductItem } from "./LoadoutProductsManager";
 import {
   LOADOUT_GRID_COLUMNS,
   createDefaultWidget,
   createEmptyLoadoutLayout,
+  getReferencedAttachmentKeys,
   validateLoadoutLayout,
   type GalleryWidget,
   type LoadoutLayout,
@@ -30,6 +32,14 @@ interface LoadoutBoardEditorProps {
   collectionIdentifier: string;
   initialLayout: LoadoutLayout | null;
   products: LoadoutProductItem[];
+  previewMeta?: {
+    title: string;
+    description: string;
+    coverImageUrl: string;
+    categoryLabel: string;
+    authorLabel?: string;
+    statusLabel?: string;
+  };
 }
 
 type InteractionMode = "drag" | "resize";
@@ -174,6 +184,7 @@ export default function LoadoutBoardEditor({
   collectionIdentifier,
   initialLayout,
   products,
+  previewMeta,
 }: LoadoutBoardEditorProps) {
   const router = useRouter();
   const canvasRef = useRef<HTMLDivElement | null>(null);
@@ -311,6 +322,17 @@ export default function LoadoutBoardEditor({
   );
   const layoutSignature = useMemo(() => serializeLayout(layout), [layout]);
   const hasUnsavedChanges = layoutSignature !== savedLayoutSignature;
+  const referencedAttachmentKeys = useMemo(
+    () => new Set(getReferencedAttachmentKeys(layout)),
+    [layout]
+  );
+  const unplacedProducts = useMemo(
+    () =>
+      products.filter(
+        (product) => !referencedAttachmentKeys.has(product.attachmentKey)
+      ),
+    [products, referencedAttachmentKeys]
+  );
 
   const localValidation = useMemo(
     () =>
@@ -475,7 +497,7 @@ export default function LoadoutBoardEditor({
               className="px-4 py-2 text-[10px]"
               onClick={() => setPreviewMode(false)}
             >
-              Edit Board
+              Edit Canvas
             </Button>
             <Button
               type="button"
@@ -584,101 +606,175 @@ export default function LoadoutBoardEditor({
         </aside>
 
         <div className="space-y-4">
-          {previewMode ? (
-            <LoadoutBoardRenderer layout={layout} products={products} />
-          ) : (
-            <div
-              ref={canvasRef}
-              className="relative overflow-hidden rounded-[2rem] border border-white/[0.05] bg-[#111111]"
-              style={{
-                minHeight: `${currentHeight}px`,
-                backgroundImage:
-                  "linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px)",
-                backgroundSize: `${Math.max(canvasWidth / LOADOUT_GRID_COLUMNS, 24)}px ${ROW_HEIGHT}px`,
-              }}
-            >
-              {layout.widgets.length === 0 ? (
-                <div className="flex min-h-[420px] items-center justify-center px-6 text-center text-sm text-white/55">
-                  Add your first widget from the left rail.
+          <section className="rounded-3xl border border-white/[0.05] bg-[#171717] p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div className="space-y-3">
+                <div className="flex flex-wrap items-center gap-3">
+                  {previewMeta?.categoryLabel ? (
+                    <span className="inline-flex items-center rounded-full border border-[#d4dd7f]/20 bg-[#10120d] px-3 py-1 text-[11px] font-medium uppercase tracking-[0.22em] text-[#e6ef92]">
+                      {previewMeta.categoryLabel}
+                    </span>
+                  ) : null}
+                  <span className="inline-flex items-center rounded-full border border-white/[0.08] px-3 py-1 text-[11px] uppercase tracking-[0.22em] text-white/68">
+                    {previewMeta?.authorLabel ?? "You"}
+                  </span>
                 </div>
-              ) : null}
-
-              {layout.widgets.map((widget) => {
-                const isSelected = widget.id === selectedWidgetId;
-
-                return (
-                  <article
-                    key={widget.id}
-                    role="button"
-                    tabIndex={0}
-                    onClick={() => setSelectedWidgetId(widget.id)}
-                    onKeyDown={(event) => {
-                      if (event.key === "Enter" || event.key === " ") {
-                        event.preventDefault();
-                        setSelectedWidgetId(widget.id);
-                      }
-                    }}
-                    className={`absolute overflow-hidden rounded-[1.7rem] border bg-[#171717] shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] transition ${
-                      widget.type === "divider"
-                        ? "border-transparent bg-transparent shadow-none"
-                        : isSelected
-                          ? "border-[#d4dd7f]/45"
-                          : "border-white/[0.05]"
-                    }`}
-                    style={{
-                      left: `${(widget.x / LOADOUT_GRID_COLUMNS) * 100}%`,
-                      width: `${(widget.w / LOADOUT_GRID_COLUMNS) * 100}%`,
-                      top: `${widget.y * ROW_HEIGHT}px`,
-                      height: `${widget.h * ROW_HEIGHT}px`,
-                    }}
-                  >
-                    {widget.type !== "divider" ? (
-                      <div className="flex items-center justify-between border-b border-white/[0.05] px-3 py-2 text-[10px] uppercase tracking-[0.25em] text-white/45">
-                        <button
-                          type="button"
-                          onPointerDown={(event) => beginInteraction(event, widget, "drag")}
-                          className="rounded-full border border-white/[0.08] px-2 py-1 text-white/58 transition hover:border-white/[0.16] hover:text-white"
-                        >
-                          Move
-                        </button>
-                        <span>{widget.type}</span>
-                      </div>
-                    ) : null}
-
-                    <div className={widget.type === "divider" ? "h-full p-2" : "h-[calc(100%-2.5rem)] overflow-auto p-3"}>
-                      <LoadoutBoardRenderer
-                        layout={{
-                          version: layout.version,
-                          widgets: [
-                            {
-                              ...widget,
-                              x: 0,
-                              y: 0,
-                              w: LOADOUT_GRID_COLUMNS,
-                            },
-                          ],
-                        }}
-                        products={products}
-                      />
-                    </div>
-
-                    <button
-                      type="button"
-                      onPointerDown={(event) => beginInteraction(event, widget, "resize")}
-                      className={`absolute bottom-2 right-2 h-5 w-5 rounded-full border text-[10px] ${
-                        widget.type === "divider"
-                          ? "hidden"
-                          : "border-white/[0.08] bg-[#0d0d0d] text-white/55"
-                      }`}
-                      aria-label="Resize widget"
-                    >
-                      +
-                    </button>
-                  </article>
-                );
-              })}
+                <h3 className="text-[clamp(2rem,4vw,3rem)] font-semibold text-white">
+                  {previewMeta?.title.trim() || "Untitled loadout"}
+                </h3>
+                {previewMeta?.description.trim() ? (
+                  <p className="max-w-2xl text-white/70">
+                    {previewMeta.description}
+                  </p>
+                ) : null}
+              </div>
+              <span className="rounded-full border border-white/[0.08] px-3 py-1 text-[10px] uppercase tracking-[0.25em] text-white/70">
+                {previewMeta?.statusLabel ?? "draft"}
+              </span>
             </div>
-          )}
+          </section>
+
+          {previewMeta?.coverImageUrl.trim() ? (
+            <section className="overflow-hidden rounded-3xl border border-white/[0.05] bg-[#171717] shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]">
+              <img
+                src={previewMeta.coverImageUrl}
+                alt={previewMeta.title || "Loadout cover"}
+                className="aspect-[16/7] w-full object-cover"
+              />
+            </section>
+          ) : null}
+
+          <section className="space-y-4 rounded-3xl border border-white/[0.05] bg-[#171717] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-[11px] uppercase tracking-[0.35em] text-white/50">
+                  {previewMode ? "Post Preview" : "Board Canvas"}
+                </p>
+                <p className="mt-2 text-sm text-white/68">
+                  {previewMode
+                    ? "This is how the custom part of the post will render."
+                    : "Drag, resize, and position widgets inside the body area."}
+                </p>
+              </div>
+            </div>
+
+            {previewMode ? (
+              <LoadoutBoardRenderer layout={layout} products={products} />
+            ) : (
+              <div
+                ref={canvasRef}
+                className="relative overflow-hidden rounded-[2rem] border border-white/[0.05] bg-[#111111]"
+                style={{
+                  minHeight: `${currentHeight}px`,
+                  backgroundImage:
+                    "linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px)",
+                  backgroundSize: `${Math.max(canvasWidth / LOADOUT_GRID_COLUMNS, 24)}px ${ROW_HEIGHT}px`,
+                }}
+              >
+                {layout.widgets.length === 0 ? (
+                  <div className="flex min-h-[420px] items-center justify-center px-6 text-center text-sm text-white/55">
+                    Add your first widget from the left rail.
+                  </div>
+                ) : null}
+
+                {layout.widgets.map((widget) => {
+                  const isSelected = widget.id === selectedWidgetId;
+
+                  return (
+                    <article
+                      key={widget.id}
+                      role="button"
+                      tabIndex={0}
+                      onClick={() => setSelectedWidgetId(widget.id)}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter" || event.key === " ") {
+                          event.preventDefault();
+                          setSelectedWidgetId(widget.id);
+                        }
+                      }}
+                      className={`absolute overflow-hidden rounded-[1.7rem] border bg-[#171717] shadow-[inset_0_1px_0_rgba(255,255,255,0.03)] transition ${
+                        widget.type === "divider"
+                          ? "border-transparent bg-transparent shadow-none"
+                          : isSelected
+                            ? "border-[#d4dd7f]/45"
+                            : "border-white/[0.05]"
+                      }`}
+                      style={{
+                        left: `${(widget.x / LOADOUT_GRID_COLUMNS) * 100}%`,
+                        width: `${(widget.w / LOADOUT_GRID_COLUMNS) * 100}%`,
+                        top: `${widget.y * ROW_HEIGHT}px`,
+                        height: `${widget.h * ROW_HEIGHT}px`,
+                      }}
+                    >
+                      {widget.type !== "divider" ? (
+                        <div className="flex items-center justify-between border-b border-white/[0.05] px-3 py-2 text-[10px] uppercase tracking-[0.25em] text-white/45">
+                          <button
+                            type="button"
+                            onPointerDown={(event) => beginInteraction(event, widget, "drag")}
+                            className="rounded-full border border-white/[0.08] px-2 py-1 text-white/58 transition hover:border-white/[0.16] hover:text-white"
+                          >
+                            Move
+                          </button>
+                          <span>{widget.type}</span>
+                        </div>
+                      ) : null}
+
+                      <div className={widget.type === "divider" ? "h-full p-2" : "h-[calc(100%-2.5rem)] overflow-auto p-3"}>
+                        <LoadoutBoardRenderer
+                          layout={{
+                            version: layout.version,
+                            widgets: [
+                              {
+                                ...widget,
+                                x: 0,
+                                y: 0,
+                                w: LOADOUT_GRID_COLUMNS,
+                              },
+                            ],
+                          }}
+                          products={products}
+                        />
+                      </div>
+
+                      <button
+                        type="button"
+                        onPointerDown={(event) => beginInteraction(event, widget, "resize")}
+                        className={`absolute bottom-2 right-2 h-5 w-5 rounded-full border text-[10px] ${
+                          widget.type === "divider"
+                            ? "hidden"
+                            : "border-white/[0.08] bg-[#0d0d0d] text-white/55"
+                        }`}
+                        aria-label="Resize widget"
+                      >
+                        +
+                      </button>
+                    </article>
+                  );
+                })}
+              </div>
+            )}
+          </section>
+
+          {unplacedProducts.length > 0 ? (
+            <section className="space-y-4 rounded-3xl border border-white/[0.05] bg-[#171717] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]">
+              <p className="text-[11px] uppercase tracking-[0.45em] text-white/50">
+                Products
+              </p>
+              <div className="grid gap-4 md:grid-cols-2">
+                {unplacedProducts.map((product) => (
+                  <ProductItem
+                    key={product.attachmentKey}
+                    name={product.name}
+                    brand={product.brand ?? undefined}
+                    description={product.note || product.description}
+                    imageUrl={product.imageUrl}
+                    productUrl={product.productUrl}
+                    sourceUrl={product.sourceUrl}
+                  />
+                ))}
+              </div>
+            </section>
+          ) : null}
         </div>
 
         <aside className="space-y-4 rounded-2xl border border-white/[0.04] bg-white/[0.03] p-4">
