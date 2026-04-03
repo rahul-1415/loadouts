@@ -23,11 +23,58 @@ describe("loadout publishing helpers", () => {
     expect(result.missing).toEqual(["at least one product"]);
   });
 
+  it("requires a valid custom board when publishing in custom mode", () => {
+    const result = buildPublishValidation({
+      title: "Creator Desk",
+      categoryId: "cat-001",
+      productCount: 1,
+      layoutMode: "custom",
+      bodyLayout: {
+        version: 1,
+        widgets: [],
+      },
+      allowedAttachmentKeys: ["product:1"],
+    });
+
+    expect(result.canPublish).toBe(false);
+    expect(result.missing).toEqual(["custom board"]);
+  });
+
   it("allows publishing when all required fields exist", () => {
     const result = buildPublishValidation({
       title: "Creator Desk",
       categoryId: "cat-001",
       productCount: 3,
+    });
+
+    expect(result.canPublish).toBe(true);
+    expect(result.missing).toEqual([]);
+  });
+
+  it("allows publishing a valid custom board", () => {
+    const result = buildPublishValidation({
+      title: "Creator Desk",
+      categoryId: "cat-001",
+      productCount: 1,
+      layoutMode: "custom",
+      bodyLayout: {
+        version: 1,
+        widgets: [
+          {
+            id: "widget-1",
+            type: "text",
+            x: 0,
+            y: 0,
+            w: 6,
+            h: 4,
+            title: "Desk Setup",
+            body: "",
+            align: "left",
+            style: "headline",
+          },
+        ],
+      },
+      allowedAttachmentKeys: ["product:1"],
     });
 
     expect(result.canPublish).toBe(true);

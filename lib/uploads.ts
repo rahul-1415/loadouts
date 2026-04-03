@@ -6,12 +6,21 @@ const ACCEPTED_TYPES = new Set([
   "image/gif",
 ]);
 
-export type UploadKind = "avatar" | "loadout-cover" | "product-image";
+export type UploadKind =
+  | "avatar"
+  | "loadout-cover"
+  | "product-image"
+  | "layout-image";
 
 export const uploadBucket = "media";
 
 export function validateUploadKind(value: unknown): value is UploadKind {
-  return value === "avatar" || value === "loadout-cover" || value === "product-image";
+  return (
+    value === "avatar" ||
+    value === "loadout-cover" ||
+    value === "product-image" ||
+    value === "layout-image"
+  );
 }
 
 export function validateUploadFile(file: File) {

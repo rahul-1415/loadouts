@@ -1,4 +1,8 @@
 import type { LoadoutStatus } from "./data/collections";
+import {
+  validateLoadoutLayout,
+  type LoadoutLayoutMode,
+} from "./loadoutLayout";
 
 export function normalizeRequestedStatus(value: unknown, fallback: LoadoutStatus = "draft") {
   if (value === "draft" || value === "published" || value === "archived") {
@@ -12,10 +16,16 @@ export function buildPublishValidation({
   title,
   categoryId,
   productCount,
+  layoutMode = "standard",
+  bodyLayout = null,
+  allowedAttachmentKeys = [],
 }: {
   title: string;
   categoryId: string | null;
   productCount: number;
+  layoutMode?: LoadoutLayoutMode;
+  bodyLayout?: unknown;
+  allowedAttachmentKeys?: string[];
 }) {
   const missing: string[] = [];
 
@@ -29,6 +39,17 @@ export function buildPublishValidation({
 
   if (productCount < 1) {
     missing.push("at least one product");
+  }
+
+  if (layoutMode === "custom") {
+    const layoutValidation = validateLoadoutLayout(bodyLayout, {
+      allowEmpty: false,
+      allowedAttachmentKeys,
+    });
+
+    if (!layoutValidation.ok) {
+      missing.push("custom board");
+    }
   }
 
   return {

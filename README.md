@@ -19,6 +19,7 @@ Loadouts is a Next.js + Supabase app for sharing creator/product loadouts, organ
 - Draft / published / archived loadout states with a publish checklist
 - Cover-image and avatar uploads via Supabase Storage
 - Inline product management during loadout creation and editing
+- Opt-in custom loadout boards with draggable/resizable widgets for text, media, dividers, and attached products
 - Custom product submissions stored outside the shared catalog until manually reviewed
 - Product catalog page with brand and product-category filters
 - Save/bookmark system with a dedicated saved-items page
@@ -85,9 +86,10 @@ Run these in Supabase SQL editor, in this order:
 6. Publishing + uploads + reports: `supabase/add-publishing-storage-and-reports.sql`
 7. Custom product submission review queue: `supabase/add-product-submissions.sql`
 8. Owner-scoped loadout slugs: `supabase/add-owner-scoped-loadout-slugs.sql`
-9. Fixed categories: `supabase/seed-100-categories.sql`
-10. Category images (optional starter): `supabase/seed-100-category-images.sql`
-11. Seed content/products/loadouts: `supabase/seed-content.sql`
+9. Custom loadout board fields: `supabase/add-loadout-layouts.sql`
+10. Fixed categories: `supabase/seed-100-categories.sql`
+11. Category images (optional starter): `supabase/seed-100-category-images.sql`
+12. Seed content/products/loadouts: `supabase/seed-content.sql`
 
 Verification helpers:
 - `supabase/verify-profile-onboarding-and-follows.sql`
@@ -97,6 +99,7 @@ Verification helpers:
 - `supabase/verify-publishing-storage-and-reports.sql`
 - `supabase/verify-product-submissions.sql`
 - `supabase/verify-owner-scoped-loadout-slugs.sql`
+- `supabase/verify-loadout-layouts.sql`
 
 ## Auth Provider Configuration (Supabase Dashboard)
 Enable providers you need and add redirect URLs:
@@ -131,6 +134,7 @@ set -a && source .env.local && set +a && node scripts/import-curated-product-cat
 - Like/comment writes require an authenticated user with a complete profile.
 - Save writes require an authenticated user with a complete profile.
 - Uploads require `SUPABASE_SERVICE_ROLE_KEY` on the server and the `media` bucket/policies from `supabase/add-publishing-storage-and-reports.sql`.
+- Board media uploads use the same upload pipeline with the `layout-image` kind.
 - User-submitted custom products are stored in a separate review queue and do not appear in the shared preset catalog until manually promoted.
 - `/saved` is the bookmark page; `/studio` is the creator workspace. `/my-loadouts` now redirects to `/studio` for backward compatibility.
 - Categories are intentionally fixed to the 100 seeded slugs.

@@ -11,6 +11,8 @@ import {
   normalizeRequestedStatus,
   slugifyLoadoutTitle,
 } from "../../../../lib/loadoutPublishing";
+import { getLoadoutAttachmentReferences } from "../../../../lib/loadoutAttachments";
+import { normalizeLoadoutLayoutMode } from "../../../../lib/loadoutLayout";
 import {
   enforceRateLimit,
   getRequestIdentity,
@@ -76,7 +78,7 @@ export async function PUT(request: Request, { params }: RouteContext) {
   let collectionQuery = supabase
     .from("collections")
     .select(
-      "id,slug,owner_id,kind,category_id,is_public,cover_image_url,status,published_at,archived_at"
+      "id,slug,owner_id,kind,category_id,is_public,cover_image_url,status,published_at,archived_at,layout_mode,body_layout"
     )
     .limit(1);
 
@@ -149,6 +151,10 @@ export async function PUT(request: Request, { params }: RouteContext) {
       : requestedIsPublic
         ? "published"
         : "draft"
+  );
+  const requestedLayoutMode = normalizeLoadoutLayoutMode(
+    body?.layoutMode,
+    normalizeLoadoutLayoutMode(existingCollection.layout_mode, "standard")
   );
 
   const rateLimitResponse = enforceRateLimit({
@@ -301,18 +307,26 @@ export async function PUT(request: Request, { params }: RouteContext) {
   const nextCoverImageUrl =
     coverImageUrl === null ? existingCollection.cover_image_url : coverImageUrl;
 
-  if (requestedStatus === "published") {
-    const { count: productCount, error: productCountError } = await supabase
-      .from("collection_products")
-      .select("*", { count: "exact", head: true })
-      .eq("collection_id", existingCollection.id);
+  const isPublishingNow =
+    requestedStatus === "published" && existingCollection.status !== "published";
 
-    if (productCountError) {
+  if (isPublishingNow) {
+    let attachments;
+
+    try {
+      attachments = await getLoadoutAttachmentReferences(
+        supabase,
+        existingCollection.id
+      );
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Failed to validate loadout products.";
+
       return NextResponse.json(
         {
           error: {
             code: "FETCH_FAILED",
-            message: productCountError.message,
+            message,
           },
         },
         { status: 500 }
@@ -322,7 +336,10 @@ export async function PUT(request: Request, { params }: RouteContext) {
     const validation = buildPublishValidation({
       title,
       categoryId: category.id,
-      productCount: productCount ?? 0,
+      productCount: attachments.length,
+      layoutMode: requestedLayoutMode,
+      bodyLayout: existingCollection.body_layout ?? null,
+      allowedAttachmentKeys: attachments.map((attachment) => attachment.attachmentKey),
     });
 
     if (!validation.canPublish) {
@@ -363,6 +380,7 @@ export async function PUT(request: Request, { params }: RouteContext) {
       cover_image_url: nextCoverImageUrl || null,
       is_public: requestedStatus === "published",
       status: requestedStatus,
+      layout_mode: requestedLayoutMode,
       published_at: nextPublishedAt,
       archived_at: nextArchivedAt,
       updated_at: new Date().toISOString(),
@@ -370,7 +388,7 @@ export async function PUT(request: Request, { params }: RouteContext) {
     .eq("id", existingCollection.id)
     .eq("owner_id", user.id)
     .select(
-      "id,slug,kind,title,description,category_id,is_public,owner_id,status,cover_image_url,published_at,archived_at"
+      "id,slug,kind,title,description,category_id,is_public,owner_id,status,cover_image_url,published_at,archived_at,layout_mode"
     )
     .single();
 

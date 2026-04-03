@@ -60,9 +60,10 @@ When bootstrapping a new environment, apply in order:
 6. `supabase/add-publishing-storage-and-reports.sql`
 7. `supabase/add-product-submissions.sql`
 8. `supabase/add-owner-scoped-loadout-slugs.sql`
-9. `supabase/seed-100-categories.sql`
-10. `supabase/seed-100-category-images.sql` (optional starter)
-11. `supabase/seed-content.sql`
+9. `supabase/add-loadout-layouts.sql`
+10. `supabase/seed-100-categories.sql`
+11. `supabase/seed-100-category-images.sql` (optional starter)
+12. `supabase/seed-content.sql`
 
 Validation helpers:
 - `supabase/verify-profile-onboarding-and-follows.sql`
@@ -72,6 +73,7 @@ Validation helpers:
 - `supabase/verify-publishing-storage-and-reports.sql`
 - `supabase/verify-product-submissions.sql`
 - `supabase/verify-owner-scoped-loadout-slugs.sql`
+- `supabase/verify-loadout-layouts.sql`
 
 ## Coding Rules
 1. Keep changes TypeScript-safe and App Router compatible.
@@ -108,6 +110,7 @@ Implemented:
 - Search across entities
 - Studio workspace for owned loadouts + operational visibility
 - Loadout create/edit/delete + inline product management
+- Opt-in custom loadout boards with draggable/resizable body widgets
 - Custom product submissions kept outside the approved product catalog until manually reviewed
 - Draft / published / archived loadout workflow
 - Media uploads (avatar, loadout cover, product image)

@@ -14,6 +14,7 @@ import {
   normalizeRequestedStatus,
   slugifyLoadoutTitle,
 } from "../../../lib/loadoutPublishing";
+import { normalizeLoadoutLayoutMode } from "../../../lib/loadoutLayout";
 import {
   captureOperationalEvent,
   trackMilestoneEvent,
@@ -93,6 +94,7 @@ export async function POST(request: Request) {
     body?.status,
     body?.isPublic === false ? "draft" : "published"
   );
+  const layoutMode = normalizeLoadoutLayoutMode(body?.layoutMode, "standard");
 
   const rateLimitResponse = enforceRateLimit({
     scope: "collections:create",
@@ -225,6 +227,9 @@ export async function POST(request: Request) {
       title,
       categoryId,
       productCount: 0,
+      layoutMode,
+      bodyLayout: null,
+      allowedAttachmentKeys: [],
     });
 
     if (!validation.canPublish) {
@@ -291,11 +296,12 @@ export async function POST(request: Request) {
       cover_image_url: coverImageUrl || null,
       is_public: requestedStatus === "published",
       status: requestedStatus,
+      layout_mode: layoutMode,
       published_at: requestedStatus === "published" ? now : null,
       archived_at: requestedStatus === "archived" ? now : null,
     })
     .select(
-      "id,slug,kind,title,description,category_id,is_public,owner_id,status,cover_image_url,published_at,archived_at"
+      "id,slug,kind,title,description,category_id,is_public,owner_id,status,cover_image_url,published_at,archived_at,layout_mode"
     )
     .single();
 

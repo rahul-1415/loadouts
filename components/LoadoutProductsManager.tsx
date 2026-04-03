@@ -5,12 +5,13 @@ import { useRouter } from "next/navigation";
 import Button from "./Button";
 import ImageUploadField from "./ImageUploadField";
 
-type AttachmentType = "product" | "submission";
+export type AttachmentType = "product" | "submission";
 type ComposerMode = "existing" | "custom";
 
-interface LoadoutProductItem {
+export interface LoadoutProductItem {
   attachmentType: AttachmentType;
   attachmentId: string;
+  attachmentKey: string;
   productId: string | null;
   submissionId: string | null;
   slug: string | null;
@@ -57,6 +58,7 @@ interface LoadoutProductsManagerProps {
   defaultComposerMode?: ComposerMode;
   showComposerCloseButton?: boolean;
   stickyComposer?: boolean;
+  onItemsChange?: (items: LoadoutProductItem[]) => void;
 }
 
 function normalizeSort(items: LoadoutProductItem[]) {
@@ -100,6 +102,7 @@ export default function LoadoutProductsManager({
   defaultComposerMode = "existing",
   showComposerCloseButton = true,
   stickyComposer = false,
+  onItemsChange,
 }: LoadoutProductsManagerProps) {
   const router = useRouter();
   const [items, setItems] = useState<LoadoutProductItem[]>(
@@ -126,6 +129,10 @@ export default function LoadoutProductsManager({
   const [busyAction, setBusyAction] = useState<
     "load" | "add" | "save" | "delete" | null
   >(null);
+
+  useEffect(() => {
+    onItemsChange?.(items);
+  }, [items, onItemsChange]);
 
   useEffect(() => {
     let active = true;

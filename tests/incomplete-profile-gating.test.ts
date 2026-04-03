@@ -87,4 +87,18 @@ describe("incomplete profile gating on protected routes", () => {
 
     expect(response.status).toBe(409);
   });
+
+  it("blocks custom board saves with PROFILE_INCOMPLETE", async () => {
+    const module = await importWithIncompleteAuth<
+      typeof import("../app/api/collections/[id]/layout/route")
+    >("../app/api/collections/[id]/layout/route");
+    const response = await module.PUT(
+      new Request("http://localhost/api/collections/loadout-1/layout", {
+        method: "PUT",
+      }),
+      { params: { id: "loadout-1" } }
+    );
+
+    expect(response.status).toBe(409);
+  });
 });

@@ -1,6 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import NewLoadoutForm from "../../../../components/NewLoadoutForm";
-import LoadoutProductsManager from "../../../../components/LoadoutProductsManager";
+import LoadoutEditorWorkspace from "../../../../components/LoadoutEditorWorkspace";
 import {
   getActiveCategoryOptions,
   getPublicCollectionByIdentifier,
@@ -58,16 +58,15 @@ export default async function EditLoadoutPage({ params }: EditLoadoutPageProps) 
           categoryId: loadout.category_id ?? "",
           coverImageUrl: loadout.cover_image_url ?? "",
           status: loadoutDetail.status,
+          layoutMode: loadoutDetail.layoutMode,
         }}
       />
 
-      <LoadoutProductsManager
+      <LoadoutEditorWorkspace
         collectionIdentifier={loadout.slug}
-        initialItems={[]}
-        defaultComposerOpen
-        defaultComposerMode="existing"
-        showComposerCloseButton={false}
-        stickyComposer
+        initialProducts={loadoutDetail.products}
+        layoutMode={loadoutDetail.layoutMode}
+        initialLayout={loadoutDetail.bodyLayout}
       />
     </div>
   );

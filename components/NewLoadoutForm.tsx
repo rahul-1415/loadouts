@@ -4,9 +4,13 @@ import { useMemo, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import Button from "./Button";
 import ImageUploadField from "./ImageUploadField";
-import LoadoutProductsManager from "./LoadoutProductsManager";
+import LoadoutBoardEditor from "./LoadoutBoardEditor";
+import LoadoutProductsManager, {
+  type LoadoutProductItem,
+} from "./LoadoutProductsManager";
 import type { LoadoutStatus } from "../lib/data/collections";
 import { slugifyLoadoutTitle } from "../lib/loadoutPublishing";
+import type { LoadoutLayoutMode } from "../lib/loadoutLayout";
 
 interface CategoryOption {
   id: string;
@@ -25,6 +29,7 @@ interface NewLoadoutFormProps {
     categoryId: string;
     coverImageUrl: string;
     status: LoadoutStatus;
+    layoutMode?: LoadoutLayoutMode;
   };
 }
 
@@ -69,12 +74,19 @@ export default function NewLoadoutForm({
   const [coverImageUrl, setCoverImageUrl] = useState(
     initialValues?.coverImageUrl ?? ""
   );
+  const [layoutMode, setLayoutMode] = useState<LoadoutLayoutMode>(
+    initialValues?.layoutMode ?? "standard"
+  );
   const [status] = useState<LoadoutStatus>(initialValues?.status ?? "draft");
   const [createdLoadout, setCreatedLoadout] =
     useState<CreatedLoadoutState | null>(null);
+  const [attachedProducts, setAttachedProducts] = useState<LoadoutProductItem[]>(
+    []
+  );
   const [submitting, setSubmitting] = useState(false);
   const [finalizingStatus, setFinalizingStatus] = useState<LoadoutStatus | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const totalSteps = isEditMode ? 2 : 3;
 
@@ -95,6 +107,7 @@ export default function NewLoadoutForm({
     }
 
     setErrorMessage(null);
+    setSuccessMessage(null);
     setStep(step === 3 ? 2 : 1);
   }
 
@@ -121,6 +134,7 @@ export default function NewLoadoutForm({
     }
 
     setErrorMessage(null);
+    setSuccessMessage(null);
     setStep(2);
   }
 
@@ -171,6 +185,7 @@ export default function NewLoadoutForm({
         categoryId,
         coverImageUrl: coverImageUrl.trim(),
         status: nextStatus,
+        layoutMode,
       }),
     });
 
@@ -193,6 +208,7 @@ export default function NewLoadoutForm({
     event.preventDefault();
     setSubmitting(true);
     setErrorMessage(null);
+    setSuccessMessage(null);
 
     if (isEditMode) {
       const savedLoadout = await saveLoadout(status);
@@ -202,7 +218,8 @@ export default function NewLoadoutForm({
         return;
       }
 
-      router.push(savedLoadout.path ?? `/loadouts/${savedLoadout.slug}`);
+      setSuccessMessage("Loadout details saved.");
+      router.replace(`/loadouts/${savedLoadout.slug}/edit`);
       router.refresh();
       return;
     }
@@ -232,6 +249,7 @@ export default function NewLoadoutForm({
 
     setFinalizingStatus(nextStatus);
     setErrorMessage(null);
+    setSuccessMessage(null);
 
     const savedLoadout = await saveLoadout(nextStatus);
     setFinalizingStatus(null);
@@ -349,6 +367,52 @@ export default function NewLoadoutForm({
             Category: <span className="text-white">{selectedCategoryLabel || "None"}</span>
           </div>
 
+          <div className="space-y-3">
+            <label className="text-sm font-medium text-white">
+              Body Layout
+            </label>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <button
+                type="button"
+                onClick={() => setLayoutMode("standard")}
+                className={`rounded-2xl border px-4 py-4 text-left transition ${
+                  layoutMode === "standard"
+                    ? "border-[#d4dd7f]/45 bg-[#10120d]"
+                    : "border-white/[0.08] bg-[#181818]"
+                }`}
+              >
+                <p className="text-[11px] uppercase tracking-[0.24em] text-white/50">
+                  Standard
+                </p>
+                <p className="mt-2 text-sm font-semibold text-white">
+                  Keep the current product-first layout
+                </p>
+                <p className="mt-2 text-sm text-white/60">
+                  Best for quick publishing with the fixed loadout page body.
+                </p>
+              </button>
+              <button
+                type="button"
+                onClick={() => setLayoutMode("custom")}
+                className={`rounded-2xl border px-4 py-4 text-left transition ${
+                  layoutMode === "custom"
+                    ? "border-[#d4dd7f]/45 bg-[#10120d]"
+                    : "border-white/[0.08] bg-[#181818]"
+                }`}
+              >
+                <p className="text-[11px] uppercase tracking-[0.24em] text-white/50">
+                  Custom Board
+                </p>
+                <p className="mt-2 text-sm font-semibold text-white">
+                  Build a draggable board body
+                </p>
+                <p className="mt-2 text-sm text-white/60">
+                  Add text, images, galleries, dividers, and attached product widgets in step 3.
+                </p>
+              </button>
+            </div>
+          </div>
+
           <div>
             <label className="text-sm font-medium text-white" htmlFor="title">
               Title
@@ -442,7 +506,16 @@ export default function NewLoadoutForm({
             defaultComposerMode="existing"
             showComposerCloseButton={false}
             stickyComposer
+            onItemsChange={setAttachedProducts}
           />
+
+          {layoutMode === "custom" ? (
+            <LoadoutBoardEditor
+              collectionIdentifier={createdLoadout.slug}
+              initialLayout={null}
+              products={attachedProducts}
+            />
+          ) : null}
 
           <div className="flex flex-wrap items-center gap-3">
             <Button
@@ -464,9 +537,8 @@ export default function NewLoadoutForm({
         </div>
       ) : null}
 
-      {errorMessage ? (
-        <p className="text-sm text-[#fda4a4]">{errorMessage}</p>
-      ) : null}
+      {successMessage ? <p className="text-sm text-[#86efac]">{successMessage}</p> : null}
+      {errorMessage ? <p className="text-sm text-[#fda4a4]">{errorMessage}</p> : null}
     </div>
   );
 }

@@ -4,6 +4,7 @@ import CollectionEngagement from "./CollectionEngagement";
 import ContentCard from "./ContentCard";
 import CopyLinkButton from "./CopyLinkButton";
 import DraftLoadoutActions from "./DraftLoadoutActions";
+import LoadoutBoardRenderer from "./LoadoutBoardRenderer";
 import ProductItem from "./ProductItem";
 import ReportButton from "./ReportButton";
 import type { CollectionDetail, CollectionListItem } from "../lib/data/collections";
@@ -107,22 +108,52 @@ export default function LoadoutDetailView({
         </section>
       ) : null}
 
-      <section className="grid gap-4 md:grid-cols-2">
-        {loadout.products.map((product) => (
-          <ProductItem
-            key={product.id}
-            name={product.name}
-            brand={product.brand}
-            description={product.note || product.description}
-            imageUrl={product.imageUrl}
-            productUrl={product.productUrl}
-            sourceUrl={product.sourceUrl}
+      {loadout.layoutMode === "custom" && loadout.bodyLayout ? (
+        <div className="space-y-6">
+          <LoadoutBoardRenderer
+            layout={loadout.bodyLayout}
+            products={loadout.products}
           />
-        ))}
-        {loadout.products.length === 0 ? (
-          <p className="text-sm text-white/70">No products added yet.</p>
-        ) : null}
-      </section>
+
+          {loadout.unplacedProducts.length > 0 ? (
+            <section className="space-y-4">
+              <p className="text-[11px] uppercase tracking-[0.45em] text-white/50">
+                Products
+              </p>
+              <div className="grid gap-4 md:grid-cols-2">
+                {loadout.unplacedProducts.map((product) => (
+                  <ProductItem
+                    key={product.attachmentKey}
+                    name={product.name}
+                    brand={product.brand}
+                    description={product.note || product.description}
+                    imageUrl={product.imageUrl}
+                    productUrl={product.productUrl}
+                    sourceUrl={product.sourceUrl}
+                  />
+                ))}
+              </div>
+            </section>
+          ) : null}
+        </div>
+      ) : (
+        <section className="grid gap-4 md:grid-cols-2">
+          {loadout.products.map((product) => (
+            <ProductItem
+              key={product.attachmentKey}
+              name={product.name}
+              brand={product.brand}
+              description={product.note || product.description}
+              imageUrl={product.imageUrl}
+              productUrl={product.productUrl}
+              sourceUrl={product.sourceUrl}
+            />
+          ))}
+          {loadout.products.length === 0 ? (
+            <p className="text-sm text-white/70">No products added yet.</p>
+          ) : null}
+        </section>
+      )}
 
       <CollectionEngagement
         collectionId={loadout.id}

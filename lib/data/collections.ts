@@ -5,6 +5,14 @@ import {
   FIXED_CATEGORY_MIN_SLUG,
   isFixedCategorySlug,
 } from "./fixedCategories";
+import {
+  getAttachmentKey,
+  getReferencedAttachmentKeys,
+  normalizeLoadoutLayoutMode,
+  validateLoadoutLayout,
+  type LoadoutLayout,
+  type LoadoutLayoutMode,
+} from "../loadoutLayout";
 
 export type CollectionKind = "category" | "loadout";
 export type LoadoutStatus = "draft" | "published" | "archived";
@@ -22,6 +30,9 @@ interface CollectionRow {
   published_at: string | null;
   archived_at: string | null;
   created_at: string;
+  layout_mode?: LoadoutLayoutMode | null;
+  body_layout?: unknown | null;
+  body_layout_updated_at?: string | null;
 }
 
 interface OwnedCollectionRow extends CollectionRow {
@@ -119,6 +130,7 @@ interface ProductSubmissionRow {
   image_url: string | null;
   product_url: string | null;
   source_url: string | null;
+  review_status: "pending" | "approved" | "rejected" | null;
 }
 
 function isDefined<T>(value: T | null): value is T {
@@ -149,6 +161,11 @@ export interface OwnedLoadoutListItem extends CollectionListItem {
 }
 
 export interface CollectionProductItem {
+  attachmentType: "product" | "submission";
+  attachmentId: string;
+  attachmentKey: string;
+  productId: string | null;
+  submissionId: string | null;
   id: string;
   slug: string | null;
   name: string;
@@ -159,6 +176,7 @@ export interface CollectionProductItem {
   sourceUrl: string | null;
   note: string | null;
   sortOrder: number;
+  reviewStatus: "pending" | "approved" | "rejected" | null;
 }
 
 export interface CollectionCommentItem {
@@ -173,10 +191,13 @@ export interface CollectionDetail extends CollectionListItem {
   isPublic: boolean;
   categoryId: string | null;
   category: CategoryDetailItem | null;
+  layoutMode: LoadoutLayoutMode;
+  bodyLayout: LoadoutLayout | null;
   viewerHasLiked: boolean;
   viewerHasSaved: boolean;
   likeCount: number;
   products: CollectionProductItem[];
+  unplacedProducts: CollectionProductItem[];
   comments: CollectionCommentItem[];
   publishChecklist: PublishChecklist | null;
 }
@@ -213,7 +234,7 @@ export interface CategoryCardFields {
 
 export interface PublishChecklist {
   items: Array<{
-    key: "title" | "description" | "category" | "cover" | "products";
+    key: "title" | "category" | "products" | "layout";
     label: string;
     complete: boolean;
   }>;
@@ -273,16 +294,18 @@ function normalizeLoadoutStatus(
 
 function buildPublishChecklist({
   title,
-  description,
   categoryId,
-  coverImageUrl,
   productCount,
+  layoutMode,
+  bodyLayout,
+  allowedAttachmentKeys,
 }: {
   title: string;
-  description: string | null;
   categoryId?: string | null;
-  coverImageUrl?: string | null;
   productCount: number;
+  layoutMode: LoadoutLayoutMode;
+  bodyLayout: unknown;
+  allowedAttachmentKeys: string[];
 }): PublishChecklist {
   const items: PublishChecklist["items"] = [
     {
@@ -291,19 +314,9 @@ function buildPublishChecklist({
       complete: title.trim().length > 0,
     },
     {
-      key: "description",
-      label: "Write a description",
-      complete: Boolean(description?.trim()),
-    },
-    {
       key: "category",
       label: "Choose a category",
       complete: Boolean(categoryId),
-    },
-    {
-      key: "cover",
-      label: "Upload a cover image",
-      complete: Boolean(coverImageUrl),
     },
     {
       key: "products",
@@ -311,6 +324,19 @@ function buildPublishChecklist({
       complete: productCount > 0,
     },
   ];
+
+  if (layoutMode === "custom") {
+    const layoutValidation = validateLoadoutLayout(bodyLayout, {
+      allowEmpty: false,
+      allowedAttachmentKeys,
+    });
+
+    items.push({
+      key: "layout",
+      label: "Build a custom board",
+      complete: layoutValidation.ok,
+    });
+  }
 
   return {
     items,
@@ -481,6 +507,11 @@ async function hydrateCollectionDetail(
       }
 
       return {
+        attachmentType: "product",
+        attachmentId: product.id,
+        attachmentKey: getAttachmentKey("product", product.id),
+        productId: product.id,
+        submissionId: null,
         id: product.id,
         slug: product.slug,
         name: product.name,
@@ -491,6 +522,7 @@ async function hydrateCollectionDetail(
         sourceUrl: product.source_url,
         note: row.note,
         sortOrder: row.sort_order ?? 0,
+        reviewStatus: "approved",
       } as CollectionProductItem;
     })
     .filter(isDefined);
@@ -506,6 +538,11 @@ async function hydrateCollectionDetail(
       }
 
       return {
+        attachmentType: "submission",
+        attachmentId: product.id,
+        attachmentKey: getAttachmentKey("submission", product.id),
+        productId: null,
+        submissionId: product.id,
         id: product.id,
         slug: null,
         name: product.name,
@@ -516,6 +553,7 @@ async function hydrateCollectionDetail(
         sourceUrl: product.source_url,
         note: row.note,
         sortOrder: row.sort_order ?? 0,
+        reviewStatus: product.review_status ?? "pending",
       } as CollectionProductItem;
     })
     .filter(isDefined);
@@ -523,6 +561,26 @@ async function hydrateCollectionDetail(
   const products = [...approvedProducts, ...submittedProducts].sort(
     (left, right) => left.sortOrder - right.sortOrder
   );
+  const layoutMode = normalizeLoadoutLayoutMode(
+    collection.layout_mode,
+    "standard"
+  );
+  const allowedAttachmentKeys = products.map((product) => product.attachmentKey);
+  const layoutValidation = validateLoadoutLayout(collection.body_layout ?? null, {
+    allowEmpty: true,
+    allowedAttachmentKeys,
+  });
+  const bodyLayout =
+    layoutValidation.ok && layoutValidation.layout?.widgets.length
+      ? layoutValidation.layout
+      : null;
+  const referencedAttachmentKeys = new Set(getReferencedAttachmentKeys(bodyLayout));
+  const unplacedProducts =
+    layoutMode === "custom" && bodyLayout
+      ? products.filter(
+          (product) => !referencedAttachmentKeys.has(product.attachmentKey)
+        )
+      : [];
 
   const { data: commentsData, error: commentsError } = await supabase
     .from("comments")
@@ -595,19 +653,23 @@ async function hydrateCollectionDetail(
     isPublic: collection.is_public,
     categoryId: collection.category_id,
     category,
+    layoutMode,
+    bodyLayout,
     viewerHasLiked,
     viewerHasSaved,
     likeCount: likeCount ?? 0,
     products,
+    unplacedProducts,
     comments,
     publishChecklist:
       collection.kind === "loadout"
         ? buildPublishChecklist({
             title: collection.title,
-            description: collection.description,
             categoryId: collection.category_id,
-            coverImageUrl: collection.cover_image_url,
             productCount: products.length,
+            layoutMode,
+            bodyLayout: collection.body_layout ?? null,
+            allowedAttachmentKeys,
           })
         : null,
   };
@@ -660,7 +722,7 @@ export async function getPublicCollectionByIdentifier(
   let query = supabase
     .from("collections")
     .select(
-      "id,slug,kind,owner_id,title,description,cover_image_url,is_public,status,published_at,archived_at,created_at,category_id"
+      "id,slug,kind,owner_id,title,description,cover_image_url,is_public,status,published_at,archived_at,created_at,category_id,layout_mode,body_layout,body_layout_updated_at"
     )
     .limit(1);
 
@@ -727,7 +789,7 @@ export async function getPublicLoadoutByHandleAndSlug(
   let query = supabase
     .from("collections")
     .select(
-      "id,slug,kind,owner_id,title,description,cover_image_url,is_public,status,published_at,archived_at,created_at,category_id"
+      "id,slug,kind,owner_id,title,description,cover_image_url,is_public,status,published_at,archived_at,created_at,category_id,layout_mode,body_layout,body_layout_updated_at"
     )
     .eq("owner_id", ownerProfile.id)
     .eq("kind", "loadout")
@@ -788,7 +850,7 @@ export async function getOwnedLoadoutByIdentifier(
   let query = supabase
     .from("collections")
     .select(
-      "id,slug,kind,owner_id,title,description,cover_image_url,status,published_at,archived_at,created_at,is_public,category_id"
+      "id,slug,kind,owner_id,title,description,cover_image_url,status,published_at,archived_at,created_at,is_public,category_id,layout_mode,body_layout,body_layout_updated_at"
     )
     .eq("owner_id", ownerId)
     .eq("kind", "loadout")
