@@ -17,7 +17,7 @@ export default async function NewLoadoutPage() {
   ]);
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6">
+    <div className="mx-auto max-w-[1520px] space-y-8 px-4 sm:px-6 lg:px-8">
       <header>
         <p className="text-[11px] uppercase tracking-[0.45em] text-white/50">
           New Loadout
@@ -26,8 +26,8 @@ export default async function NewLoadoutPage() {
           Create a new loadout
         </h1>
         <p className="mt-2 text-sm text-white/70">
-          Step 1 selects category. Step 2 adds details. Step 3 adds products,
-          then lets you save a draft or create the loadout.
+          Step 1 selects category. Step 2 adds details. Step 3 adds products.
+          Custom boards get a full-width edit-layout step before publish.
         </p>
       </header>
 

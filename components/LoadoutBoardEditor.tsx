@@ -483,9 +483,9 @@ export default function LoadoutBoardEditor({
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <p className="text-[11px] uppercase tracking-[0.45em] text-white/50">
-              Custom Board
+              Edit Layout
             </p>
-            <h2 className="text-2xl font-semibold text-white">Arrange your loadout body</h2>
+            <h2 className="text-2xl font-semibold text-white">Shape the post body</h2>
             <p className="mt-2 text-xs uppercase tracking-[0.22em] text-white/45">
               {hasUnsavedChanges ? "Unsaved changes" : "Board saved"}
             </p>
@@ -505,7 +505,7 @@ export default function LoadoutBoardEditor({
               className="px-4 py-2 text-[10px]"
               onClick={() => setPreviewMode(true)}
             >
-              Preview
+              Preview Post
             </Button>
             <Button
               type="button"
@@ -526,7 +526,7 @@ export default function LoadoutBoardEditor({
           </div>
         </div>
         <p className="text-sm text-white/70">
-          Add text, images, galleries, dividers, and attached products. Drag widgets to move them and use the corner handle to resize.
+          Add text, images, galleries, dividers, and attached products. Drag widgets to place them directly inside the final post body and use the corner handle to resize.
         </p>
         <p className="text-xs uppercase tracking-[0.2em] text-white/45">
           {compactMessage(products)}
@@ -779,7 +779,7 @@ export default function LoadoutBoardEditor({
 
         <aside className="space-y-4 rounded-2xl border border-white/[0.04] bg-white/[0.03] p-4">
           <div className="flex items-center justify-between gap-3">
-            <p className="text-[11px] uppercase tracking-[0.3em] text-white/50">Inspector</p>
+              <p className="text-[11px] uppercase tracking-[0.3em] text-white/50">Widget Controls</p>
             {selectedWidget ? (
               <div className="flex gap-2">
                 <Button

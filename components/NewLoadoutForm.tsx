@@ -323,8 +323,8 @@ export default function NewLoadoutForm({
   }
 
   return (
-    <div className="space-y-5 rounded-3xl border border-white/[0.05] bg-[#171717] p-6">
-      <div className="flex items-center justify-between text-[11px] uppercase tracking-[0.3em] text-white/55">
+    <div className="space-y-6">
+      <div className="flex items-center justify-between rounded-3xl border border-white/[0.05] bg-[#171717] px-5 py-4 text-[11px] uppercase tracking-[0.3em] text-white/55 sm:px-6">
         <div className="flex items-center gap-3">
           <button
             type="button"
@@ -342,7 +342,7 @@ export default function NewLoadoutForm({
       </div>
 
       {step === 1 ? (
-        <div className="space-y-4">
+        <div className="space-y-4 rounded-3xl border border-white/[0.05] bg-[#171717] p-6 sm:p-8">
           <div>
             <label className="text-sm font-medium text-white" htmlFor="category">
               Category
@@ -381,7 +381,7 @@ export default function NewLoadoutForm({
       ) : null}
 
       {step === 2 ? (
-        <form className="space-y-4" onSubmit={handleStepTwoSubmit}>
+        <form className="space-y-4 rounded-3xl border border-white/[0.05] bg-[#171717] p-6 sm:p-8" onSubmit={handleStepTwoSubmit}>
           <div className="rounded-2xl border border-white/[0.04] bg-white/[0.03] px-4 py-3 text-xs uppercase tracking-[0.25em] text-white/60">
             Category: <span className="text-white">{selectedCategoryLabel || "None"}</span>
           </div>
@@ -517,7 +517,7 @@ export default function NewLoadoutForm({
             </h2>
             <p className="mt-2 text-sm text-white/70">
               {isCustomFlow
-                ? "Attach the products that belong in this loadout, then continue to the full post preview to place widgets and finalize it."
+                ? "Attach the products that belong in this loadout, then continue to the full edit-layout view to place widgets and finalize it."
                 : "Add the products first, then choose whether to save this loadout as a draft or publish it."}
             </p>
           </div>
@@ -539,7 +539,7 @@ export default function NewLoadoutForm({
                 onClick={goToPreviewStep}
                 disabled={finalizingStatus !== null}
               >
-                Continue to Preview
+                Continue to Edit Layout
               </Button>
             ) : (
               <>
@@ -571,7 +571,7 @@ export default function NewLoadoutForm({
               Step 4
             </p>
             <h2 className="mt-2 text-2xl font-semibold text-white">
-              Preview and edit your post
+              Edit layout
             </h2>
             <p className="mt-2 text-sm text-white/70">
               This step mirrors the public loadout page. Adjust the board while previewing how the final post will read.

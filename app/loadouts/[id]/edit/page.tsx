@@ -35,7 +35,7 @@ export default async function EditLoadoutPage({ params }: EditLoadoutPageProps) 
   }
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6">
+    <div className="mx-auto max-w-[1520px] space-y-8 px-4 sm:px-6 lg:px-8">
       <header>
         <p className="text-[11px] uppercase tracking-[0.45em] text-white/50">
           Edit Loadout
@@ -44,7 +44,8 @@ export default async function EditLoadoutPage({ params }: EditLoadoutPageProps) 
           Update your loadout
         </h1>
         <p className="mt-2 text-sm text-white/70">
-          Edit category, title, description, and visibility.
+          Edit the details first, then adjust products and the layout using the
+          full-width workspace below.
         </p>
       </header>
 
