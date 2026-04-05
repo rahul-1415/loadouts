@@ -40,6 +40,7 @@ Loadouts is a Next.js + Supabase app for sharing creator/product loadouts, organ
 - `data/` curated product catalog manifest used for taxonomy and imports
 - `supabase/` SQL schema, migrations, and seed docs
 - `scripts/` utility scripts (image fetch + social seed + product catalog import)
+- `mcp/` example MCP configs for Cursor, VS Code, and Codex
 
 ## Local Setup
 1. Install dependencies:
@@ -129,6 +130,12 @@ node scripts/seed-test-social-flow.mjs --seed=demo1
 ```bash
 set -a && source .env.local && set +a && node scripts/import-curated-product-catalog.mjs
 ```
+
+## UI + MCP Tooling
+- `shadcn/ui` is scaffolded for this repo via `components.json`, `lib/utils.ts`, and the `@/*` import alias.
+- `Magic UI` can be installed through the `shadcn` CLI.
+- Example MCP configs for `Context7`, `Supabase`, and `shadcn` live in `mcp/`.
+- Full setup notes: `docs/tooling-integrations.md`
 
 ## Important Notes
 - Like/comment writes require an authenticated user with a complete profile.
