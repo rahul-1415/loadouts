@@ -314,9 +314,9 @@ export default function LoadoutProductsManager({
     const normalizedItems = normalizeSort(payload?.data?.items ?? []);
     setItems(normalizedItems);
     setSavedItemsSignature(serializeManagedItems(normalizedItems));
+    setSelectedProductId("");
     setMessage("Product added.");
     setBusyAction(null);
-    resetComposer();
     router.refresh();
   };
 

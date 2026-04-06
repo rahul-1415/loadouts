@@ -456,6 +456,9 @@ export default function NewLoadoutForm({
             value={coverImageUrl}
             onChange={setCoverImageUrl}
             helpText="Optional. You can add a cover image now or later."
+            previewClassName="aspect-[5/4]"
+            imageFit="contain"
+            emptyStateLabel="Upload a cover image"
           />
 
           <div className="flex flex-wrap items-center justify-between gap-3">

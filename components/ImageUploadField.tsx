@@ -10,6 +10,9 @@ interface ImageUploadFieldProps {
   value: string;
   onChange: (nextValue: string) => void;
   helpText?: string;
+  previewClassName?: string;
+  imageFit?: "cover" | "contain";
+  emptyStateLabel?: string;
 }
 
 export default function ImageUploadField({
@@ -18,6 +21,9 @@ export default function ImageUploadField({
   value,
   onChange,
   helpText,
+  previewClassName = "h-32",
+  imageFit = "cover",
+  emptyStateLabel = "No image uploaded",
 }: ImageUploadFieldProps) {
   const inputId = useId();
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -86,12 +92,20 @@ export default function ImageUploadField({
       />
 
       {value ? (
-        <div className="overflow-hidden rounded-2xl border border-white/[0.08] bg-[#111111]">
-          <img src={value} alt={label} className="h-40 w-full object-cover" />
+        <div
+          className={`${previewClassName} overflow-hidden rounded-2xl border border-white/[0.08] bg-[#111111]`}
+        >
+          <img
+            src={value}
+            alt={label}
+            className={`h-full w-full ${imageFit === "contain" ? "object-contain p-3" : "object-cover"}`}
+          />
         </div>
       ) : (
-        <div className="grid h-32 place-items-center rounded-2xl border border-dashed border-white/[0.08] bg-[#111111] text-xs uppercase tracking-[0.2em] text-white/40">
-          No image uploaded
+        <div
+          className={`${previewClassName} grid place-items-center rounded-2xl border border-dashed border-white/[0.08] bg-[#111111] px-4 text-center text-xs uppercase tracking-[0.2em] text-white/40`}
+        >
+          {emptyStateLabel}
         </div>
       )}
 
