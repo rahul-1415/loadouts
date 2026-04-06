@@ -44,6 +44,19 @@ Optional (admin-only seed scripts):
 - Data access layer: `lib/data/*`
 - SQL migrations/seeds: `supabase/*`
 
+## Optional Tooling
+Recommended MCPs for agents working on this repo:
+- `supabase`: inspect schema/data and verify migrations
+- `context7`: fetch current library docs for unstable APIs
+- `shadcn`: inspect/add `shadcn/ui` components
+- `magicui`: inspect Magic UI components before adding them
+- `figma`: design context and UI exploration
+
+Notes:
+- MCPs are optional tooling, not runtime dependencies of the deployed app.
+- Do not block implementation if an MCP server is unavailable.
+- `svelte` MCP is tooling-only here and must not be used to justify adding Svelte runtime dependencies to this Next.js/React codebase.
+
 ## Naming Conventions
 - Use `category` for the fixed discovery taxonomy only.
 - Use `loadout` for creator-published setups in UI copy and route naming.
