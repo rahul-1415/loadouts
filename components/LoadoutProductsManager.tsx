@@ -609,41 +609,50 @@ export default function LoadoutProductsManager({
                 </div>
               </div>
 
-              <div className="flex items-center justify-between gap-3">
-                <p className="text-[11px] uppercase tracking-[0.25em] text-white/55">
-                  {filteredProducts.length} matching products
-                </p>
-                {selectedProduct ? (
-                  <Button
-                    type="button"
-                    onClick={addExistingProduct}
-                    disabled={busyAction !== null}
-                  >
-                    Add Selected Product
-                  </Button>
-                ) : null}
-              </div>
-
-              {selectedProduct ? (
-                <div className="flex gap-3 rounded-2xl border border-[#d4dd7f]/22 bg-[#11140d] p-3">
-                  <ProductThumb
-                    imageUrl={selectedProduct.imageUrl}
-                    name={selectedProduct.name}
-                  />
-                  <div className="min-w-0 space-y-1 text-xs text-white/60">
-                    <p className="text-sm font-semibold text-white">
-                      {selectedProduct.name}
-                      {selectedProduct.brand ? ` — ${selectedProduct.brand}` : ""}
-                    </p>
-                    <p>{selectedProduct.description || "No description."}</p>
-                    {selectedProduct.categoryLabel ? (
-                      <p className="uppercase tracking-[0.2em] text-white/45">
-                        {selectedProduct.categoryLabel}
-                      </p>
-                    ) : null}
-                  </div>
+              <div className="sticky top-0 z-10 -mx-1 rounded-2xl border border-white/[0.06] bg-[#111111]/95 p-3 shadow-[0_12px_32px_rgba(0,0,0,0.22)] backdrop-blur">
+                <div className="flex items-center justify-between gap-3">
+                  <p className="text-[11px] uppercase tracking-[0.25em] text-white/55">
+                    {filteredProducts.length} matching products
+                  </p>
+                  {selectedProduct ? (
+                    <Button
+                      type="button"
+                      onClick={addExistingProduct}
+                      disabled={busyAction !== null}
+                    >
+                      Add Selected Product
+                    </Button>
+                  ) : null}
                 </div>
-              ) : null}
+
+                {selectedProduct ? (
+                  <div className="mt-3 flex gap-3 rounded-2xl border border-[#d4dd7f]/22 bg-[#11140d] p-3">
+                    <ProductThumb
+                      imageUrl={selectedProduct.imageUrl}
+                      name={selectedProduct.name}
+                    />
+                    <div className="min-w-0 space-y-1 text-xs text-white/60">
+                      <p className="text-[11px] uppercase tracking-[0.22em] text-[#e6ef92]">
+                        Currently selected
+                      </p>
+                      <p className="text-sm font-semibold text-white">
+                        {selectedProduct.name}
+                        {selectedProduct.brand ? ` — ${selectedProduct.brand}` : ""}
+                      </p>
+                      <p>{selectedProduct.description || "No description."}</p>
+                      {selectedProduct.categoryLabel ? (
+                        <p className="uppercase tracking-[0.2em] text-white/45">
+                          {selectedProduct.categoryLabel}
+                        </p>
+                      ) : null}
+                    </div>
+                  </div>
+                ) : (
+                  <p className="mt-3 text-sm text-white/55">
+                    Select a product from the catalog to add it to this loadout.
+                  </p>
+                )}
+              </div>
 
               <div className="grid gap-2">
                 {filteredProducts.length === 0 ? (
