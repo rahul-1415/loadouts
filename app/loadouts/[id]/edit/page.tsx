@@ -44,8 +44,8 @@ export default async function EditLoadoutPage({ params }: EditLoadoutPageProps) 
           Update your loadout
         </h1>
         <p className="mt-2 text-sm text-white/70">
-          Edit the details first, then adjust products and the layout using the
-          full-width workspace below.
+          Save the basics first, then use the workspace below to switch between
+          products, layout, and a final review of the post.
         </p>
       </header>
 

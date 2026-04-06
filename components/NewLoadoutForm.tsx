@@ -5,12 +5,17 @@ import { useRouter } from "next/navigation";
 import Button from "./Button";
 import ImageUploadField from "./ImageUploadField";
 import LoadoutBoardEditor from "./LoadoutBoardEditor";
+import LoadoutPostPreview from "./LoadoutPostPreview";
 import LoadoutProductsManager, {
   type LoadoutProductItem,
 } from "./LoadoutProductsManager";
 import type { LoadoutStatus } from "../lib/data/collections";
 import { slugifyLoadoutTitle } from "../lib/loadoutPublishing";
-import type { LoadoutLayoutMode } from "../lib/loadoutLayout";
+import {
+  createEmptyLoadoutLayout,
+  type LoadoutLayout,
+  type LoadoutLayoutMode,
+} from "../lib/loadoutLayout";
 
 interface CategoryOption {
   id: string;
@@ -54,7 +59,7 @@ interface CreatedLoadoutState {
   title: string;
 }
 
-type CreateFlowStep = 1 | 2 | 3 | 4;
+type CreateFlowStep = 1 | 2 | 3 | 4 | 5;
 
 export default function NewLoadoutForm({
   categories,
@@ -85,13 +90,14 @@ export default function NewLoadoutForm({
   const [attachedProducts, setAttachedProducts] = useState<LoadoutProductItem[]>(
     []
   );
+  const [boardLayout, setBoardLayout] = useState<LoadoutLayout | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [finalizingStatus, setFinalizingStatus] = useState<LoadoutStatus | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const isCustomFlow = !isEditMode && layoutMode === "custom";
-  const totalSteps = isEditMode ? 2 : isCustomFlow ? 4 : 3;
+  const totalSteps = isEditMode ? 2 : isCustomFlow ? 5 : 4;
 
   function goBackInFlow() {
     if (step === 1) {
@@ -111,6 +117,11 @@ export default function NewLoadoutForm({
 
     setErrorMessage(null);
     setSuccessMessage(null);
+    if (step === 5) {
+      setStep(4);
+      return;
+    }
+
     if (step === 4) {
       setStep(3);
       return;
@@ -155,6 +166,17 @@ export default function NewLoadoutForm({
     setErrorMessage(null);
     setSuccessMessage(null);
     setStep(4);
+  }
+
+  function goToReviewStep() {
+    if (attachedProducts.length === 0) {
+      setErrorMessage("Add at least one product before continuing to review.");
+      return;
+    }
+
+    setErrorMessage(null);
+    setSuccessMessage(null);
+    setStep(isCustomFlow ? 5 : 4);
   }
 
   async function saveLoadout(nextStatus: LoadoutStatus) {
@@ -255,6 +277,7 @@ export default function NewLoadoutForm({
       slug: savedDraft.slug,
       title: title.trim(),
     });
+    setBoardLayout(createEmptyLoadoutLayout());
     setStep(3);
     router.refresh();
   }
@@ -426,7 +449,7 @@ export default function NewLoadoutForm({
                   Build a draggable board body
                 </p>
                 <p className="mt-2 text-sm text-white/60">
-                  Add text, images, galleries, dividers, and attached product widgets in step 3.
+                  Add text, images, galleries, dividers, and attached product widgets in the edit-layout step after products.
                 </p>
               </button>
             </div>
@@ -511,14 +534,12 @@ export default function NewLoadoutForm({
               Step 3
             </p>
             <h2 className="mt-2 text-2xl font-semibold text-white">
-              {isCustomFlow
-                ? "Add products before previewing your post"
-                : "Add products and finish your loadout"}
+              Build the product stack
             </h2>
             <p className="mt-2 text-sm text-white/70">
               {isCustomFlow
-                ? "Attach the products that belong in this loadout, then continue to the full edit-layout view to place widgets and finalize it."
-                : "Add the products first, then choose whether to save this loadout as a draft or publish it."}
+                ? "Attach the products that belong in this loadout, then continue to the edit-layout workspace to shape the post body."
+                : "Attach the products that belong in this loadout, then continue to review and publish."}
             </p>
           </div>
 
@@ -537,28 +558,18 @@ export default function NewLoadoutForm({
               <Button
                 type="button"
                 onClick={goToPreviewStep}
-                disabled={finalizingStatus !== null}
+                disabled={attachedProducts.length === 0}
               >
                 Continue to Edit Layout
               </Button>
             ) : (
-              <>
-                <Button
-                  type="button"
-                  variant="secondary"
-                  onClick={() => finalizeCreate("draft")}
-                  disabled={finalizingStatus !== null}
-                >
-                  {finalizingStatus === "draft" ? "Saving Draft..." : "Draft"}
-                </Button>
-                <Button
-                  type="button"
-                  onClick={() => finalizeCreate("published")}
-                  disabled={finalizingStatus !== null}
-                >
-                  {finalizingStatus === "published" ? "Creating..." : "Create Loadout"}
-                </Button>
-              </>
+              <Button
+                type="button"
+                onClick={goToReviewStep}
+                disabled={attachedProducts.length === 0}
+              >
+                Continue to Review
+              </Button>
             )}
           </div>
         </div>
@@ -580,8 +591,9 @@ export default function NewLoadoutForm({
 
           <LoadoutBoardEditor
             collectionIdentifier={createdLoadout.slug}
-            initialLayout={null}
+            initialLayout={boardLayout}
             products={attachedProducts}
+            onLayoutChange={setBoardLayout}
             previewMeta={{
               title,
               description,
@@ -595,18 +607,59 @@ export default function NewLoadoutForm({
           <div className="flex flex-wrap items-center gap-3">
             <Button
               type="button"
+              onClick={goToReviewStep}
+              disabled={attachedProducts.length === 0}
+            >
+              Continue to Review
+            </Button>
+          </div>
+        </div>
+      ) : null}
+
+      {((step === 4 && !isCustomFlow) || (step === 5 && isCustomFlow)) &&
+      createdLoadout ? (
+        <div className="space-y-5">
+          <div className="rounded-2xl border border-white/[0.04] bg-white/[0.03] px-4 py-4">
+            <p className="text-[11px] uppercase tracking-[0.35em] text-white/50">
+              {isCustomFlow ? "Step 5" : "Step 4"}
+            </p>
+            <h2 className="mt-2 text-2xl font-semibold text-white">
+              Review & publish
+            </h2>
+            <p className="mt-2 text-sm text-white/70">
+              Check the full post preview, then save a draft or publish the loadout.
+            </p>
+          </div>
+
+          <LoadoutPostPreview
+            title={title}
+            description={description}
+            coverImageUrl={coverImageUrl}
+            categoryLabel={selectedCategoryLabel}
+            authorLabel="You"
+            statusLabel="draft"
+            layoutMode={layoutMode}
+            layout={layoutMode === "custom" ? boardLayout : null}
+            products={attachedProducts}
+            heading="Review"
+            subheading="This mirrors the public post shell and the body/products that will be published."
+          />
+
+          <div className="flex flex-wrap items-center gap-3">
+            <Button
+              type="button"
               variant="secondary"
               onClick={() => finalizeCreate("draft")}
               disabled={finalizingStatus !== null}
             >
-              {finalizingStatus === "draft" ? "Saving Draft..." : "Draft"}
+              {finalizingStatus === "draft" ? "Saving Draft..." : "Save Draft"}
             </Button>
             <Button
               type="button"
               onClick={() => finalizeCreate("published")}
               disabled={finalizingStatus !== null}
             >
-              {finalizingStatus === "published" ? "Creating..." : "Create Loadout"}
+              {finalizingStatus === "published" ? "Publishing..." : "Publish Loadout"}
             </Button>
           </div>
         </div>

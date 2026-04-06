@@ -11,13 +11,12 @@ import { useRouter } from "next/navigation";
 import Button from "./Button";
 import ImageUploadField from "./ImageUploadField";
 import LoadoutBoardRenderer from "./LoadoutBoardRenderer";
-import ProductItem from "./ProductItem";
+import LoadoutPostPreview from "./LoadoutPostPreview";
 import type { LoadoutProductItem } from "./LoadoutProductsManager";
 import {
   LOADOUT_GRID_COLUMNS,
   createDefaultWidget,
   createEmptyLoadoutLayout,
-  getReferencedAttachmentKeys,
   validateLoadoutLayout,
   type GalleryWidget,
   type LoadoutLayout,
@@ -32,6 +31,7 @@ interface LoadoutBoardEditorProps {
   collectionIdentifier: string;
   initialLayout: LoadoutLayout | null;
   products: LoadoutProductItem[];
+  onLayoutChange?: (layout: LoadoutLayout) => void;
   previewMeta?: {
     title: string;
     description: string;
@@ -184,6 +184,7 @@ export default function LoadoutBoardEditor({
   collectionIdentifier,
   initialLayout,
   products,
+  onLayoutChange,
   previewMeta,
 }: LoadoutBoardEditorProps) {
   const router = useRouter();
@@ -217,6 +218,10 @@ export default function LoadoutBoardEditor({
       return nextLayout.widgets[0]?.id ?? null;
     });
   }, [initialLayout]);
+
+  useEffect(() => {
+    onLayoutChange?.(layout);
+  }, [layout, onLayoutChange]);
 
   useEffect(() => {
     if (!canvasRef.current || typeof ResizeObserver === "undefined") {
@@ -322,18 +327,6 @@ export default function LoadoutBoardEditor({
   );
   const layoutSignature = useMemo(() => serializeLayout(layout), [layout]);
   const hasUnsavedChanges = layoutSignature !== savedLayoutSignature;
-  const referencedAttachmentKeys = useMemo(
-    () => new Set(getReferencedAttachmentKeys(layout)),
-    [layout]
-  );
-  const unplacedProducts = useMemo(
-    () =>
-      products.filter(
-        (product) => !referencedAttachmentKeys.has(product.attachmentKey)
-      ),
-    [products, referencedAttachmentKeys]
-  );
-
   const localValidation = useMemo(
     () =>
       validateLoadoutLayout(layout, {
@@ -526,7 +519,7 @@ export default function LoadoutBoardEditor({
           </div>
         </div>
         <p className="text-sm text-white/70">
-          Add text, images, galleries, dividers, and attached products. Drag widgets to place them directly inside the final post body and use the corner handle to resize.
+          Build the body of the post against a live preview. Keep the post shell fixed and shape only the content area.
         </p>
         <p className="text-xs uppercase tracking-[0.2em] text-white/45">
           {compactMessage(products)}
@@ -535,24 +528,40 @@ export default function LoadoutBoardEditor({
 
       <div className="grid gap-5 xl:grid-cols-[260px_minmax(0,1fr)_300px]">
         <aside className="space-y-3 rounded-2xl border border-white/[0.04] bg-white/[0.03] p-4">
-          <p className="text-[11px] uppercase tracking-[0.3em] text-white/50">Add Widget</p>
+          <div className="space-y-2">
+            <p className="text-[11px] uppercase tracking-[0.3em] text-white/50">
+              Add Widget
+            </p>
+            <p className="text-sm text-white/62">
+              Start with a text block or drop in product cards after the loadout products are attached.
+            </p>
+          </div>
           <div className="grid gap-2">
             {([
-              ["text", "Text block"],
-              ["image", "Single image"],
-              ["gallery", "Gallery"],
-              ["product", "Product card"],
-              ["divider", "Divider"],
-            ] as Array<[LoadoutWidgetType, string]>).map(([type, label]) => (
-              <Button
+              ["text", "Text block", "Headline, intro, or notes"],
+              ["image", "Single image", "Hero media or supporting shot"],
+              ["gallery", "Gallery", "2 to 6 images in one block"],
+              ["product", "Product card", "Reference an attached product"],
+              ["divider", "Divider", "Break the layout into sections"],
+            ] as Array<[LoadoutWidgetType, string, string]>).map(
+              ([type, label, description]) => (
+              <button
                 key={type}
                 type="button"
-                variant="secondary"
                 onClick={() => addWidget(type)}
                 disabled={type === "product" && productOptions.length === 0}
+                className={`rounded-2xl border px-4 py-4 text-left transition ${
+                  type === "product" && productOptions.length === 0
+                    ? "cursor-not-allowed border-white/[0.04] bg-[#121212] text-white/35"
+                    : "border-white/[0.06] bg-[#171717] text-white hover:border-[#d4dd7f]/30 hover:bg-[#1a1d13]"
+                }`}
               >
-                {label}
-              </Button>
+                <p className="text-[11px] uppercase tracking-[0.25em] text-white/45">
+                  {label}
+                </p>
+                <p className="mt-2 text-sm font-semibold">{label}</p>
+                <p className="mt-2 text-sm text-white/58">{description}</p>
+              </button>
             ))}
           </div>
           {layout.widgets.length > 0 ? (
@@ -606,44 +615,6 @@ export default function LoadoutBoardEditor({
         </aside>
 
         <div className="space-y-4">
-          <section className="rounded-3xl border border-white/[0.05] bg-[#171717] p-6 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]">
-            <div className="flex flex-wrap items-start justify-between gap-4">
-              <div className="space-y-3">
-                <div className="flex flex-wrap items-center gap-3">
-                  {previewMeta?.categoryLabel ? (
-                    <span className="inline-flex items-center rounded-full border border-[#d4dd7f]/20 bg-[#10120d] px-3 py-1 text-[11px] font-medium uppercase tracking-[0.22em] text-[#e6ef92]">
-                      {previewMeta.categoryLabel}
-                    </span>
-                  ) : null}
-                  <span className="inline-flex items-center rounded-full border border-white/[0.08] px-3 py-1 text-[11px] uppercase tracking-[0.22em] text-white/68">
-                    {previewMeta?.authorLabel ?? "You"}
-                  </span>
-                </div>
-                <h3 className="text-[clamp(2rem,4vw,3rem)] font-semibold text-white">
-                  {previewMeta?.title.trim() || "Untitled loadout"}
-                </h3>
-                {previewMeta?.description.trim() ? (
-                  <p className="max-w-2xl text-white/70">
-                    {previewMeta.description}
-                  </p>
-                ) : null}
-              </div>
-              <span className="rounded-full border border-white/[0.08] px-3 py-1 text-[10px] uppercase tracking-[0.25em] text-white/70">
-                {previewMeta?.statusLabel ?? "draft"}
-              </span>
-            </div>
-          </section>
-
-          {previewMeta?.coverImageUrl.trim() ? (
-            <section className="overflow-hidden rounded-3xl border border-white/[0.05] bg-[#171717] shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]">
-              <img
-                src={previewMeta.coverImageUrl}
-                alt={previewMeta.title || "Loadout cover"}
-                className="aspect-[16/7] w-full object-cover"
-              />
-            </section>
-          ) : null}
-
           <section className="space-y-4 rounded-3xl border border-white/[0.05] bg-[#171717] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]">
             <div className="flex items-center justify-between gap-3">
               <div>
@@ -652,14 +623,24 @@ export default function LoadoutBoardEditor({
                 </p>
                 <p className="mt-2 text-sm text-white/68">
                   {previewMode
-                    ? "This is how the custom part of the post will render."
-                    : "Drag, resize, and position widgets inside the body area."}
+                    ? "Review the live post body exactly as it will appear before you publish."
+                    : "Drag, resize, and position blocks. The live post shell stays constant while you edit."}
                 </p>
               </div>
             </div>
 
             {previewMode ? (
-              <LoadoutBoardRenderer layout={layout} products={products} />
+              <LoadoutPostPreview
+                title={previewMeta?.title ?? ""}
+                description={previewMeta?.description ?? ""}
+                coverImageUrl={previewMeta?.coverImageUrl ?? ""}
+                categoryLabel={previewMeta?.categoryLabel ?? ""}
+                authorLabel={previewMeta?.authorLabel ?? "You"}
+                statusLabel={previewMeta?.statusLabel ?? "draft"}
+                layoutMode="custom"
+                layout={layout}
+                products={products}
+              />
             ) : (
               <div
                 ref={canvasRef}
@@ -754,32 +735,11 @@ export default function LoadoutBoardEditor({
               </div>
             )}
           </section>
-
-          {unplacedProducts.length > 0 ? (
-            <section className="space-y-4 rounded-3xl border border-white/[0.05] bg-[#171717] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.03)]">
-              <p className="text-[11px] uppercase tracking-[0.45em] text-white/50">
-                Products
-              </p>
-              <div className="grid gap-4 md:grid-cols-2">
-                {unplacedProducts.map((product) => (
-                  <ProductItem
-                    key={product.attachmentKey}
-                    name={product.name}
-                    brand={product.brand ?? undefined}
-                    description={product.note || product.description}
-                    imageUrl={product.imageUrl}
-                    productUrl={product.productUrl}
-                    sourceUrl={product.sourceUrl}
-                  />
-                ))}
-              </div>
-            </section>
-          ) : null}
         </div>
 
         <aside className="space-y-4 rounded-2xl border border-white/[0.04] bg-white/[0.03] p-4">
           <div className="flex items-center justify-between gap-3">
-              <p className="text-[11px] uppercase tracking-[0.3em] text-white/50">Widget Controls</p>
+              <p className="text-[11px] uppercase tracking-[0.3em] text-white/50">Inspector</p>
             {selectedWidget ? (
               <div className="flex gap-2">
                 <Button
@@ -819,9 +779,17 @@ export default function LoadoutBoardEditor({
           </div>
 
           {!selectedWidget ? (
-            <p className="text-sm text-white/62">Select a widget to edit its content and grid position.</p>
+            <p className="text-sm text-white/62">Select a block on the canvas or in the outline to edit its content and grid position.</p>
           ) : (
             <div className="space-y-4">
+              <div className="rounded-2xl border border-white/[0.05] bg-[#111111] px-4 py-3">
+                <p className="text-[11px] uppercase tracking-[0.25em] text-white/42">
+                  Selected
+                </p>
+                <p className="mt-2 text-sm font-semibold text-white">
+                  {describeWidget(selectedWidget, products)}
+                </p>
+              </div>
               <div className="grid gap-3 sm:grid-cols-2">
                 {([
                   ["x", selectedWidget.x],

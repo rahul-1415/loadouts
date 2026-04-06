@@ -26,8 +26,9 @@ export default async function NewLoadoutPage() {
           Create a new loadout
         </h1>
         <p className="mt-2 text-sm text-white/70">
-          Step 1 selects category. Step 2 adds details. Step 3 adds products.
-          Custom boards get a full-width edit-layout step before publish.
+          Build the post in four focused steps: category, basics, products, and
+          review. Custom boards add a dedicated edit-layout workspace between
+          products and review.
         </p>
       </header>
 
