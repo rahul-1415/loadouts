@@ -45,7 +45,7 @@ export default async function EditLoadoutPage({ params }: EditLoadoutPageProps) 
         </h1>
         <p className="mt-2 text-sm text-white/70">
           Save the basics first, then use the workspace below to switch between
-          products, layout, and a final review of the post.
+          products and a final review of the post.
         </p>
       </header>
 

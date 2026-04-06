@@ -4,18 +4,13 @@ import { useMemo, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import Button from "./Button";
 import ImageUploadField from "./ImageUploadField";
-import LoadoutBoardEditor from "./LoadoutBoardEditor";
 import LoadoutPostPreview from "./LoadoutPostPreview";
 import LoadoutProductsManager, {
   type LoadoutProductItem,
 } from "./LoadoutProductsManager";
 import type { LoadoutStatus } from "../lib/data/collections";
 import { slugifyLoadoutTitle } from "../lib/loadoutPublishing";
-import {
-  createEmptyLoadoutLayout,
-  type LoadoutLayout,
-  type LoadoutLayoutMode,
-} from "../lib/loadoutLayout";
+import type { LoadoutLayoutMode } from "../lib/loadoutLayout";
 
 interface CategoryOption {
   id: string;
@@ -59,7 +54,7 @@ interface CreatedLoadoutState {
   title: string;
 }
 
-type CreateFlowStep = 1 | 2 | 3 | 4 | 5;
+type CreateFlowStep = 1 | 2 | 3 | 4;
 
 export default function NewLoadoutForm({
   categories,
@@ -90,14 +85,12 @@ export default function NewLoadoutForm({
   const [attachedProducts, setAttachedProducts] = useState<LoadoutProductItem[]>(
     []
   );
-  const [boardLayout, setBoardLayout] = useState<LoadoutLayout | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [finalizingStatus, setFinalizingStatus] = useState<LoadoutStatus | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const isCustomFlow = !isEditMode && layoutMode === "custom";
-  const totalSteps = isEditMode ? 2 : isCustomFlow ? 5 : 4;
+  const totalSteps = isEditMode ? 2 : 4;
 
   function goBackInFlow() {
     if (step === 1) {
@@ -117,11 +110,6 @@ export default function NewLoadoutForm({
 
     setErrorMessage(null);
     setSuccessMessage(null);
-    if (step === 5) {
-      setStep(4);
-      return;
-    }
-
     if (step === 4) {
       setStep(3);
       return;
@@ -157,17 +145,6 @@ export default function NewLoadoutForm({
     setStep(2);
   }
 
-  function goToPreviewStep() {
-    if (!createdLoadout?.slug) {
-      setErrorMessage("Save the loadout details first.");
-      return;
-    }
-
-    setErrorMessage(null);
-    setSuccessMessage(null);
-    setStep(4);
-  }
-
   function goToReviewStep() {
     if (attachedProducts.length === 0) {
       setErrorMessage("Add at least one product before continuing to review.");
@@ -176,7 +153,7 @@ export default function NewLoadoutForm({
 
     setErrorMessage(null);
     setSuccessMessage(null);
-    setStep(isCustomFlow ? 5 : 4);
+    setStep(4);
   }
 
   async function saveLoadout(nextStatus: LoadoutStatus) {
@@ -277,7 +254,6 @@ export default function NewLoadoutForm({
       slug: savedDraft.slug,
       title: title.trim(),
     });
-    setBoardLayout(createEmptyLoadoutLayout());
     setStep(3);
     router.refresh();
   }
@@ -413,7 +389,7 @@ export default function NewLoadoutForm({
             <label className="text-sm font-medium text-white">
               Body Layout
             </label>
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="grid gap-3">
               <button
                 type="button"
                 onClick={() => setLayoutMode("standard")}
@@ -430,26 +406,7 @@ export default function NewLoadoutForm({
                   Keep the current product-first layout
                 </p>
                 <p className="mt-2 text-sm text-white/60">
-                  Best for quick publishing with the fixed loadout page body.
-                </p>
-              </button>
-              <button
-                type="button"
-                onClick={() => setLayoutMode("custom")}
-                className={`rounded-2xl border px-4 py-4 text-left transition ${
-                  layoutMode === "custom"
-                    ? "border-[#d4dd7f]/45 bg-[#10120d]"
-                    : "border-white/[0.08] bg-[#181818]"
-                }`}
-              >
-                <p className="text-[11px] uppercase tracking-[0.24em] text-white/50">
-                  Custom Board
-                </p>
-                <p className="mt-2 text-sm font-semibold text-white">
-                  Build a draggable board body
-                </p>
-                <p className="mt-2 text-sm text-white/60">
-                  Add text, images, galleries, dividers, and attached product widgets in the edit-layout step after products.
+                  The custom board editor is hidden for now, so new loadouts use the standard product-first layout.
                 </p>
               </button>
             </div>
@@ -537,9 +494,7 @@ export default function NewLoadoutForm({
               Build the product stack
             </h2>
             <p className="mt-2 text-sm text-white/70">
-              {isCustomFlow
-                ? "Attach the products that belong in this loadout, then continue to the edit-layout workspace to shape the post body."
-                : "Attach the products that belong in this loadout, then continue to review and publish."}
+              Attach the products that belong in this loadout, then continue to review and publish.
             </p>
           </div>
 
@@ -554,57 +509,6 @@ export default function NewLoadoutForm({
           />
 
           <div className="flex flex-wrap items-center gap-3">
-            {isCustomFlow ? (
-              <Button
-                type="button"
-                onClick={goToPreviewStep}
-                disabled={attachedProducts.length === 0}
-              >
-                Continue to Edit Layout
-              </Button>
-            ) : (
-              <Button
-                type="button"
-                onClick={goToReviewStep}
-                disabled={attachedProducts.length === 0}
-              >
-                Continue to Review
-              </Button>
-            )}
-          </div>
-        </div>
-      ) : null}
-
-      {step === 4 && createdLoadout && isCustomFlow ? (
-        <div className="space-y-5">
-          <div className="rounded-2xl border border-white/[0.04] bg-white/[0.03] px-4 py-4">
-            <p className="text-[11px] uppercase tracking-[0.35em] text-white/50">
-              Step 4
-            </p>
-            <h2 className="mt-2 text-2xl font-semibold text-white">
-              Edit layout
-            </h2>
-            <p className="mt-2 text-sm text-white/70">
-              This step mirrors the public loadout page. Adjust the board while previewing how the final post will read.
-            </p>
-          </div>
-
-          <LoadoutBoardEditor
-            collectionIdentifier={createdLoadout.slug}
-            initialLayout={boardLayout}
-            products={attachedProducts}
-            onLayoutChange={setBoardLayout}
-            previewMeta={{
-              title,
-              description,
-              coverImageUrl,
-              categoryLabel: selectedCategoryLabel,
-              authorLabel: "You",
-              statusLabel: "draft",
-            }}
-          />
-
-          <div className="flex flex-wrap items-center gap-3">
             <Button
               type="button"
               onClick={goToReviewStep}
@@ -616,12 +520,11 @@ export default function NewLoadoutForm({
         </div>
       ) : null}
 
-      {((step === 4 && !isCustomFlow) || (step === 5 && isCustomFlow)) &&
-      createdLoadout ? (
+      {step === 4 && createdLoadout ? (
         <div className="space-y-5">
           <div className="rounded-2xl border border-white/[0.04] bg-white/[0.03] px-4 py-4">
             <p className="text-[11px] uppercase tracking-[0.35em] text-white/50">
-              {isCustomFlow ? "Step 5" : "Step 4"}
+              Step 4
             </p>
             <h2 className="mt-2 text-2xl font-semibold text-white">
               Review & publish
@@ -639,7 +542,7 @@ export default function NewLoadoutForm({
             authorLabel="You"
             statusLabel="draft"
             layoutMode={layoutMode}
-            layout={layoutMode === "custom" ? boardLayout : null}
+            layout={null}
             products={attachedProducts}
             heading="Review"
             subheading="This mirrors the public post shell and the body/products that will be published."

@@ -27,8 +27,7 @@ export default async function NewLoadoutPage() {
         </h1>
         <p className="mt-2 text-sm text-white/70">
           Build the post in four focused steps: category, basics, products, and
-          review. Custom boards add a dedicated edit-layout workspace between
-          products and review.
+          review.
         </p>
       </header>
 

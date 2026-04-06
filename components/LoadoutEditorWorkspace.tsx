@@ -1,14 +1,13 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import LoadoutBoardEditor from "./LoadoutBoardEditor";
+import { useState } from "react";
 import LoadoutPostPreview from "./LoadoutPostPreview";
 import LoadoutProductsManager, {
   type LoadoutProductItem,
 } from "./LoadoutProductsManager";
 import type { LoadoutLayout, LoadoutLayoutMode } from "../lib/loadoutLayout";
 
-type WorkspaceTab = "products" | "layout" | "review";
+type WorkspaceTab = "products" | "review";
 
 interface LoadoutEditorWorkspaceProps {
   collectionIdentifier: string;
@@ -35,11 +34,8 @@ export default function LoadoutEditorWorkspace({
 }: LoadoutEditorWorkspaceProps) {
   const [attachedProducts, setAttachedProducts] = useState(initialProducts);
   const [activeTab, setActiveTab] = useState<WorkspaceTab>("products");
-  const [draftLayout, setDraftLayout] = useState<LoadoutLayout | null>(initialLayout);
-  const availableTabs = useMemo<WorkspaceTab[]>(
-    () => (layoutMode === "custom" ? ["products", "layout", "review"] : ["products", "review"]),
-    [layoutMode]
-  );
+  const [draftLayout] = useState<LoadoutLayout | null>(initialLayout);
+  const availableTabs: WorkspaceTab[] = ["products", "review"];
 
   return (
     <div className="space-y-6">
@@ -64,7 +60,7 @@ export default function LoadoutEditorWorkspace({
                   : "border-white/[0.08] bg-[#181818] text-white/58 hover:border-white/[0.14] hover:text-white"
               }`}
             >
-              {tab === "products" ? "Products" : tab === "layout" ? "Edit Layout" : "Review"}
+              {tab === "products" ? "Products" : "Review"}
             </button>
           ))}
         </div>
@@ -79,23 +75,6 @@ export default function LoadoutEditorWorkspace({
           showComposerCloseButton={false}
           stickyComposer
           onItemsChange={setAttachedProducts}
-        />
-      ) : null}
-
-      {activeTab === "layout" && layoutMode === "custom" ? (
-        <LoadoutBoardEditor
-          collectionIdentifier={collectionIdentifier}
-          initialLayout={draftLayout}
-          products={attachedProducts}
-          onLayoutChange={setDraftLayout}
-          previewMeta={{
-            title,
-            description,
-            coverImageUrl,
-            categoryLabel,
-            authorLabel: "You",
-            statusLabel,
-          }}
         />
       ) : null}
 
