@@ -74,7 +74,6 @@ export default function LoadoutEditorWorkspace({
           defaultComposerMode="existing"
           showComposerCloseButton={false}
           stickyComposer
-          floatingSaveActions
           onItemsChange={setAttachedProducts}
         />
       ) : null}

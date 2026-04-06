@@ -58,7 +58,6 @@ interface LoadoutProductsManagerProps {
   defaultComposerMode?: ComposerMode;
   showComposerCloseButton?: boolean;
   stickyComposer?: boolean;
-  floatingSaveActions?: boolean;
   onItemsChange?: (items: LoadoutProductItem[]) => void;
 }
 
@@ -114,7 +113,6 @@ export default function LoadoutProductsManager({
   defaultComposerMode = "existing",
   showComposerCloseButton = true,
   stickyComposer = false,
-  floatingSaveActions = false,
   onItemsChange,
 }: LoadoutProductsManagerProps) {
   const router = useRouter();
@@ -477,8 +475,8 @@ export default function LoadoutProductsManager({
         </p>
       </header>
 
-      <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
-        <div className="space-y-4 rounded-2xl border border-white/[0.04] bg-white/[0.03] p-4">
+      <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_360px] xl:items-start">
+        <div className="space-y-4 rounded-2xl border border-white/[0.04] bg-white/[0.03] p-4 xl:flex xl:max-h-[calc(100vh-8rem)] xl:flex-col xl:overflow-hidden">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
               <p className="text-[11px] uppercase tracking-[0.25em] text-white/55">
@@ -505,6 +503,7 @@ export default function LoadoutProductsManager({
             </Button>
           </div>
 
+          <div className="space-y-4 xl:min-h-0 xl:flex-1 xl:overflow-y-auto xl:pr-2">
           {composerMode === "custom" && composerOpen ? (
             <div className="space-y-3 rounded-2xl border border-[#d4dd7f]/18 bg-[#12150d] p-4">
               <div>
@@ -694,9 +693,10 @@ export default function LoadoutProductsManager({
               </div>
             </div>
           )}
+          </div>
         </div>
 
-        <aside className="space-y-4 rounded-2xl border border-white/[0.04] bg-white/[0.03] p-4 xl:sticky xl:top-24 xl:self-start">
+        <aside className="space-y-4 rounded-2xl border border-white/[0.04] bg-white/[0.03] p-4 xl:sticky xl:top-24 xl:flex xl:max-h-[calc(100vh-8rem)] xl:flex-col xl:self-start">
           <div className="space-y-2">
             <div className="flex items-center justify-between gap-3">
               <div>
@@ -723,7 +723,7 @@ export default function LoadoutProductsManager({
             )}
           </div>
 
-          <div className="space-y-3">
+          <div className="space-y-3 xl:min-h-0 xl:flex-1 xl:overflow-y-auto xl:pr-2">
             {items.length === 0 ? (
               <div className="rounded-2xl border border-dashed border-white/[0.08] bg-[#111111] px-4 py-8 text-center text-sm text-white/55">
                 Add at least one product to continue the publishing flow.
@@ -784,7 +784,7 @@ export default function LoadoutProductsManager({
             )}
           </div>
 
-          {!floatingSaveActions ? (
+          <div className="border-t border-white/[0.06] pt-4">
             <div className="flex flex-wrap items-center gap-3">
               <Button
                 type="button"
@@ -801,38 +801,9 @@ export default function LoadoutProductsManager({
                 </p>
               ) : null}
             </div>
-          ) : null}
+          </div>
         </aside>
       </div>
-
-      {floatingSaveActions ? (
-        <div className="fixed bottom-4 left-4 z-30 sm:bottom-6 sm:left-6">
-          <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-white/[0.06] bg-[#111111]/95 px-4 py-4 shadow-[0_20px_50px_rgba(0,0,0,0.28)] backdrop-blur">
-            <div className="hidden sm:block">
-              <p className="text-[11px] uppercase tracking-[0.24em] text-white/50">
-                Products
-              </p>
-              <p className="mt-1 text-xs text-white/62">
-                {hasUnsavedProductChanges
-                  ? "Save attached product changes"
-                  : "Everything saved"}
-              </p>
-            </div>
-            <Button
-              type="button"
-              onClick={saveOrderAndNotes}
-              disabled={busyAction !== null || items.length === 0 || !hasUnsavedProductChanges}
-            >
-              {busyAction === "save" ? "Saving..." : "Save Product Changes"}
-            </Button>
-            {busyAction === "load" ? (
-              <p className="text-xs uppercase tracking-[0.2em] text-white/55">
-                Loading catalog...
-              </p>
-            ) : null}
-          </div>
-        </div>
-      ) : null}
 
       {message ? <p className="text-sm text-[#86efac]">{message}</p> : null}
       {errorMessage ? (
