@@ -403,20 +403,6 @@ export default function LoadoutProductsManager({
     router.refresh();
   };
 
-  const moveProduct = (index: number, direction: "up" | "down") => {
-    setItems((current) => {
-      const nextIndex = direction === "up" ? index - 1 : index + 1;
-      if (nextIndex < 0 || nextIndex >= current.length) {
-        return current;
-      }
-
-      const cloned = [...current];
-      const [item] = cloned.splice(index, 1);
-      cloned.splice(nextIndex, 0, item);
-      return normalizeSort(cloned);
-    });
-  };
-
   const updateNote = (index: number, note: string) => {
     setItems((current) =>
       current.map((item, itemIndex) =>
@@ -432,7 +418,7 @@ export default function LoadoutProductsManager({
 
   const saveOrderAndNotes = async () => {
     if (items.length === 0) {
-      setErrorMessage("Add at least one product before saving order.");
+      setErrorMessage("Add at least one product before saving changes.");
       return;
     }
 
@@ -459,7 +445,7 @@ export default function LoadoutProductsManager({
       const payload = (await response.json().catch(() => null)) as
         | ApiErrorResponse
         | null;
-      setErrorMessage(payload?.error?.message ?? "Unable to save order.");
+      setErrorMessage(payload?.error?.message ?? "Unable to save product changes.");
       setBusyAction(null);
       return;
     }
@@ -470,7 +456,7 @@ export default function LoadoutProductsManager({
     const normalizedItems = normalizeSort(payload?.data?.items ?? []);
     setItems(normalizedItems);
     setSavedItemsSignature(serializeManagedItems(normalizedItems));
-    setMessage("Order and notes saved.");
+    setMessage("Product changes saved.");
     setBusyAction(null);
     router.refresh();
   };
@@ -716,7 +702,7 @@ export default function LoadoutProductsManager({
                   In This Loadout
                 </p>
                 <p className="mt-2 text-sm text-white/68">
-                  Reorder the stack and optionally add notes that can surface in review or the custom layout.
+                  Review the attached products and optionally add notes that can surface in review or on the published loadout.
                 </p>
               </div>
               <span className="rounded-full border border-white/[0.08] px-3 py-1 text-[10px] uppercase tracking-[0.25em] text-white/60">
@@ -772,24 +758,6 @@ export default function LoadoutProductsManager({
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Button
-                        type="button"
-                        variant="secondary"
-                        className="px-3 py-1.5 text-[10px]"
-                        onClick={() => moveProduct(index, "up")}
-                        disabled={index === 0}
-                      >
-                        Up
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="secondary"
-                        className="px-3 py-1.5 text-[10px]"
-                        onClick={() => moveProduct(index, "down")}
-                        disabled={index === items.length - 1}
-                      >
-                        Down
-                      </Button>
                       <Button
                         type="button"
                         variant="secondary"

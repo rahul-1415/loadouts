@@ -534,6 +534,36 @@ export default function NewLoadoutForm({
             </p>
           </div>
 
+          <div className="sticky top-4 z-20">
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-white/[0.06] bg-[#111111]/95 px-4 py-4 shadow-[0_20px_50px_rgba(0,0,0,0.28)] backdrop-blur">
+              <div>
+                <p className="text-[11px] uppercase tracking-[0.28em] text-white/50">
+                  Actions
+                </p>
+                <p className="mt-2 text-sm text-white/68">
+                  Save a draft or publish without scrolling to the bottom of the preview.
+                </p>
+              </div>
+              <div className="flex flex-wrap items-center gap-3">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() => finalizeCreate("draft")}
+                  disabled={finalizingStatus !== null}
+                >
+                  {finalizingStatus === "draft" ? "Saving Draft..." : "Save Draft"}
+                </Button>
+                <Button
+                  type="button"
+                  onClick={() => finalizeCreate("published")}
+                  disabled={finalizingStatus !== null}
+                >
+                  {finalizingStatus === "published" ? "Publishing..." : "Publish Loadout"}
+                </Button>
+              </div>
+            </div>
+          </div>
+
           <LoadoutPostPreview
             title={title}
             description={description}
@@ -547,24 +577,6 @@ export default function NewLoadoutForm({
             heading="Review"
             subheading="This mirrors the public post shell and the body/products that will be published."
           />
-
-          <div className="flex flex-wrap items-center gap-3">
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={() => finalizeCreate("draft")}
-              disabled={finalizingStatus !== null}
-            >
-              {finalizingStatus === "draft" ? "Saving Draft..." : "Save Draft"}
-            </Button>
-            <Button
-              type="button"
-              onClick={() => finalizeCreate("published")}
-              disabled={finalizingStatus !== null}
-            >
-              {finalizingStatus === "published" ? "Publishing..." : "Publish Loadout"}
-            </Button>
-          </div>
         </div>
       ) : null}
 
