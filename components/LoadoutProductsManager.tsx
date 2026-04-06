@@ -58,6 +58,7 @@ interface LoadoutProductsManagerProps {
   defaultComposerMode?: ComposerMode;
   showComposerCloseButton?: boolean;
   stickyComposer?: boolean;
+  floatingSaveActions?: boolean;
   onItemsChange?: (items: LoadoutProductItem[]) => void;
 }
 
@@ -113,6 +114,7 @@ export default function LoadoutProductsManager({
   defaultComposerMode = "existing",
   showComposerCloseButton = true,
   stickyComposer = false,
+  floatingSaveActions = false,
   onItemsChange,
 }: LoadoutProductsManagerProps) {
   const router = useRouter();
@@ -716,7 +718,7 @@ export default function LoadoutProductsManager({
               </p>
             ) : (
               <p className="text-[11px] uppercase tracking-[0.22em] text-white/40">
-                Product order saved
+                Product changes saved
               </p>
             )}
           </div>
@@ -782,7 +784,40 @@ export default function LoadoutProductsManager({
             )}
           </div>
 
-          <div className="flex flex-wrap items-center gap-3">
+          {!floatingSaveActions ? (
+            <div className="flex flex-wrap items-center gap-3">
+              <Button
+                type="button"
+                onClick={saveOrderAndNotes}
+                disabled={
+                  busyAction !== null || items.length === 0 || !hasUnsavedProductChanges
+                }
+              >
+                {busyAction === "save" ? "Saving..." : "Save Product Changes"}
+              </Button>
+              {busyAction === "load" ? (
+                <p className="text-xs uppercase tracking-[0.2em] text-white/55">
+                  Loading catalog...
+                </p>
+              ) : null}
+            </div>
+          ) : null}
+        </aside>
+      </div>
+
+      {floatingSaveActions ? (
+        <div className="fixed bottom-4 left-4 z-30 sm:bottom-6 sm:left-6">
+          <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-white/[0.06] bg-[#111111]/95 px-4 py-4 shadow-[0_20px_50px_rgba(0,0,0,0.28)] backdrop-blur">
+            <div className="hidden sm:block">
+              <p className="text-[11px] uppercase tracking-[0.24em] text-white/50">
+                Products
+              </p>
+              <p className="mt-1 text-xs text-white/62">
+                {hasUnsavedProductChanges
+                  ? "Save attached product changes"
+                  : "Everything saved"}
+              </p>
+            </div>
             <Button
               type="button"
               onClick={saveOrderAndNotes}
@@ -796,8 +831,8 @@ export default function LoadoutProductsManager({
               </p>
             ) : null}
           </div>
-        </aside>
-      </div>
+        </div>
+      ) : null}
 
       {message ? <p className="text-sm text-[#86efac]">{message}</p> : null}
       {errorMessage ? (
